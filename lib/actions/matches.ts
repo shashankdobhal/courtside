@@ -77,6 +77,7 @@ export async function submitScore(matchId: string, score1: number, score2: numbe
 
   await progressTournament(match.tournamentId);
 
+  revalidatePath("/");
   revalidatePath(`/tournaments/${match.tournamentId}`);
   revalidatePath(`/tournaments/${match.tournamentId}/share`);
 }
