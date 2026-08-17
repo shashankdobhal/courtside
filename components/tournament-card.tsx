@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { CalendarDays, ArrowRight } from "lucide-react";
 import { formatDate, tournamentTypeLabel, tournamentStatusLabel } from "@/utils/format";
 import { TournamentStatus, TournamentType } from "@/types";
+import { TournamentCardActions } from "@/components/tournament-card-actions";
 
 type TournamentCardData = {
   id: string;
@@ -19,6 +20,7 @@ const statusVariant: Record<string, "secondary" | "default" | "outline"> = {
   [TournamentStatus.PENDING]: "outline",
   [TournamentStatus.ACTIVE]: "default",
   [TournamentStatus.COMPLETED]: "secondary",
+  [TournamentStatus.CANCELLED]: "outline",
 };
 
 export function TournamentCard({ tournament }: { tournament: TournamentCardData }) {
@@ -37,9 +39,12 @@ export function TournamentCard({ tournament }: { tournament: TournamentCardData 
             {formatDate(tournament.createdAt)}
           </div>
         </div>
-        <Badge variant={statusVariant[tournament.status] ?? "outline"}>
-          {tournamentStatusLabel[tournament.status as TournamentStatus] ?? tournament.status}
-        </Badge>
+        <div className="flex shrink-0 items-center gap-1">
+          <Badge variant={statusVariant[tournament.status] ?? "outline"}>
+            {tournamentStatusLabel[tournament.status as TournamentStatus] ?? tournament.status}
+          </Badge>
+          <TournamentCardActions tournamentId={tournament.id} status={tournament.status} />
+        </div>
       </CardHeader>
       <CardContent className="flex items-center justify-between gap-3">
         <span className="text-sm text-muted-foreground">

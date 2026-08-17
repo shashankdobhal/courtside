@@ -53,9 +53,15 @@ async function progressTournament(tournamentId: string) {
 export async function submitScore(matchId: string, score1: number, score2: number) {
   const parsed = scoreEntrySchema.parse({ score1, score2 });
 
-  const match = await prisma.match.findUnique({ where: { id: matchId } });
+  const match = await prisma.match.findUnique({
+    where: { id: matchId },
+    include: { tournament: true },
+  });
   if (!match) throw new Error("Match not found");
   if (!match.player2Id) throw new Error("Match has no second player");
+  if (match.tournament.status === TournamentStatus.CANCELLED) {
+    throw new Error("This tournament has been discontinued");
+  }
 
   const winnerId = parsed.score1 > parsed.score2 ? match.player1Id : match.player2Id;
 

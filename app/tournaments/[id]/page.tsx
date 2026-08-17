@@ -9,7 +9,8 @@ import { StandingsTable } from "@/components/standings-table";
 import { FixturesList } from "@/components/fixtures-list";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Share2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Share2, Ban } from "lucide-react";
 import type { MatchCardData } from "@/components/match-card";
 
 export default async function TournamentPage({
@@ -65,6 +66,13 @@ export default async function TournamentPage({
         <TournamentProgress completed={completedCount} total={tournament.matches.length} />
       </div>
 
+      {tournament.status === TournamentStatus.CANCELLED && (
+        <Badge variant="outline" className="mb-6 gap-1.5 text-muted-foreground">
+          <Ban className="size-3.5" />
+          This tournament was discontinued
+        </Badge>
+      )}
+
       {champion && <div className="mb-6"><ChampionBanner name={champion.name} /></div>}
 
       <Tabs defaultValue="fixtures">
@@ -73,7 +81,10 @@ export default async function TournamentPage({
           <TabsTrigger value="standings">Standings</TabsTrigger>
         </TabsList>
         <TabsContent value="fixtures">
-          <FixturesList matches={matchCards} />
+          <FixturesList
+            matches={matchCards}
+            readOnly={tournament.status === TournamentStatus.CANCELLED}
+          />
         </TabsContent>
         <TabsContent value="standings">
           <StandingsTable standings={standings} />

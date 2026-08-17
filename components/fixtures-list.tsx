@@ -4,7 +4,13 @@ import { roundLabel } from "@/utils/format";
 
 const ROUND_ORDER = [Round.LEAGUE, Round.SEMI_FINAL_1, Round.SEMI_FINAL_2, Round.FINAL];
 
-export function FixturesList({ matches }: { matches: MatchCardData[] }) {
+export function FixturesList({
+  matches,
+  readOnly = false,
+}: {
+  matches: MatchCardData[];
+  readOnly?: boolean;
+}) {
   const grouped = ROUND_ORDER.map((round) => ({
     round,
     matches: matches.filter((m) => m.round === round),
@@ -17,7 +23,7 @@ export function FixturesList({ matches }: { matches: MatchCardData[] }) {
           <h3 className="text-sm font-medium text-muted-foreground">{roundLabel[round]}</h3>
           <div className="space-y-2">
             {matches.map((match) => (
-              <MatchCard key={match.id} match={match} />
+              <MatchCard key={match.id} match={match} readOnly={readOnly} />
             ))}
           </div>
         </div>

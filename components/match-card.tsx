@@ -21,7 +21,13 @@ export interface MatchCardData {
   status: string;
 }
 
-export function MatchCard({ match }: { match: MatchCardData }) {
+export function MatchCard({
+  match,
+  readOnly = false,
+}: {
+  match: MatchCardData;
+  readOnly?: boolean;
+}) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const isCompleted = match.status === MatchStatus.COMPLETED;
 
@@ -43,7 +49,7 @@ export function MatchCard({ match }: { match: MatchCardData }) {
           />
         </div>
 
-        {!isCompleted && (
+        {!isCompleted && !readOnly && (
           <Button size="sm" variant="secondary" className="shrink-0" onClick={() => setDialogOpen(true)}>
             Enter Score
           </Button>

@@ -8,6 +8,7 @@ export const TournamentStatus = {
   PENDING: "PENDING",
   ACTIVE: "ACTIVE",
   COMPLETED: "COMPLETED",
+  CANCELLED: "CANCELLED",
 } as const;
 export type TournamentStatus = (typeof TournamentStatus)[keyof typeof TournamentStatus];
 

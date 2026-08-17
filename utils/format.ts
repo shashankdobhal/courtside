@@ -14,6 +14,7 @@ export const tournamentStatusLabel: Record<TournamentStatus, string> = {
   [TournamentStatus.PENDING]: "Pending",
   [TournamentStatus.ACTIVE]: "Active",
   [TournamentStatus.COMPLETED]: "Completed",
+  [TournamentStatus.CANCELLED]: "Discontinued",
 };
 
 export const roundLabel: Record<string, string> = {

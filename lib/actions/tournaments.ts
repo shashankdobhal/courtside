@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { createTournamentSchema, playersSchemaForType } from "@/lib/validations";
 import { TournamentStatus, TournamentType } from "@/types";
@@ -47,6 +48,30 @@ export async function setupPlayersAndFixtures(tournamentId: string, names: strin
   ]);
 
   redirect(`/tournaments/${tournamentId}`);
+}
+
+export async function discontinueTournament(tournamentId: string) {
+  const tournament = await prisma.tournament.findUnique({ where: { id: tournamentId } });
+  if (!tournament) throw new Error("Tournament not found");
+  if (
+    tournament.status === TournamentStatus.COMPLETED ||
+    tournament.status === TournamentStatus.CANCELLED
+  ) {
+    throw new Error("This tournament has already finished");
+  }
+
+  await prisma.tournament.update({
+    where: { id: tournamentId },
+    data: { status: TournamentStatus.CANCELLED },
+  });
+
+  revalidatePath("/");
+  revalidatePath(`/tournaments/${tournamentId}`);
+}
+
+export async function deleteTournament(tournamentId: string) {
+  await prisma.tournament.delete({ where: { id: tournamentId } });
+  revalidatePath("/");
 }
 
 export async function getTournaments() {
