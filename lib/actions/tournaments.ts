@@ -19,6 +19,7 @@ export async function createTournament(input: { name: string; type: string; legs
     },
   });
 
+  revalidatePath("/");
   redirect(`/tournaments/${tournament.id}/players`);
 }
 
@@ -47,6 +48,7 @@ export async function setupPlayersAndFixtures(tournamentId: string, names: strin
     }),
   ]);
 
+  revalidatePath("/");
   redirect(`/tournaments/${tournamentId}`);
 }
 
