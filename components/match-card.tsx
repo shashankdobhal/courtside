@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ScoreEntryDialog } from "@/components/score-entry-dialog";
+import { PlayerAvatar } from "@/components/player-avatar";
 import { MatchStatus } from "@/types";
 import { Trophy } from "lucide-react";
 
@@ -24,16 +25,21 @@ export interface MatchCardData {
 export function MatchCard({
   match,
   readOnly = false,
+  index = 0,
 }: {
   match: MatchCardData;
   readOnly?: boolean;
+  index?: number;
 }) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const isCompleted = match.status === MatchStatus.COMPLETED;
 
   return (
     <>
-      <Card className="flex-row items-center justify-between gap-3 p-4">
+      <Card
+        className="flex-row items-center justify-between gap-3 p-4 duration-300 animate-in fade-in slide-in-from-bottom-2 fill-mode-both"
+        style={{ animationDelay: `${Math.min(index, 12) * 40}ms` }}
+      >
         <div className="flex min-w-0 flex-1 items-center justify-between gap-3">
           <PlayerLabel
             name={match.player1Name}
@@ -85,6 +91,7 @@ function PlayerLabel({
         align === "right" && "flex-row-reverse text-right"
       )}
     >
+      <PlayerAvatar name={name} className={cn(isWinner && "ring-2 ring-amber-400 ring-offset-1")} />
       {isWinner && <Trophy className="size-3.5 shrink-0 text-amber-500" />}
       <span className={cn("truncate text-sm", isWinner ? "font-semibold" : "text-foreground")}>
         {name}

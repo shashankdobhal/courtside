@@ -14,6 +14,7 @@ import {
 } from "@/lib/validations";
 import { setupPlayersAndFixtures } from "@/lib/actions/tournaments";
 import { TournamentType } from "@/types";
+import { PlayerAvatar } from "@/components/player-avatar";
 import { Plus, X, Loader2, Users } from "lucide-react";
 
 const MAX_PLAYERS = 32;
@@ -40,6 +41,7 @@ export function PlayerEntryForm({
     control,
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -69,12 +71,20 @@ export function PlayerEntryForm({
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <div className="space-y-2">
-        {fields.map((field, index) => (
+        {fields.map((field, index) => {
+          const liveName = watch(`players.${index}.name`);
+          return (
           <div key={field.id} className="space-y-1">
             <div className="flex items-center gap-2">
-              <div className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-muted text-sm font-medium text-muted-foreground">
-                {index + 1}
-              </div>
+              {liveName?.trim() ? (
+                <div className="flex size-11 shrink-0 items-center justify-center">
+                  <PlayerAvatar name={liveName} size="md" className="duration-150 animate-in zoom-in-75" />
+                </div>
+              ) : (
+                <div className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-muted text-sm font-medium text-muted-foreground">
+                  {index + 1}
+                </div>
+              )}
               <Input
                 placeholder="Player Name"
                 className="h-11 text-base"
@@ -99,7 +109,8 @@ export function PlayerEntryForm({
               </p>
             )}
           </div>
-        ))}
+          );
+        })}
       </div>
 
       {typeof playersError === "string" && (

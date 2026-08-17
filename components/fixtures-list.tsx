@@ -22,8 +22,8 @@ export function FixturesList({
         <div key={round} className="space-y-2">
           <h3 className="text-sm font-medium text-muted-foreground">{roundLabel[round]}</h3>
           <div className="space-y-2">
-            {matches.map((match) => (
-              <MatchCard key={match.id} match={match} readOnly={readOnly} />
+            {matches.map((match, i) => (
+              <MatchCard key={match.id} match={match} readOnly={readOnly} index={i} />
             ))}
           </div>
         </div>

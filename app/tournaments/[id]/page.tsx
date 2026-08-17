@@ -73,7 +73,11 @@ export default async function TournamentPage({
         </Badge>
       )}
 
-      {champion && <div className="mb-6"><ChampionBanner name={champion.name} /></div>}
+      {champion && (
+        <div className="mb-6">
+          <ChampionBanner name={champion.name} tournamentId={tournament.id} />
+        </div>
+      )}
 
       <Tabs defaultValue="fixtures">
         <TabsList className="mb-4 grid w-full grid-cols-2">

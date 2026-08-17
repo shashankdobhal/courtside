@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { scoreEntrySchema, type ScoreEntryInput } from "@/lib/validations";
 import { submitScore } from "@/lib/actions/matches";
+import { PlayerAvatar } from "@/components/player-avatar";
 import { Loader2 } from "lucide-react";
 
 export function ScoreEntryDialog({
@@ -78,7 +79,8 @@ export function ScoreEntryDialog({
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="score1" className="truncate">
+              <Label htmlFor="score1" className="items-center gap-1.5 truncate">
+                <PlayerAvatar name={player1Name} />
                 {player1Name}
               </Label>
               <Input
@@ -96,7 +98,8 @@ export function ScoreEntryDialog({
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="score2" className="truncate">
+              <Label htmlFor="score2" className="items-center gap-1.5 truncate">
+                <PlayerAvatar name={player2Name} />
                 {player2Name}
               </Label>
               <Input
