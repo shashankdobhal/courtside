@@ -31,8 +31,8 @@ export const playersSchema = z
 
 export const scoreEntrySchema = z
   .object({
-    score1: z.coerce.number().int().min(0).max(99),
-    score2: z.coerce.number().int().min(0).max(99),
+    score1: z.number({ error: "Required" }).int().min(0).max(99),
+    score2: z.number({ error: "Required" }).int().min(0).max(99),
   })
   .refine((data) => data.score1 !== data.score2, {
     message: "Scores cannot be equal",
