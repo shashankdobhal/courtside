@@ -1,0 +1,23 @@
+{
+  "name": "CourtSide",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:1-22-bookworm",
+  "containerEnv": {
+    "DATABASE_URL": "file:./dev.db"
+  },
+  "postCreateCommand": "npm install && npx prisma generate && npx prisma migrate deploy",
+  "postStartCommand": {
+    "dev-server": "npx next dev -H 0.0.0.0"
+  },
+  "forwardPorts": [3000],
+  "portsAttributes": {
+    "3000": {
+      "label": "CourtSide",
+      "onAutoForward": "openPreview"
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": ["Prisma.prisma", "bradlc.vscode-tailwindcss", "dbaeumer.vscode-eslint"]
+    }
+  }
+}
