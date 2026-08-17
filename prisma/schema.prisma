@@ -1,0 +1,59 @@
+// Prisma schema for CourtSide
+// SQLite for local development. Field types are chosen to be PostgreSQL-compatible
+// (SQLite has no native enum support, so enums are modeled as validated strings —
+// see lib/constants.ts / types/index.ts for the corresponding TS union types).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Tournament {
+  id        String   @id @default(cuid())
+  name      String
+  type      String // TournamentType: ROUND_ROBIN | ROUND_ROBIN_KNOCKOUT
+  status    String   @default("PENDING") // TournamentStatus: PENDING | ACTIVE | COMPLETED
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  players Player[]
+  matches Match[]
+}
+
+model Player {
+  id           String @id @default(cuid())
+  tournamentId String
+  name         String
+
+  tournament Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+
+  matchesAsPlayer1 Match[] @relation("Player1Matches")
+  matchesAsPlayer2 Match[] @relation("Player2Matches")
+  matchesWon       Match[] @relation("MatchWinner")
+
+  @@index([tournamentId])
+}
+
+model Match {
+  id           String  @id @default(cuid())
+  tournamentId String
+  player1Id    String
+  player2Id    String?
+  score1       Int?
+  score2       Int?
+  winnerId     String?
+  round        String // e.g. "LEAGUE", "SEMI_FINAL_1", "SEMI_FINAL_2", "FINAL"
+  status       String  @default("PENDING") // MatchStatus: PENDING | COMPLETED
+  matchOrder   Int
+
+  tournament Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  player1    Player     @relation("Player1Matches", fields: [player1Id], references: [id], onDelete: Cascade)
+  player2    Player?    @relation("Player2Matches", fields: [player2Id], references: [id], onDelete: Cascade)
+  winner     Player?    @relation("MatchWinner", fields: [winnerId], references: [id])
+
+  @@index([tournamentId])
+}
