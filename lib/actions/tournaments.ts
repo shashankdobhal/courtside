@@ -2,17 +2,18 @@
 
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { createTournamentSchema, playersSchema } from "@/lib/validations";
-import { TournamentStatus } from "@/types";
+import { createTournamentSchema, playersSchemaForType } from "@/lib/validations";
+import { TournamentStatus, TournamentType } from "@/types";
 import { generateRoundRobinFixtures } from "@/lib/algorithms/fixtures";
 
-export async function createTournament(input: { name: string; type: string }) {
+export async function createTournament(input: { name: string; type: string; legs: number }) {
   const parsed = createTournamentSchema.parse(input);
 
   const tournament = await prisma.tournament.create({
     data: {
       name: parsed.name,
       type: parsed.type,
+      legs: parsed.type === TournamentType.ROUND_ROBIN ? parsed.legs : 1,
       status: TournamentStatus.PENDING,
     },
   });
@@ -27,13 +28,13 @@ export async function setupPlayersAndFixtures(tournamentId: string, names: strin
     throw new Error("Players have already been set up for this tournament");
   }
 
-  const parsed = playersSchema.parse(names.map((name) => ({ name })));
+  const parsed = playersSchemaForType(tournament.type).parse(names.map((name) => ({ name })));
 
   const players = await prisma.$transaction(
     parsed.map((p) => prisma.player.create({ data: { tournamentId, name: p.name } }))
   );
 
-  const fixtures = generateRoundRobinFixtures(players);
+  const fixtures = generateRoundRobinFixtures(players, tournament.legs);
 
   await prisma.$transaction([
     prisma.match.createMany({

@@ -49,6 +49,7 @@ export interface Tournament {
   name: string;
   type: TournamentType;
   status: TournamentStatus;
+  legs: number;
   createdAt: Date;
   updatedAt: Date;
 }

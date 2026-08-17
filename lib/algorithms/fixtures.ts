@@ -25,16 +25,13 @@ interface FixtureMatch {
  * every round has an even number of seats; pairings touching the BYE are
  * dropped from the output since there's no opponent to schedule.
  */
-export function generateRoundRobinFixtures(players: FixturePlayer[]): FixtureInput[] {
-  if (players.length < 2) return [];
-
+function buildRoundRobinPairings(players: FixturePlayer[]): [string, string][] {
   const ids = players.map((p) => p.id);
   const seats: (string | null)[] = ids.length % 2 === 0 ? [...ids] : [...ids, null];
   const rounds = seats.length - 1;
   const half = seats.length / 2;
 
-  const fixtures: FixtureInput[] = [];
-  let order = 0;
+  const pairings: [string, string][] = [];
   let arr = seats;
 
   for (let round = 0; round < rounds; round++) {
@@ -42,13 +39,44 @@ export function generateRoundRobinFixtures(players: FixturePlayer[]): FixtureInp
       const a = arr[i];
       const b = arr[arr.length - 1 - i];
       if (a !== null && b !== null) {
-        fixtures.push({ player1Id: a, player2Id: b, round: Round.LEAGUE, matchOrder: order++ });
+        pairings.push([a, b]);
       }
     }
     const fixed = arr[0];
     const rest = arr.slice(1);
     rest.unshift(rest.pop()!);
     arr = [fixed, ...rest];
+  }
+
+  return pairings;
+}
+
+/**
+ * Generates league fixtures for a round robin, repeating every pairing
+ * `legs` times (once/twice/thrice) so groups can choose to play each other
+ * more than once. Odd legs keep the original player order, even legs swap
+ * it, mirroring a home/away rotation.
+ */
+export function generateRoundRobinFixtures(
+  players: FixturePlayer[],
+  legs: number = 1
+): FixtureInput[] {
+  if (players.length < 2) return [];
+
+  const pairings = buildRoundRobinPairings(players);
+  const fixtures: FixtureInput[] = [];
+  let order = 0;
+
+  for (let leg = 0; leg < legs; leg++) {
+    const swap = leg % 2 === 1;
+    for (const [a, b] of pairings) {
+      fixtures.push({
+        player1Id: swap ? b : a,
+        player2Id: swap ? a : b,
+        round: Round.LEAGUE,
+        matchOrder: order++,
+      });
+    }
   }
 
   return fixtures;

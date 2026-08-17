@@ -22,7 +22,7 @@ export default async function PlayersPage({
         <h1 className="text-2xl font-semibold tracking-tight">{tournament.name}</h1>
         <p className="text-sm text-muted-foreground">Add players to generate fixtures.</p>
       </div>
-      <PlayerEntryForm tournamentId={tournament.id} />
+      <PlayerEntryForm tournamentId={tournament.id} tournamentType={tournament.type} />
     </main>
   );
 }

@@ -50,6 +50,45 @@ describe("generateRoundRobinFixtures", () => {
     expect(orders).toEqual([...orders].sort((a, b) => a - b));
     expect(new Set(orders).size).toBe(orders.length);
   });
+
+  it("defaults to a single leg when legs is omitted", () => {
+    const withDefault = generateRoundRobinFixtures(players(4));
+    const explicitOnce = generateRoundRobinFixtures(players(4), 1);
+    expect(withDefault).toEqual(explicitOnce);
+  });
+
+  it("repeats every pairing twice when legs is 2", () => {
+    const fixtures = generateRoundRobinFixtures(players(4), 2);
+    expect(fixtures).toHaveLength(12); // 2 * (4 choose 2)
+
+    const counts = new Map<string, number>();
+    for (const f of fixtures) {
+      const key = pairKey(f.player1Id, f.player2Id!);
+      counts.set(key, (counts.get(key) ?? 0) + 1);
+    }
+    expect(counts.size).toBe(6);
+    for (const count of counts.values()) expect(count).toBe(2);
+  });
+
+  it("repeats every pairing three times when legs is 3", () => {
+    const fixtures = generateRoundRobinFixtures(players(3), 3);
+    expect(fixtures).toHaveLength(9); // 3 * (3 choose 2)
+
+    const counts = new Map<string, number>();
+    for (const f of fixtures) {
+      const key = pairKey(f.player1Id, f.player2Id!);
+      counts.set(key, (counts.get(key) ?? 0) + 1);
+    }
+    expect(counts.size).toBe(3);
+    for (const count of counts.values()) expect(count).toBe(3);
+  });
+
+  it("keeps match orders sequential and unique across multiple legs", () => {
+    const fixtures = generateRoundRobinFixtures(players(5), 3);
+    const orders = fixtures.map((f) => f.matchOrder);
+    expect(orders).toEqual([...orders].sort((a, b) => a - b));
+    expect(new Set(orders).size).toBe(orders.length);
+  });
 });
 
 describe("generateKnockoutFixtures", () => {

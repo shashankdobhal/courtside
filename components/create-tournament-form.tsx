@@ -28,6 +28,12 @@ const typeOptions = [
   },
 ];
 
+const legsOptions = [
+  { value: 1, label: "Once" },
+  { value: 2, label: "Twice" },
+  { value: 3, label: "Thrice" },
+];
+
 export function CreateTournamentForm() {
   const [isPending, startTransition] = useTransition();
   const [serverError, setServerError] = useState<string | null>(null);
@@ -40,10 +46,11 @@ export function CreateTournamentForm() {
     formState: { errors },
   } = useForm<CreateTournamentInput>({
     resolver: zodResolver(createTournamentSchema),
-    defaultValues: { name: "", type: TournamentType.ROUND_ROBIN },
+    defaultValues: { name: "", type: TournamentType.ROUND_ROBIN, legs: 1 },
   });
 
   const selectedType = watch("type");
+  const selectedLegs = watch("legs");
 
   const onSubmit = (data: CreateTournamentInput) => {
     setServerError(null);
@@ -99,6 +106,32 @@ export function CreateTournamentForm() {
           })}
         </div>
       </div>
+
+      {selectedType === TournamentType.ROUND_ROBIN && (
+        <div className="space-y-2">
+          <Label>How many times should each pair play?</Label>
+          <div className="grid grid-cols-3 gap-2">
+            {legsOptions.map((option) => {
+              const isSelected = selectedLegs === option.value;
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => setValue("legs", option.value, { shouldValidate: true })}
+                  className={cn(
+                    "h-11 rounded-lg border text-sm font-medium transition-colors active:scale-[0.99]",
+                    isSelected
+                      ? "border-primary bg-primary/5 ring-1 ring-primary"
+                      : "border-border hover:bg-accent"
+                  )}
+                >
+                  {option.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {serverError && <p className="text-sm text-destructive">{serverError}</p>}
 

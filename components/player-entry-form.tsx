@@ -7,19 +7,34 @@ import { z } from "zod";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { playersSchema } from "@/lib/validations";
+import {
+  playersSchemaForType,
+  MIN_PLAYERS_ROUND_ROBIN,
+  MIN_PLAYERS_KNOCKOUT,
+} from "@/lib/validations";
 import { setupPlayersAndFixtures } from "@/lib/actions/tournaments";
+import { TournamentType } from "@/types";
 import { Plus, X, Loader2, Users } from "lucide-react";
 
-const MIN_PLAYERS = 4;
 const MAX_PLAYERS = 32;
 
-const formSchema = z.object({ players: playersSchema });
-type FormValues = z.infer<typeof formSchema>;
-
-export function PlayerEntryForm({ tournamentId }: { tournamentId: string }) {
+export function PlayerEntryForm({
+  tournamentId,
+  tournamentType,
+}: {
+  tournamentId: string;
+  tournamentType: string;
+}) {
   const [isPending, startTransition] = useTransition();
   const [serverError, setServerError] = useState<string | null>(null);
+
+  const MIN_PLAYERS =
+    tournamentType === TournamentType.ROUND_ROBIN_KNOCKOUT
+      ? MIN_PLAYERS_KNOCKOUT
+      : MIN_PLAYERS_ROUND_ROBIN;
+
+  const formSchema = z.object({ players: playersSchemaForType(tournamentType) });
+  type FormValues = z.infer<typeof formSchema>;
 
   const {
     control,
@@ -29,7 +44,7 @@ export function PlayerEntryForm({ tournamentId }: { tournamentId: string }) {
   } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      players: [{ name: "" }, { name: "" }, { name: "" }, { name: "" }],
+      players: Array.from({ length: MIN_PLAYERS }, () => ({ name: "" })),
     },
   });
 
