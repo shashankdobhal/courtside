@@ -1,14 +1,14 @@
 // Prisma schema for CourtSide
-// SQLite for local development. Field types are chosen to be PostgreSQL-compatible
-// (SQLite has no native enum support, so enums are modeled as validated strings —
-// see lib/constants.ts / types/index.ts for the corresponding TS union types).
+// PostgreSQL (Prisma Postgres, provisioned via Vercel). Enums are still modeled
+// as validated strings — not for SQLite compatibility anymore, just to match
+// the existing TS union types in types/index.ts and keep migrations simple.
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 

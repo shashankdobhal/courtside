@@ -1,10 +1,11 @@
 {
+  // This app runs on Postgres (Prisma). Codespaces has no database of its own,
+  // so set a DATABASE_URL Codespaces secret on the repo (Settings > Secrets and
+  // variables > Codespaces) pointing at your own Postgres instance before the
+  // dev server / `prisma migrate deploy` will work.
   "name": "CourtSide",
   "image": "mcr.microsoft.com/devcontainers/javascript-node:1-22-bookworm",
-  "containerEnv": {
-    "DATABASE_URL": "file:./dev.db"
-  },
-  "postCreateCommand": "npm install && npx prisma generate && npx prisma migrate deploy",
+  "postCreateCommand": "npm install && npx prisma generate",
   "postStartCommand": {
     "dev-server": "npx next dev -H 0.0.0.0"
   },
