@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getTournament } from "@/lib/actions/tournaments";
 import { calculateStandings, calculateChampion } from "@/lib/algorithms/standings";
@@ -7,6 +8,8 @@ import { ChampionBanner } from "@/components/champion-banner";
 import { StandingsTable } from "@/components/standings-table";
 import { FixturesList } from "@/components/fixtures-list";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Share2 } from "lucide-react";
 import type { MatchCardData } from "@/components/match-card";
 
 export default async function TournamentPage({
@@ -50,7 +53,15 @@ export default async function TournamentPage({
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-8 sm:py-12">
       <div className="mb-6 space-y-4">
-        <h1 className="text-2xl font-semibold tracking-tight">{tournament.name}</h1>
+        <div className="flex items-start justify-between gap-3">
+          <h1 className="text-2xl font-semibold tracking-tight">{tournament.name}</h1>
+          <Button asChild variant="outline" size="sm" className="shrink-0">
+            <Link href={`/tournaments/${tournament.id}/share`}>
+              <Share2 className="size-3.5" />
+              Share
+            </Link>
+          </Button>
+        </div>
         <TournamentProgress completed={completedCount} total={tournament.matches.length} />
       </div>
 
