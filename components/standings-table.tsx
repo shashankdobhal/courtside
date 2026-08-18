@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/table";
 import { PlayerAvatar } from "@/components/player-avatar";
 import { cn } from "@/lib/utils";
+import { displayName } from "@/utils/format";
 import type { StandingsRow } from "@/types";
 
 const MEDALS = ["🥇", "🥈", "🥉"];
@@ -43,8 +44,8 @@ export function StandingsTable({ standings }: { standings: StandingsRow[] }) {
                     <span className="w-4 shrink-0 text-center text-muted-foreground">
                       {isPodium ? MEDALS[i] : i + 1}
                     </span>
-                    <PlayerAvatar name={row.player.name} />
-                    <span className="truncate">{row.player.name}</span>
+                    <PlayerAvatar name={displayName(row.player)} />
+                    <span className="truncate">{displayName(row.player)}</span>
                   </div>
                 </TableCell>
                 <TableCell className="text-right tabular-nums">{row.played}</TableCell>

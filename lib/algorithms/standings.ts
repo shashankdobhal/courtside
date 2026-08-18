@@ -4,6 +4,7 @@ interface StandingsPlayer {
   id: string;
   tournamentId: string;
   name: string;
+  alias: string | null;
 }
 
 interface StandingsMatch {

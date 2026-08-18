@@ -4,7 +4,7 @@ import { calculateStandings, calculateChampion } from "@/lib/algorithms/standing
 import { StandingsTable } from "@/components/standings-table";
 import { ShareActions } from "@/components/share-actions";
 import { MatchStatus, Round } from "@/types";
-import { formatDate, roundLabel } from "@/utils/format";
+import { formatDate, roundLabel, displayName } from "@/utils/format";
 import { Trophy } from "lucide-react";
 
 export default async function SharePage({
@@ -44,7 +44,7 @@ export default async function SharePage({
           <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
             Champion
           </p>
-          <p className="text-2xl font-semibold">🏆 {champion.name}</p>
+          <p className="text-2xl font-semibold">🏆 {displayName(champion)}</p>
         </div>
       )}
 
@@ -75,7 +75,7 @@ export default async function SharePage({
                       {roundLabel[m.round] ?? m.round}
                     </span>
                     <span className={`flex-1 truncate text-right ${p1Wins ? "font-semibold" : ""}`}>
-                      {p1?.name}
+                      {p1 ? displayName(p1) : "Unknown"}
                     </span>
                     <Trophy
                       className={`size-3.5 shrink-0 ${p1Wins ? "text-amber-500" : "opacity-0"}`}
@@ -87,7 +87,7 @@ export default async function SharePage({
                       className={`size-3.5 shrink-0 ${!p1Wins ? "text-amber-500" : "opacity-0"}`}
                     />
                     <span className={`flex-1 truncate ${!p1Wins ? "font-semibold" : ""}`}>
-                      {p2?.name}
+                      {p2 ? displayName(p2) : "Unknown"}
                     </span>
                   </div>
                 );

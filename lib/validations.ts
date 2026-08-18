@@ -43,6 +43,19 @@ export function playersSchemaForType(type: string) {
   );
 }
 
+export const aliasSchema = z
+  .string()
+  .trim()
+  .max(40, "Alias must be 40 characters or fewer")
+  .optional()
+  .or(z.literal(""));
+
+export const editPlayerSchema = z.object({
+  name: playerNameSchema,
+  alias: aliasSchema,
+});
+export type EditPlayerInput = z.infer<typeof editPlayerSchema>;
+
 export const scoreEntrySchema = z
   .object({
     score1: z.number({ error: "Required" }).int().min(0).max(99),

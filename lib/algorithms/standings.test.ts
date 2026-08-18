@@ -3,9 +3,9 @@ import { calculateStandings, calculateChampion, calculatePointDifference } from 
 import { MatchStatus, Round, TournamentType } from "@/types";
 
 const players = [
-  { id: "p1", tournamentId: "t1", name: "Rahul" },
-  { id: "p2", tournamentId: "t1", name: "Amit" },
-  { id: "p3", tournamentId: "t1", name: "Priya" },
+  { id: "p1", tournamentId: "t1", name: "Rahul", alias: null },
+  { id: "p2", tournamentId: "t1", name: "Amit", alias: null },
+  { id: "p3", tournamentId: "t1", name: "Priya", alias: null },
 ];
 
 function match(overrides: Partial<Parameters<typeof calculateStandings>[1][number]>) {

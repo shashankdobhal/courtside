@@ -3,10 +3,12 @@ import { notFound, redirect } from "next/navigation";
 import { getTournament } from "@/lib/actions/tournaments";
 import { calculateStandings, calculateChampion } from "@/lib/algorithms/standings";
 import { TournamentStatus, MatchStatus } from "@/types";
+import { displayName } from "@/utils/format";
 import { TournamentProgress } from "@/components/tournament-progress";
 import { ChampionBanner } from "@/components/champion-banner";
 import { StandingsTable } from "@/components/standings-table";
 import { FixturesList } from "@/components/fixtures-list";
+import { PlayersList } from "@/components/players-list";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -34,18 +36,22 @@ export default async function TournamentPage({
     matches: tournament.matches,
   });
 
-  const matchCards: MatchCardData[] = tournament.matches.map((m) => ({
-    id: m.id,
-    round: m.round,
-    player1Id: m.player1Id,
-    player2Id: m.player2Id ?? "",
-    player1Name: playersById.get(m.player1Id)?.name ?? "Unknown",
-    player2Name: (m.player2Id && playersById.get(m.player2Id)?.name) ?? "Unknown",
-    score1: m.score1,
-    score2: m.score2,
-    winnerId: m.winnerId,
-    status: m.status,
-  }));
+  const matchCards: MatchCardData[] = tournament.matches.map((m) => {
+    const p1 = playersById.get(m.player1Id);
+    const p2 = m.player2Id ? playersById.get(m.player2Id) : undefined;
+    return {
+      id: m.id,
+      round: m.round,
+      player1Id: m.player1Id,
+      player2Id: m.player2Id ?? "",
+      player1Name: p1 ? displayName(p1) : "Unknown",
+      player2Name: p2 ? displayName(p2) : "Unknown",
+      score1: m.score1,
+      score2: m.score2,
+      winnerId: m.winnerId,
+      status: m.status,
+    };
+  });
 
   const completedCount = tournament.matches.filter(
     (m) => m.status === MatchStatus.COMPLETED
@@ -75,14 +81,15 @@ export default async function TournamentPage({
 
       {champion && (
         <div className="mb-6">
-          <ChampionBanner name={champion.name} tournamentId={tournament.id} />
+          <ChampionBanner name={displayName(champion)} tournamentId={tournament.id} />
         </div>
       )}
 
       <Tabs defaultValue="fixtures">
-        <TabsList className="mb-4 grid w-full grid-cols-2">
+        <TabsList className="mb-4 grid w-full grid-cols-3">
           <TabsTrigger value="fixtures">Fixtures</TabsTrigger>
           <TabsTrigger value="standings">Standings</TabsTrigger>
+          <TabsTrigger value="players">Players</TabsTrigger>
         </TabsList>
         <TabsContent value="fixtures">
           <FixturesList
@@ -92,6 +99,9 @@ export default async function TournamentPage({
         </TabsContent>
         <TabsContent value="standings">
           <StandingsTable standings={standings} />
+        </TabsContent>
+        <TabsContent value="players">
+          <PlayersList players={tournament.players} />
         </TabsContent>
       </Tabs>
     </main>

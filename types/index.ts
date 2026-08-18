@@ -30,6 +30,7 @@ export interface Player {
   id: string;
   tournamentId: string;
   name: string;
+  alias: string | null;
 }
 
 export interface Match {

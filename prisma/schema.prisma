@@ -26,9 +26,10 @@ model Tournament {
 }
 
 model Player {
-  id           String @id @default(cuid())
+  id           String  @id @default(cuid())
   tournamentId String
   name         String
+  alias        String? // optional fun nickname shown in place of the real name
 
   tournament Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
 
