@@ -38,6 +38,16 @@ export function ScoreEntryDialog({
   const [serverError, setServerError] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
+  const playScoreSound = () => {
+    // A plain Audio object (not a JSX <audio> element) keeps playing to
+    // completion even after this dialog closes and unmounts.
+    if (!audioRef.current) {
+      audioRef.current = new Audio("/sounds/score.mp3");
+    }
+    audioRef.current.currentTime = 0;
+    audioRef.current.play().catch((err) => console.error("score sound blocked:", err));
+  };
+
   const {
     register,
     handleSubmit,
@@ -52,7 +62,7 @@ export function ScoreEntryDialog({
     startTransition(async () => {
       try {
         await submitScore(matchId, data.score1, data.score2);
-        audioRef.current?.play().catch((err) => console.error("score sound blocked:", err));
+        playScoreSound();
         toast.success("Score saved");
         reset();
         onOpenChange(false);
@@ -75,7 +85,6 @@ export function ScoreEntryDialog({
       }}
     >
       <DialogContent className="sm:max-w-sm">
-        <audio ref={audioRef} src="/sounds/score.mp3" preload="auto" className="hidden" />
         <DialogHeader>
           <DialogTitle>Enter Score</DialogTitle>
         </DialogHeader>
