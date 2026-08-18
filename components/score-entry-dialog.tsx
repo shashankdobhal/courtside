@@ -49,10 +49,10 @@ export function ScoreEntryDialog({
 
   const onSubmit = (data: ScoreEntryInput) => {
     setServerError(null);
-    audioRef.current?.play().catch((err) => console.error("score sound blocked:", err));
     startTransition(async () => {
       try {
         await submitScore(matchId, data.score1, data.score2);
+        audioRef.current?.play().catch((err) => console.error("score sound blocked:", err));
         toast.success("Score saved");
         reset();
         onOpenChange(false);
