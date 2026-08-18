@@ -51,6 +51,7 @@ export function ScoreEntryDialog({
     startTransition(async () => {
       try {
         await submitScore(matchId, data.score1, data.score2);
+        new Audio("/sounds/score.mp3").play().catch(() => {});
         toast.success("Score saved");
         reset();
         onOpenChange(false);
