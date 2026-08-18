@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -36,6 +36,7 @@ export function ScoreEntryDialog({
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [serverError, setServerError] = useState<string | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const {
     register,
@@ -48,10 +49,10 @@ export function ScoreEntryDialog({
 
   const onSubmit = (data: ScoreEntryInput) => {
     setServerError(null);
+    audioRef.current?.play().catch((err) => console.error("score sound blocked:", err));
     startTransition(async () => {
       try {
         await submitScore(matchId, data.score1, data.score2);
-        new Audio("/sounds/score.mp3").play().catch(() => {});
         toast.success("Score saved");
         reset();
         onOpenChange(false);
@@ -74,6 +75,7 @@ export function ScoreEntryDialog({
       }}
     >
       <DialogContent className="sm:max-w-sm">
+        <audio ref={audioRef} src="/sounds/score.mp3" preload="auto" className="hidden" />
         <DialogHeader>
           <DialogTitle>Enter Score</DialogTitle>
         </DialogHeader>
