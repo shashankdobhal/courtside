@@ -95,6 +95,7 @@ export default async function TournamentPage({
           <FixturesList
             matches={matchCards}
             readOnly={tournament.status === TournamentStatus.CANCELLED}
+            tournamentType={tournament.type}
           />
         </TabsContent>
         <TabsContent value="standings">
