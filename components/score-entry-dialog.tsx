@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -24,15 +24,20 @@ export function ScoreEntryDialog({
   matchId,
   player1Name,
   player2Name,
+  initialScore1 = null,
+  initialScore2 = null,
   open,
   onOpenChange,
 }: {
   matchId: string;
   player1Name: string;
   player2Name: string;
+  initialScore1?: number | null;
+  initialScore2?: number | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
+  const isEditing = initialScore1 !== null && initialScore2 !== null;
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [serverError, setServerError] = useState<string | null>(null);
@@ -57,13 +62,23 @@ export function ScoreEntryDialog({
     resolver: zodResolver(scoreEntrySchema),
   });
 
+  useEffect(() => {
+    if (open) {
+      reset({
+        score1: initialScore1 ?? undefined,
+        score2: initialScore2 ?? undefined,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
   const onSubmit = (data: ScoreEntryInput) => {
     setServerError(null);
     startTransition(async () => {
       try {
         await submitScore(matchId, data.score1, data.score2);
         playScoreSound();
-        toast.success("Score saved");
+        toast.success(isEditing ? "Score updated" : "Score saved");
         reset();
         onOpenChange(false);
         router.refresh();
@@ -86,7 +101,7 @@ export function ScoreEntryDialog({
     >
       <DialogContent className="sm:max-w-sm">
         <DialogHeader>
-          <DialogTitle>Enter Score</DialogTitle>
+          <DialogTitle>{isEditing ? "Edit Score" : "Enter Score"}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
@@ -134,7 +149,7 @@ export function ScoreEntryDialog({
           <DialogFooter>
             <Button type="submit" size="lg" className="h-11 w-full" disabled={isPending}>
               {isPending && <Loader2 className="size-4 animate-spin" />}
-              Save
+              {isEditing ? "Update" : "Save"}
             </Button>
           </DialogFooter>
         </form>

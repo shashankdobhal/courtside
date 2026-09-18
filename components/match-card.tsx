@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import { ScoreEntryDialog } from "@/components/score-entry-dialog";
 import { PlayerAvatar } from "@/components/player-avatar";
 import { MatchStatus } from "@/types";
-import { Trophy } from "lucide-react";
+import { Pencil, Trophy } from "lucide-react";
 
 export interface MatchCardData {
   id: string;
@@ -55,9 +55,21 @@ export function MatchCard({
           />
         </div>
 
-        {!isCompleted && !readOnly && (
+        {!readOnly && !isCompleted && (
           <Button size="sm" variant="secondary" className="shrink-0" onClick={() => setDialogOpen(true)}>
             Enter Score
+          </Button>
+        )}
+        {!readOnly && isCompleted && (
+          <Button
+            size="sm"
+            variant="ghost"
+            className="shrink-0"
+            onClick={() => setDialogOpen(true)}
+            aria-label="Edit score"
+          >
+            <Pencil className="size-3.5" />
+            Edit
           </Button>
         )}
       </Card>
@@ -66,6 +78,8 @@ export function MatchCard({
         matchId={match.id}
         player1Name={match.player1Name}
         player2Name={match.player2Name}
+        initialScore1={match.score1}
+        initialScore2={match.score2}
         open={dialogOpen}
         onOpenChange={setDialogOpen}
       />
