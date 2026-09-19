@@ -25,6 +25,25 @@ export async function resolveOrCreatePlayerProfile(name: string, db: Db = prisma
   return created.id;
 }
 
+/**
+ * Resolves a signed-in user's own player identity deterministically by
+ * account, not by name — unlike `resolveOrCreatePlayerProfile`, retyping a
+ * different display name never forks this into a second profile. Used by
+ * the self-join flow.
+ */
+export async function resolveOrCreateUserPlayerProfile(
+  userId: string,
+  defaultName: string,
+  db: Db = prisma
+): Promise<{ id: string; name: string }> {
+  const existing = await db.playerProfile.findUnique({ where: { userId } });
+  if (existing) return existing;
+
+  return db.playerProfile.create({
+    data: { name: defaultName.trim() || "Player", userId },
+  });
+}
+
 export async function searchPlayerProfiles(query: string): Promise<{ id: string; name: string }[]> {
   const trimmed = query.trim();
 

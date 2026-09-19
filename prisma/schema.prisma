@@ -39,6 +39,7 @@ model User {
   accounts         Account[]
   sessions         Session[]
   ownedTournaments Tournament[]
+  playerProfile    PlayerProfile?
 }
 
 model Account {
@@ -81,7 +82,9 @@ model PlayerProfile {
   id        String   @id @default(cuid())
   name      String
   createdAt DateTime @default(now())
+  userId    String?  @unique // links this identity to the Google account that self-joined with it
 
+  user    User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
   players Player[]
 
   @@index([name])

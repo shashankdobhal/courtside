@@ -1,52 +1,57 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import {
-  playersSchemaForType,
-  MIN_PLAYERS_ROUND_ROBIN,
-  MIN_PLAYERS_KNOCKOUT,
-} from "@/lib/validations";
-import { setupPlayersAndFixtures } from "@/lib/actions/tournaments";
-import { TournamentType } from "@/types";
+import { playerNameSchema, MAX_PLAYERS } from "@/lib/validations";
+import { addPlayers } from "@/lib/actions/tournaments";
 import { PlayerAvatar } from "@/components/player-avatar";
 import { PlayerPickerCombobox } from "@/components/player-picker-combobox";
-import { Plus, X, Loader2, Users } from "lucide-react";
+import { Plus, X, Loader2, UserPlus } from "lucide-react";
 
-const MAX_PLAYERS = 32;
+const formSchema = z.object({
+  players: z
+    .array(z.object({ name: playerNameSchema, profileId: z.string().optional() }))
+    .min(1, "Add at least one player")
+    .max(MAX_PLAYERS, `Maximum ${MAX_PLAYERS} players allowed`)
+    .superRefine((players, ctx) => {
+      const seen = new Map<string, number>();
+      players.forEach((p, i) => {
+        const key = p.name.trim().toLowerCase();
+        if (seen.has(key)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Duplicate player name",
+            path: [i, "name"],
+          });
+        } else {
+          seen.set(key, i);
+        }
+      });
+    }),
+});
+type FormValues = z.infer<typeof formSchema>;
 
-export function PlayerEntryForm({
-  tournamentId,
-  tournamentType,
-}: {
-  tournamentId: string;
-  tournamentType: string;
-}) {
+const emptyRow = { name: "", profileId: undefined };
+
+export function PlayerEntryForm({ tournamentId }: { tournamentId: string }) {
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [serverError, setServerError] = useState<string | null>(null);
-
-  const MIN_PLAYERS =
-    tournamentType === TournamentType.ROUND_ROBIN_KNOCKOUT
-      ? MIN_PLAYERS_KNOCKOUT
-      : MIN_PLAYERS_ROUND_ROBIN;
-
-  const formSchema = z.object({ players: playersSchemaForType(tournamentType) });
-  type FormValues = z.infer<typeof formSchema>;
 
   const {
     control,
     handleSubmit,
     watch,
+    reset,
     formState: { errors },
   } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      players: Array.from({ length: MIN_PLAYERS }, () => ({ name: "", profileId: undefined })),
-    },
+    defaultValues: { players: [emptyRow] },
   });
 
   const { fields, append, remove } = useFieldArray({ control, name: "players" });
@@ -55,11 +60,15 @@ export function PlayerEntryForm({
     setServerError(null);
     startTransition(async () => {
       try {
-        await setupPlayersAndFixtures(tournamentId, data.players);
+        await addPlayers(tournamentId, data.players);
+        toast.success(data.players.length === 1 ? "Player added" : "Players added");
+        reset({ players: [emptyRow] });
+        router.refresh();
       } catch (err) {
-        if (err instanceof Error && err.message === "NEXT_REDIRECT") throw err;
-        setServerError("Something went wrong. Please try again.");
-        toast.error("Failed to generate fixtures");
+        const message =
+          err instanceof Error ? err.message : "Something went wrong. Please try again.";
+        setServerError(message);
+        toast.error("Failed to add players");
       }
     });
   };
@@ -101,7 +110,7 @@ export function PlayerEntryForm({
                 size="icon"
                 className="size-11 shrink-0 text-muted-foreground hover:text-destructive"
                 onClick={() => remove(index)}
-                disabled={fields.length <= MIN_PLAYERS}
+                disabled={fields.length <= 1}
                 aria-label="Remove player"
               >
                 <X className="size-4" />
@@ -126,19 +135,19 @@ export function PlayerEntryForm({
         type="button"
         variant="outline"
         className="h-11 w-full"
-        onClick={() => append({ name: "", profileId: undefined })}
+        onClick={() => append(emptyRow)}
         disabled={fields.length >= MAX_PLAYERS}
       >
         <Plus className="size-4" />
-        Add Player
+        Add Row
         <span className="text-muted-foreground">
           ({fields.length}/{MAX_PLAYERS})
         </span>
       </Button>
 
       <Button type="submit" size="lg" className="h-12 w-full text-base" disabled={isPending}>
-        {isPending ? <Loader2 className="size-4 animate-spin" /> : <Users className="size-4" />}
-        Generate Fixtures
+        {isPending ? <Loader2 className="size-4 animate-spin" /> : <UserPlus className="size-4" />}
+        Add Players
       </Button>
     </form>
   );
