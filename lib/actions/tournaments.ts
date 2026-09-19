@@ -10,18 +10,24 @@ import {
   MIN_PLAYERS_ROUND_ROBIN,
   MIN_PLAYERS_KNOCKOUT,
 } from "@/lib/validations";
-import { TournamentStatus, TournamentType } from "@/types";
+import { TournamentFormat, TournamentStatus, TournamentType } from "@/types";
 import { generateRoundRobinFixtures } from "@/lib/algorithms/fixtures";
 import { resolveOrCreatePlayerProfile } from "@/lib/actions/player-profiles";
 import { requireSignedIn, requireTournamentOwner } from "@/lib/auth-helpers";
 
-export async function createTournament(input: { name: string; type: string; legs: number }) {
+export async function createTournament(input: {
+  name: string;
+  format: string;
+  type: string;
+  legs: number;
+}) {
   const session = await requireSignedIn();
   const parsed = createTournamentSchema.parse(input);
 
   const tournament = await prisma.tournament.create({
     data: {
       name: parsed.name,
+      format: parsed.format,
       type: parsed.type,
       legs: parsed.type === TournamentType.ROUND_ROBIN ? parsed.legs : 1,
       status: TournamentStatus.PENDING,
@@ -44,6 +50,9 @@ export async function addPlayers(
   entries: { name: string; profileId?: string }[]
 ) {
   const { tournament } = await requireTournamentOwner(tournamentId);
+  if (tournament.format !== TournamentFormat.SINGLES) {
+    throw new Error("This tournament doesn't use individual players");
+  }
   if (tournament.status !== TournamentStatus.PENDING) {
     throw new Error("Players can only be added before fixtures are generated");
   }
@@ -72,6 +81,9 @@ export async function addPlayers(
  */
 export async function generateFixturesAndActivate(tournamentId: string) {
   const { tournament } = await requireTournamentOwner(tournamentId);
+  if (tournament.format !== TournamentFormat.SINGLES) {
+    throw new Error("This tournament doesn't use generated fixtures");
+  }
   if (tournament.status !== TournamentStatus.PENDING) {
     throw new Error("Fixtures have already been generated for this tournament");
   }

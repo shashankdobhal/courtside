@@ -2,7 +2,7 @@
 
 import { startOfWeek, endOfWeek, subWeeks } from "date-fns";
 import { prisma } from "@/lib/prisma";
-import { MatchStatus } from "@/types";
+import { MatchStatus, TournamentFormat } from "@/types";
 import {
   calculateLeaderboard,
   computeTrends,
@@ -16,6 +16,7 @@ async function fetchMatchRecords(start: Date, end: Date): Promise<LeaderboardMat
     where: {
       status: MatchStatus.COMPLETED,
       completedAt: { gte: start, lt: end },
+      tournament: { format: TournamentFormat.SINGLES },
       player1: { withdrawn: false, profileId: { not: null }, profile: { seasonOptIn: true } },
       player2: { withdrawn: false, profileId: { not: null }, profile: { seasonOptIn: true } },
     },

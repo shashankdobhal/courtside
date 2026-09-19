@@ -6,6 +6,7 @@ interface StandingsPlayer {
   name: string;
   alias: string | null;
   profileId: string | null;
+  partnerProfileId: string | null;
   withdrawn: boolean;
 }
 

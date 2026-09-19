@@ -3,7 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { getTournament } from "@/lib/actions/tournaments";
 import { prisma } from "@/lib/prisma";
 import { calculateStandings, calculateChampion } from "@/lib/algorithms/standings";
-import { TournamentStatus, MatchStatus, Round } from "@/types";
+import { TournamentFormat, TournamentStatus, MatchStatus, Round } from "@/types";
 import { displayName } from "@/utils/format";
 import { TournamentProgress } from "@/components/tournament-progress";
 import { ChampionBanner } from "@/components/champion-banner";
@@ -11,6 +11,8 @@ import { StandingsTable } from "@/components/standings-table";
 import { FixturesList } from "@/components/fixtures-list";
 import { PlayersList } from "@/components/players-list";
 import { TournamentPageActions } from "@/components/tournament-page-actions";
+import { AddDoublesMatchDialog } from "@/components/add-doubles-match-dialog";
+import { CompleteDoublesSessionButton } from "@/components/complete-doubles-session-button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -89,9 +91,14 @@ export default async function TournamentPage({
     (m) => m.status === MatchStatus.COMPLETED
   ).length;
 
+  const isDoubles = tournament.format === TournamentFormat.DOUBLES;
   const canRegenerate =
+    !isDoubles &&
     tournament.status === TournamentStatus.ACTIVE &&
     tournament.matches.every((m) => m.round === Round.LEAGUE);
+  const doublesTeams = tournament.players
+    .filter((p) => !p.withdrawn)
+    .map((p) => ({ id: p.id, name: displayName(p) }));
 
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-8 sm:py-12">
@@ -105,7 +112,10 @@ export default async function TournamentPage({
               </Badge>
             </div>
             <p className="text-sm text-muted-foreground">
-              {tournamentTypeLabel[tournament.type as keyof typeof tournamentTypeLabel] ?? tournament.type}
+              {isDoubles
+                ? "Doubles · Friendly"
+                : (tournamentTypeLabel[tournament.type as keyof typeof tournamentTypeLabel] ??
+                  tournament.type)}
             </p>
           </div>
           <div className="flex shrink-0 items-center gap-2">
@@ -115,6 +125,9 @@ export default async function TournamentPage({
                 Share
               </Link>
             </Button>
+            {isOwner && isDoubles && tournament.status === TournamentStatus.ACTIVE && (
+              <CompleteDoublesSessionButton tournamentId={tournament.id} />
+            )}
             {isOwner && (
               <TournamentPageActions
                 tournamentId={tournament.id}
@@ -124,7 +137,9 @@ export default async function TournamentPage({
             )}
           </div>
         </div>
-        <TournamentProgress completed={completedCount} total={tournament.matches.length} />
+        {!isDoubles && (
+          <TournamentProgress completed={completedCount} total={tournament.matches.length} />
+        )}
       </div>
 
       {tournament.status === TournamentStatus.CANCELLED && (
@@ -134,9 +149,15 @@ export default async function TournamentPage({
         </Badge>
       )}
 
-      {champion && (
+      {!isDoubles && champion && (
         <div className="mb-6">
           <ChampionBanner name={displayName(champion)} tournamentId={tournament.id} />
+        </div>
+      )}
+
+      {isDoubles && isOwner && tournament.status === TournamentStatus.ACTIVE && (
+        <div className="mb-6">
+          <AddDoublesMatchDialog tournamentId={tournament.id} teams={doublesTeams} />
         </div>
       )}
 
@@ -144,7 +165,7 @@ export default async function TournamentPage({
         <TabsList className="mb-4 grid w-full grid-cols-3">
           <TabsTrigger value="fixtures">Fixtures</TabsTrigger>
           <TabsTrigger value="standings">Standings</TabsTrigger>
-          <TabsTrigger value="players">Players</TabsTrigger>
+          <TabsTrigger value="players">{isDoubles ? "Teams" : "Players"}</TabsTrigger>
         </TabsList>
         <TabsContent value="fixtures">
           <FixturesList

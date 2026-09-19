@@ -48,11 +48,48 @@ export async function requireMatchParticipantOrOwner(matchId: string) {
     const profile = await prisma.playerProfile.findUnique({ where: { userId: session.user.id } });
     const isParticipant =
       !!profile &&
-      (match.player1.profileId === profile.id || match.player2?.profileId === profile.id);
+      (match.player1.profileId === profile.id ||
+        match.player1.partnerProfileId === profile.id ||
+        match.player2?.profileId === profile.id ||
+        match.player2?.partnerProfileId === profile.id);
     if (!isParticipant) {
       throw new Error("Only the organizer or the players in this match can edit its score");
     }
   }
 
   return { session, match };
+}
+
+/**
+ * Throws unless the signed-in user owns the tournament, or belongs to one
+ * of the two teams about to play each other -- used when logging an ad-hoc
+ * doubles match, so any player already in the session can start a game
+ * without waiting on the organizer.
+ */
+export async function requireDoublesMatchParticipantOrOwner(
+  tournamentId: string,
+  team1PlayerId: string,
+  team2PlayerId: string
+) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("You need to sign in first");
+
+  const tournament = await prisma.tournament.findUnique({ where: { id: tournamentId } });
+  if (!tournament) throw new Error("Tournament not found");
+
+  const isOwner = tournament.ownerId === session.user.id;
+  if (!isOwner) {
+    const profile = await prisma.playerProfile.findUnique({ where: { userId: session.user.id } });
+    const teams = await prisma.player.findMany({
+      where: { id: { in: [team1PlayerId, team2PlayerId] } },
+    });
+    const isParticipant =
+      !!profile &&
+      teams.some((t) => t.profileId === profile.id || t.partnerProfileId === profile.id);
+    if (!isParticipant) {
+      throw new Error("Only the organizer or players in this session can add a match");
+    }
+  }
+
+  return { session, tournament };
 }
