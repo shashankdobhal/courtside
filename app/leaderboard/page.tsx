@@ -7,7 +7,7 @@ export default async function LeaderboardPage() {
 
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-8 sm:py-12">
-      <h1 className="mb-1 text-2xl font-semibold tracking-tight">Leaderboard</h1>
+      <h1 className="mb-1 text-2xl font-semibold tracking-tight">Weekly Leaderboard</h1>
       <p className="mb-6 text-sm text-muted-foreground">
         {format(weekly.range.start, "MMM d")} – {format(weekly.range.end, "MMM d, yyyy")}
       </p>
