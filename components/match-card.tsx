@@ -69,7 +69,7 @@ export function MatchCard({
           </Badge>
         )}
         {canEdit && !isCompleted && !isVoid && (
-          <Button size="sm" variant="secondary" className="shrink-0" onClick={() => setDialogOpen(true)}>
+          <Button size="sm" className="shrink-0" onClick={() => setDialogOpen(true)}>
             Enter Score
           </Button>
         )}

@@ -36,23 +36,25 @@ export default async function PlayerProfilePage({
 
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-8 sm:py-12">
-      <div className="mb-6 flex items-start justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <PlayerAvatar name={profile.name} size="md" />
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight">{profile.name}</h1>
-            {bioLine && <p className="text-sm text-muted-foreground">{bioLine}</p>}
+      <div className="relative mb-6 overflow-hidden rounded-3xl border bg-gradient-to-b from-primary/10 via-primary/5 to-transparent p-5 sm:p-6">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <PlayerAvatar name={profile.name} size="md" className="size-12 text-lg" />
+            <div>
+              <h1 className="font-heading text-2xl font-bold tracking-tight">{profile.name}</h1>
+              {bioLine && <p className="text-sm text-muted-foreground">{bioLine}</p>}
+            </div>
           </div>
+          {isOwnProfile && (
+            <ProfileEditor
+              profileId={profile.id}
+              bio={profile.bio}
+              playingStyle={profile.playingStyle}
+              hometown={profile.hometown}
+              seasonOptIn={profile.seasonOptIn}
+            />
+          )}
         </div>
-        {isOwnProfile && (
-          <ProfileEditor
-            profileId={profile.id}
-            bio={profile.bio}
-            playingStyle={profile.playingStyle}
-            hometown={profile.hometown}
-            seasonOptIn={profile.seasonOptIn}
-          />
-        )}
       </div>
 
       {profile.bio && <p className="mb-6 text-sm text-foreground">{profile.bio}</p>}
@@ -69,7 +71,7 @@ export default async function PlayerProfilePage({
         <StatTile label="Points Scored" value={stats.pointsFor} />
         <StatTile label="Points Conceded" value={stats.pointsAgainst} />
         <Card className="items-center gap-1 p-4 text-center">
-          <p className="flex items-center gap-1 text-2xl font-semibold">
+          <p className="font-heading flex items-center gap-1 text-2xl font-bold">
             {tournamentsWon}
             <Trophy className="size-4 text-amber-500" />
           </p>

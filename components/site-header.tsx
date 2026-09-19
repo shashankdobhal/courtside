@@ -13,7 +13,7 @@ export async function SiteHeader() {
       <div className="mx-auto flex h-14 w-full max-w-3xl items-center justify-between px-4">
         <Link
           href="/"
-          className="flex items-center gap-2 text-sm font-semibold tracking-tight transition-opacity hover:opacity-70"
+          className="font-heading flex items-center gap-2 text-sm font-bold tracking-tight transition-opacity hover:opacity-70"
         >
           <Trophy className="size-4 text-primary" />
           CourtSide
