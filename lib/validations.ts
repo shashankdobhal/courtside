@@ -10,13 +10,24 @@ export type CreateTournamentInput = z.infer<typeof createTournamentSchema>;
 
 export const playerNameSchema = z.string().trim().min(1, "Name is required").max(40);
 
-function buildPlayersSchema(minPlayers: number) {
+export const MIN_PLAYERS_ROUND_ROBIN = 2;
+export const MIN_PLAYERS_KNOCKOUT = 4;
+export const MAX_PLAYERS = 32;
+
+/**
+ * Validates a batch of new players being added to a tournament's roster,
+ * against whoever's already on it — used by `addPlayers`, which can be
+ * called repeatedly as the roster grows (organizer bulk-adds, self-joins),
+ * so there's no whole-roster minimum here; that's enforced separately, once,
+ * at fixture-generation time.
+ */
+export function newPlayersSchema(existingNames: string[]) {
+  const existingKeys = new Set(existingNames.map((n) => n.trim().toLowerCase()));
   return z
     .array(z.object({ name: playerNameSchema, profileId: z.string().optional() }))
-    .min(minPlayers, `At least ${minPlayers} players are required`)
-    .max(32, "Maximum 32 players allowed")
+    .max(MAX_PLAYERS, `Maximum ${MAX_PLAYERS} players allowed`)
     .superRefine((players, ctx) => {
-      const seen = new Map<string, number>();
+      const seen = new Set(existingKeys);
       players.forEach((p, i) => {
         const key = p.name.trim().toLowerCase();
         if (seen.has(key)) {
@@ -26,21 +37,10 @@ function buildPlayersSchema(minPlayers: number) {
             path: [i, "name"],
           });
         } else {
-          seen.set(key, i);
+          seen.add(key);
         }
       });
     });
-}
-
-export const MIN_PLAYERS_ROUND_ROBIN = 2;
-export const MIN_PLAYERS_KNOCKOUT = 4;
-
-export const playersSchema = buildPlayersSchema(MIN_PLAYERS_ROUND_ROBIN);
-
-export function playersSchemaForType(type: string) {
-  return buildPlayersSchema(
-    type === TournamentType.ROUND_ROBIN_KNOCKOUT ? MIN_PLAYERS_KNOCKOUT : MIN_PLAYERS_ROUND_ROBIN
-  );
 }
 
 export const aliasSchema = z

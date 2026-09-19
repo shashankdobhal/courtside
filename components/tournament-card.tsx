@@ -31,7 +31,7 @@ export function TournamentCard({
   isOwner: boolean;
 }) {
   const href =
-    tournament.status === TournamentStatus.PENDING && tournament._count.players === 0
+    tournament.status === TournamentStatus.PENDING
       ? `/tournaments/${tournament.id}/players`
       : `/tournaments/${tournament.id}`;
 

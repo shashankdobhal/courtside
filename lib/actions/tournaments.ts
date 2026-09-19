@@ -3,7 +3,13 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { createTournamentSchema, editTournamentSchema, playersSchemaForType } from "@/lib/validations";
+import {
+  createTournamentSchema,
+  editTournamentSchema,
+  newPlayersSchema,
+  MIN_PLAYERS_ROUND_ROBIN,
+  MIN_PLAYERS_KNOCKOUT,
+} from "@/lib/validations";
 import { TournamentStatus, TournamentType } from "@/types";
 import { generateRoundRobinFixtures } from "@/lib/algorithms/fixtures";
 import { resolveOrCreatePlayerProfile } from "@/lib/actions/player-profiles";
@@ -27,25 +33,57 @@ export async function createTournament(input: { name: string; type: string; legs
   redirect(`/tournaments/${tournament.id}/players`);
 }
 
-export async function setupPlayersAndFixtures(
+/**
+ * Adds players to a still-forming (PENDING) tournament's roster. Can be
+ * called repeatedly by the organizer as the roster grows — this is purely
+ * additive and doesn't touch fixtures or tournament status; that's a
+ * separate, explicit step (see generateFixturesAndActivate).
+ */
+export async function addPlayers(
   tournamentId: string,
   entries: { name: string; profileId?: string }[]
 ) {
   const { tournament } = await requireTournamentOwner(tournamentId);
   if (tournament.status !== TournamentStatus.PENDING) {
-    throw new Error("Players have already been set up for this tournament");
+    throw new Error("Players can only be added before fixtures are generated");
   }
+  if (entries.length === 0) return;
 
-  const parsed = playersSchemaForType(tournament.type).parse(entries);
+  const existing = await prisma.player.findMany({
+    where: { tournamentId },
+    select: { name: true },
+  });
+  const parsed = newPlayersSchema(existing.map((p) => p.name)).parse(entries);
 
-  const players = await prisma.$transaction(async (tx) => {
-    const created = [];
+  await prisma.$transaction(async (tx) => {
     for (const p of parsed) {
       const profileId = p.profileId ?? (await resolveOrCreatePlayerProfile(p.name, tx));
-      created.push(await tx.player.create({ data: { tournamentId, name: p.name, profileId } }));
+      await tx.player.create({ data: { tournamentId, name: p.name, profileId } });
     }
-    return created;
   });
+
+  revalidatePath(`/tournaments/${tournamentId}/players`);
+}
+
+/**
+ * Locks in whoever's on the roster right now, generates fixtures, and
+ * activates the tournament. The organizer triggers this explicitly once
+ * they're happy with the roster (self-joins + manual adds combined).
+ */
+export async function generateFixturesAndActivate(tournamentId: string) {
+  const { tournament } = await requireTournamentOwner(tournamentId);
+  if (tournament.status !== TournamentStatus.PENDING) {
+    throw new Error("Fixtures have already been generated for this tournament");
+  }
+
+  const players = await prisma.player.findMany({ where: { tournamentId } });
+  const minPlayers =
+    tournament.type === TournamentType.ROUND_ROBIN_KNOCKOUT
+      ? MIN_PLAYERS_KNOCKOUT
+      : MIN_PLAYERS_ROUND_ROBIN;
+  if (players.length < minPlayers) {
+    throw new Error(`At least ${minPlayers} players are required`);
+  }
 
   const fixtures = generateRoundRobinFixtures(players, tournament.legs);
 

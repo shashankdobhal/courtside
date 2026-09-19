@@ -3,10 +3,61 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { editPlayerSchema } from "@/lib/validations";
-import { resolveOrCreatePlayerProfile } from "@/lib/actions/player-profiles";
+import {
+  resolveOrCreatePlayerProfile,
+  resolveOrCreateUserPlayerProfile,
+} from "@/lib/actions/player-profiles";
 import { progressTournament } from "@/lib/actions/matches";
-import { requireTournamentOwner } from "@/lib/auth-helpers";
+import { requireSignedIn, requireTournamentOwner } from "@/lib/auth-helpers";
 import { MatchStatus, TournamentStatus } from "@/types";
+
+const MAX_PLAYERS = 32;
+
+/**
+ * Self-service join: any signed-in person can add themselves to a
+ * still-forming (PENDING) tournament's roster, without needing the
+ * organizer to type their name in. Their identity is tied to their Google
+ * account (see resolveOrCreateUserPlayerProfile), not just the name shown.
+ */
+export async function joinTournament(tournamentId: string) {
+  const session = await requireSignedIn();
+
+  const tournament = await prisma.tournament.findUnique({
+    where: { id: tournamentId },
+    include: { players: true },
+  });
+  if (!tournament) throw new Error("Tournament not found");
+  if (tournament.status !== TournamentStatus.PENDING) {
+    throw new Error("This tournament is no longer accepting new players");
+  }
+  if (tournament.players.length >= MAX_PLAYERS) {
+    throw new Error("This tournament's roster is full");
+  }
+
+  const profile = await resolveOrCreateUserPlayerProfile(
+    session.user.id,
+    session.user.name ?? "Player"
+  );
+
+  if (tournament.players.some((p) => p.profileId === profile.id)) {
+    throw new Error("You've already joined this tournament");
+  }
+  const nameTaken = tournament.players.some(
+    (p) => p.name.trim().toLowerCase() === profile.name.trim().toLowerCase()
+  );
+  if (nameTaken) {
+    throw new Error(
+      "Someone in this tournament already has your profile name — ask the organizer to add you"
+    );
+  }
+
+  await prisma.player.create({
+    data: { tournamentId, name: profile.name, profileId: profile.id },
+  });
+
+  revalidatePath(`/tournaments/${tournamentId}/players`);
+  revalidatePath("/");
+}
 
 export async function updatePlayer(
   playerId: string,
