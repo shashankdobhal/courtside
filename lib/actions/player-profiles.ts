@@ -1,9 +1,12 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import type { Prisma, PrismaClient } from "@prisma/client";
 import { calculateStandings, calculateChampion } from "@/lib/algorithms/standings";
 import { calculateChampionStreak, aggregateProfileStats } from "@/lib/algorithms/player-stats";
+import { requireSignedIn } from "@/lib/auth-helpers";
+import { editPlayerProfileSchema, type EditPlayerProfileInput } from "@/lib/validations";
 import { TournamentStatus, type StandingsRow } from "@/types";
 
 type Db = PrismaClient | Prisma.TransactionClient;
@@ -42,6 +45,50 @@ export async function resolveOrCreateUserPlayerProfile(
   return db.playerProfile.create({
     data: { name: defaultName.trim() || "Player", userId },
   });
+}
+
+async function requireOwnProfile(profileId: string) {
+  const session = await requireSignedIn();
+  const profile = await prisma.playerProfile.findUnique({ where: { id: profileId } });
+  if (!profile) throw new Error("Profile not found");
+  if (profile.userId !== session.user.id) throw new Error("You can only manage your own profile");
+  return profile;
+}
+
+/**
+ * Descriptive-only fields a player sets on their own profile. Purely
+ * cosmetic — never factored into computed stats or leaderboard ranking.
+ */
+export async function updatePlayerProfileDetails(profileId: string, input: EditPlayerProfileInput) {
+  await requireOwnProfile(profileId);
+  const parsed = editPlayerProfileSchema.parse(input);
+
+  await prisma.playerProfile.update({
+    where: { id: profileId },
+    data: {
+      bio: parsed.bio?.trim() || null,
+      playingStyle: parsed.playingStyle?.trim() || null,
+      hometown: parsed.hometown?.trim() || null,
+    },
+  });
+
+  revalidatePath(`/players/${profileId}`);
+}
+
+/**
+ * A player must opt in for their matches to be counted on the leaderboard.
+ * Only they can toggle it for their own identity.
+ */
+export async function setSeasonOptIn(profileId: string, optedIn: boolean) {
+  await requireOwnProfile(profileId);
+
+  await prisma.playerProfile.update({
+    where: { id: profileId },
+    data: { seasonOptIn: optedIn },
+  });
+
+  revalidatePath(`/players/${profileId}`);
+  revalidatePath("/leaderboard");
 }
 
 export async function searchPlayerProfiles(query: string): Promise<{ id: string; name: string }[]> {
@@ -113,7 +160,15 @@ export async function getPlayerProfileStats(profileId: string) {
   );
 
   return {
-    profile: { id: profile.id, name: profile.name },
+    profile: {
+      id: profile.id,
+      name: profile.name,
+      userId: profile.userId,
+      seasonOptIn: profile.seasonOptIn,
+      bio: profile.bio,
+      playingStyle: profile.playingStyle,
+      hometown: profile.hometown,
+    },
     stats,
     tournamentsWon,
     currentStreak,

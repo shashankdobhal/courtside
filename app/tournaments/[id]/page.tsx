@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getTournament } from "@/lib/actions/tournaments";
+import { prisma } from "@/lib/prisma";
 import { calculateStandings, calculateChampion } from "@/lib/algorithms/standings";
 import { TournamentStatus, MatchStatus, Round } from "@/types";
 import { displayName } from "@/utils/format";
@@ -31,6 +32,18 @@ export default async function TournamentPage({
     redirect(`/tournaments/${tournament.id}/players`);
   }
 
+  let viewerProfileId: string | null = null;
+  if (session?.user?.id && !isOwner) {
+    const profile = await prisma.playerProfile.findUnique({
+      where: { userId: session.user.id },
+      select: { id: true },
+    });
+    viewerProfileId = profile?.id ?? null;
+  }
+  const viewerPlayerIds = new Set(
+    tournament.players.filter((p) => p.profileId && p.profileId === viewerProfileId).map((p) => p.id)
+  );
+
   const playersById = new Map(tournament.players.map((p) => [p.id, p]));
   const standings = calculateStandings(tournament.players, tournament.matches);
   const champion = calculateChampion({
@@ -53,6 +66,7 @@ export default async function TournamentPage({
       score2: m.score2,
       winnerId: m.winnerId,
       status: m.status,
+      canEdit: isOwner || viewerPlayerIds.has(m.player1Id) || viewerPlayerIds.has(m.player2Id ?? ""),
     };
   });
 

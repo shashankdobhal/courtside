@@ -16,8 +16,8 @@ async function fetchMatchRecords(start: Date, end: Date): Promise<LeaderboardMat
     where: {
       status: MatchStatus.COMPLETED,
       completedAt: { gte: start, lt: end },
-      player1: { withdrawn: false, profileId: { not: null } },
-      player2: { withdrawn: false, profileId: { not: null } },
+      player1: { withdrawn: false, profileId: { not: null }, profile: { seasonOptIn: true } },
+      player2: { withdrawn: false, profileId: { not: null }, profile: { seasonOptIn: true } },
     },
     include: {
       player1: { include: { profile: true } },

@@ -61,6 +61,18 @@ export const editPlayerSchema = z.object({
 });
 export type EditPlayerInput = z.infer<typeof editPlayerSchema>;
 
+export const editPlayerProfileSchema = z.object({
+  bio: z.string().trim().max(280, "Bio must be 280 characters or fewer").optional().or(z.literal("")),
+  playingStyle: z
+    .string()
+    .trim()
+    .max(60, "Must be 60 characters or fewer")
+    .optional()
+    .or(z.literal("")),
+  hometown: z.string().trim().max(60, "Must be 60 characters or fewer").optional().or(z.literal("")),
+});
+export type EditPlayerProfileInput = z.infer<typeof editPlayerProfileSchema>;
+
 export const scoreEntrySchema = z
   .object({
     score1: z.number({ error: "Required" }).int().min(0).max(99),
