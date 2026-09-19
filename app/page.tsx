@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { StatTile } from "@/components/stat-tile";
 import { Plus, Zap, Trophy, Swords } from "lucide-react";
-import { getMyTournaments, getPublicActivityStats } from "@/lib/actions/tournaments";
+import { getMyTournaments } from "@/lib/actions/tournaments";
 import { TournamentCard } from "@/components/tournament-card";
 import { EmptyState } from "@/components/empty-state";
 import { LandingPage } from "@/components/landing-page";
@@ -17,8 +17,7 @@ export default async function HomePage() {
   const firstName = session?.user?.name?.trim().split(" ")[0];
 
   if (!session?.user) {
-    const stats = await getPublicActivityStats();
-    return <LandingPage stats={stats} />;
+    return <LandingPage />;
   }
 
   const [tournaments, gamificationStats] = await Promise.all([

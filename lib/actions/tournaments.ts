@@ -175,18 +175,6 @@ export async function getMyTournaments(userId: string) {
   });
 }
 
-/**
- * Platform-wide activity counts for the signed-out landing page's social
- * proof strip — intentionally global, unlike getMyTournaments.
- */
-export async function getPublicActivityStats() {
-  const [tournaments, matches, players] = await Promise.all([
-    prisma.tournament.count(),
-    prisma.match.count(),
-    prisma.player.count(),
-  ]);
-  return { tournaments, matches, players };
-}
 
 export async function getTournament(id: string) {
   return prisma.tournament.findUnique({
