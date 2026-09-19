@@ -20,7 +20,7 @@ export function StatTile({
       {Icon && (
         <Icon className={cn("mb-1 size-4", accent ? "text-primary" : "text-muted-foreground")} />
       )}
-      <p className={cn("text-2xl font-semibold", accent && "text-primary")}>{value}</p>
+      <p className={cn("font-heading text-2xl font-bold", accent && "text-primary")}>{value}</p>
       <p className="text-xs text-muted-foreground">{label}</p>
     </Card>
   );

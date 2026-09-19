@@ -19,21 +19,23 @@ export default async function HomePage() {
 
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-10 sm:py-14">
-      <div className="mb-8 flex flex-col items-center gap-6 text-center sm:mb-10">
-        <div className="space-y-1.5">
-          <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-            {firstName ? `Welcome back, ${firstName}` : "CourtSide"}
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Run casual tournaments — fixtures, scores, and standings in seconds.
-          </p>
+      <div className="relative mb-8 overflow-hidden rounded-3xl border bg-gradient-to-b from-primary/10 via-primary/5 to-transparent px-6 py-10 text-center sm:mb-10 sm:py-14">
+        <div className="relative flex flex-col items-center gap-6">
+          <div className="space-y-1.5">
+            <h1 className="font-heading text-3xl font-bold tracking-tight sm:text-4xl">
+              {firstName ? `Welcome back, ${firstName}` : "CourtSide"}
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Run casual tournaments — fixtures, scores, and standings in seconds.
+            </p>
+          </div>
+          <Button asChild size="lg" className="h-12 px-8 text-base shadow-md shadow-primary/20">
+            <Link href="/tournaments/new">
+              <Plus className="size-5" />
+              Create Tournament
+            </Link>
+          </Button>
         </div>
-        <Button asChild size="lg" className="h-12 px-8 text-base shadow-sm">
-          <Link href="/tournaments/new">
-            <Plus className="size-5" />
-            Create Tournament
-          </Link>
-        </Button>
       </div>
 
       {tournaments.length > 0 && (
