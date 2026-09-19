@@ -150,11 +150,42 @@ export async function deleteTournament(tournamentId: string) {
   revalidatePath("/");
 }
 
-export async function getTournaments() {
+/**
+ * Tournaments the signed-in user actually owns or has played in — the
+ * signed-in home page is a personal dashboard, not a directory of every
+ * tournament on the platform.
+ */
+export async function getMyTournaments(userId: string) {
+  const profile = await prisma.playerProfile.findUnique({
+    where: { userId },
+    select: { id: true },
+  });
+
   return prisma.tournament.findMany({
+    where: {
+      OR: [
+        { ownerId: userId },
+        ...(profile
+          ? [{ players: { some: { OR: [{ profileId: profile.id }, { partnerProfileId: profile.id }] } } }]
+          : []),
+      ],
+    },
     orderBy: { createdAt: "desc" },
     include: { _count: { select: { matches: true, players: true } } },
   });
+}
+
+/**
+ * Platform-wide activity counts for the signed-out landing page's social
+ * proof strip — intentionally global, unlike getMyTournaments.
+ */
+export async function getPublicActivityStats() {
+  const [tournaments, matches, players] = await Promise.all([
+    prisma.tournament.count(),
+    prisma.match.count(),
+    prisma.player.count(),
+  ]);
+  return { tournaments, matches, players };
 }
 
 export async function getTournament(id: string) {
