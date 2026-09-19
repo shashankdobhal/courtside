@@ -1,6 +1,6 @@
 "use server";
 
-import { startOfWeek, endOfWeek, startOfMonth, endOfMonth, subWeeks, subMonths } from "date-fns";
+import { startOfWeek, endOfWeek, subWeeks } from "date-fns";
 import { prisma } from "@/lib/prisma";
 import { MatchStatus } from "@/types";
 import {
@@ -57,11 +57,11 @@ export interface LeaderboardResult {
   trends: Map<string, Trend>;
 }
 
-export async function getLeaderboard(period: "week" | "month"): Promise<LeaderboardResult> {
+export async function getWeeklyLeaderboard(): Promise<LeaderboardResult> {
   const now = new Date();
-  const start = period === "week" ? startOfWeek(now, { weekStartsOn: 1 }) : startOfMonth(now);
-  const end = period === "week" ? endOfWeek(now, { weekStartsOn: 1 }) : endOfMonth(now);
-  const previousStart = period === "week" ? subWeeks(start, 1) : subMonths(start, 1);
+  const start = startOfWeek(now, { weekStartsOn: 1 });
+  const end = endOfWeek(now, { weekStartsOn: 1 });
+  const previousStart = subWeeks(start, 1);
 
   const [currentRecords, previousRecords] = await Promise.all([
     fetchMatchRecords(start, end),
@@ -73,12 +73,4 @@ export async function getLeaderboard(period: "week" | "month"): Promise<Leaderbo
   const trends = computeTrends(rows, previousRows);
 
   return { range: { start, end }, rows, trends };
-}
-
-export async function getWeeklyLeaderboard() {
-  return getLeaderboard("week");
-}
-
-export async function getMonthlyLeaderboard() {
-  return getLeaderboard("month");
 }
