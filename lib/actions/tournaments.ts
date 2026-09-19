@@ -3,9 +3,10 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { createTournamentSchema, playersSchemaForType } from "@/lib/validations";
+import { createTournamentSchema, editTournamentSchema, playersSchemaForType } from "@/lib/validations";
 import { TournamentStatus, TournamentType } from "@/types";
 import { generateRoundRobinFixtures } from "@/lib/algorithms/fixtures";
+import { resolveOrCreatePlayerProfile } from "@/lib/actions/player-profiles";
 
 export async function createTournament(input: { name: string; type: string; legs: number }) {
   const parsed = createTournamentSchema.parse(input);
@@ -23,18 +24,26 @@ export async function createTournament(input: { name: string; type: string; legs
   redirect(`/tournaments/${tournament.id}/players`);
 }
 
-export async function setupPlayersAndFixtures(tournamentId: string, names: string[]) {
+export async function setupPlayersAndFixtures(
+  tournamentId: string,
+  entries: { name: string; profileId?: string }[]
+) {
   const tournament = await prisma.tournament.findUnique({ where: { id: tournamentId } });
   if (!tournament) throw new Error("Tournament not found");
   if (tournament.status !== TournamentStatus.PENDING) {
     throw new Error("Players have already been set up for this tournament");
   }
 
-  const parsed = playersSchemaForType(tournament.type).parse(names.map((name) => ({ name })));
+  const parsed = playersSchemaForType(tournament.type).parse(entries);
 
-  const players = await prisma.$transaction(
-    parsed.map((p) => prisma.player.create({ data: { tournamentId, name: p.name } }))
-  );
+  const players = await prisma.$transaction(async (tx) => {
+    const created = [];
+    for (const p of parsed) {
+      const profileId = p.profileId ?? (await resolveOrCreatePlayerProfile(p.name, tx));
+      created.push(await tx.player.create({ data: { tournamentId, name: p.name, profileId } }));
+    }
+    return created;
+  });
 
   const fixtures = generateRoundRobinFixtures(players, tournament.legs);
 
@@ -50,6 +59,18 @@ export async function setupPlayersAndFixtures(tournamentId: string, names: strin
 
   revalidatePath("/");
   redirect(`/tournaments/${tournamentId}`);
+}
+
+export async function updateTournament(tournamentId: string, input: { name: string }) {
+  const parsed = editTournamentSchema.parse(input);
+
+  await prisma.tournament.update({
+    where: { id: tournamentId },
+    data: { name: parsed.name },
+  });
+
+  revalidatePath("/");
+  revalidatePath(`/tournaments/${tournamentId}`);
 }
 
 export async function discontinueTournament(tournamentId: string) {

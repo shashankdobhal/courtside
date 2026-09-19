@@ -83,6 +83,41 @@ export function generateRoundRobinFixtures(
 }
 
 /**
+ * Rebuilds a tournament's not-yet-played league fixtures from the current
+ * (active) player list, while keeping every already-completed match intact.
+ * A completed match "satisfies" one occurrence of its unordered pairing in
+ * the freshly generated ideal fixture list (correct under multiple legs,
+ * where the same pair may need to meet more than once); anything left over
+ * is what still needs to be (re)scheduled. Output is renumbered starting at
+ * 0 — the caller offsets `matchOrder` to continue after existing matches.
+ */
+export function diffRegeneratedFixtures(
+  idealFixtures: FixtureInput[],
+  completedPairings: [string, string | null][]
+): FixtureInput[] {
+  const pairKey = (a: string, b: string | null) => [a, b ?? ""].sort().join("|");
+
+  const remaining = new Map<string, number>();
+  for (const [a, b] of completedPairings) {
+    const key = pairKey(a, b);
+    remaining.set(key, (remaining.get(key) ?? 0) + 1);
+  }
+
+  const kept: FixtureInput[] = [];
+  for (const fixture of idealFixtures) {
+    const key = pairKey(fixture.player1Id, fixture.player2Id);
+    const count = remaining.get(key) ?? 0;
+    if (count > 0) {
+      remaining.set(key, count - 1);
+      continue;
+    }
+    kept.push(fixture);
+  }
+
+  return kept.map((f, i) => ({ ...f, matchOrder: i }));
+}
+
+/**
  * Seeds the semi finals (1v4, 2v3) once the league stage is complete, then
  * seeds the final once both semis are complete. Returns [] when neither
  * transition is ready yet.

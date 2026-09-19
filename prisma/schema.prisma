@@ -25,23 +25,37 @@ model Tournament {
   matches Match[]
 }
 
+model PlayerProfile {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+
+  players Player[]
+
+  @@index([name])
+}
+
 model Player {
   id           String  @id @default(cuid())
   tournamentId String
   name         String
   alias        String? // optional fun nickname shown in place of the real name
+  profileId    String? // links to a reusable cross-tournament identity; null for legacy rows until backfilled
+  withdrawn    Boolean @default(false)
 
-  tournament Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  tournament Tournament     @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  profile    PlayerProfile? @relation(fields: [profileId], references: [id], onDelete: SetNull)
 
   matchesAsPlayer1 Match[] @relation("Player1Matches")
   matchesAsPlayer2 Match[] @relation("Player2Matches")
   matchesWon       Match[] @relation("MatchWinner")
 
   @@index([tournamentId])
+  @@index([profileId])
 }
 
 model Match {
-  id           String  @id @default(cuid())
+  id           String    @id @default(cuid())
   tournamentId String
   player1Id    String
   player2Id    String?
@@ -49,8 +63,9 @@ model Match {
   score2       Int?
   winnerId     String?
   round        String // e.g. "LEAGUE", "SEMI_FINAL_1", "SEMI_FINAL_2", "FINAL"
-  status       String  @default("PENDING") // MatchStatus: PENDING | COMPLETED
+  status       String    @default("PENDING") // MatchStatus: PENDING | COMPLETED | VOID
   matchOrder   Int
+  completedAt  DateTime? // set once, the first time status becomes COMPLETED; used for leaderboard bucketing
 
   tournament Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
   player1    Player     @relation("Player1Matches", fields: [player1Id], references: [id], onDelete: Cascade)

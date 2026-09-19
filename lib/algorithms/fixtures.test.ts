@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { generateRoundRobinFixtures, generateKnockoutFixtures } from "./fixtures";
+import {
+  generateRoundRobinFixtures,
+  generateKnockoutFixtures,
+  diffRegeneratedFixtures,
+} from "./fixtures";
 import { Round } from "@/types";
 
 function players(n: number) {
@@ -88,6 +92,36 @@ describe("generateRoundRobinFixtures", () => {
     const orders = fixtures.map((f) => f.matchOrder);
     expect(orders).toEqual([...orders].sort((a, b) => a - b));
     expect(new Set(orders).size).toBe(orders.length);
+  });
+});
+
+describe("diffRegeneratedFixtures", () => {
+  it("skips pairings already satisfied by a completed match", () => {
+    const ideal = generateRoundRobinFixtures(players(4)); // A-B, A-C, A-D, B-C, B-D, C-D
+    const result = diffRegeneratedFixtures(ideal, [["A", "B"]]);
+
+    const keys = result.map((f) => pairKey(f.player1Id, f.player2Id!));
+    expect(keys).not.toContain(pairKey("A", "B"));
+    expect(result).toHaveLength(ideal.length - 1);
+  });
+
+  it("renumbers matchOrder sequentially starting at 0", () => {
+    const ideal = generateRoundRobinFixtures(players(4));
+    const result = diffRegeneratedFixtures(ideal, [["A", "B"]]);
+    expect(result.map((f) => f.matchOrder)).toEqual(result.map((_, i) => i));
+  });
+
+  it("keeps a pairing that still needs another leg played", () => {
+    const ideal = generateRoundRobinFixtures(players(2), 2); // A-B twice
+    // Only one of the two legs has been completed so far.
+    const result = diffRegeneratedFixtures(ideal, [["A", "B"]]);
+    expect(result).toHaveLength(1);
+  });
+
+  it("returns everything unchanged when nothing has been completed yet", () => {
+    const ideal = generateRoundRobinFixtures(players(4));
+    const result = diffRegeneratedFixtures(ideal, []);
+    expect(result).toHaveLength(ideal.length);
   });
 });
 
