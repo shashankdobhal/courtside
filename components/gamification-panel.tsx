@@ -1,5 +1,7 @@
 import { Flame, Sparkles, Swords } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Progress } from "@/components/ui/progress";
+import { KARMA_BREAKDOWN, calculateKarmaLevel } from "@/lib/algorithms/gamification";
 import type { PlayerGamificationStats } from "@/lib/actions/gamification";
 
 function motivationalCopy(stats: PlayerGamificationStats | null): string {
@@ -16,6 +18,7 @@ export function GamificationPanel({ stats }: { stats: PlayerGamificationStats | 
   const gamesPlayed = stats?.gamesPlayed ?? 0;
   const last7Days = stats?.streak.last7Days ?? [false, false, false, false, false, false, false];
   const last7Labels = stats?.last7Labels ?? ["S", "M", "T", "W", "T", "F", "S"];
+  const level = stats?.karmaLevel ?? calculateKarmaLevel(0);
 
   return (
     <div className="relative mb-6 overflow-hidden rounded-3xl border p-5 sm:p-6">
@@ -50,6 +53,20 @@ export function GamificationPanel({ stats }: { stats: PlayerGamificationStats | 
           <p className="font-heading text-xl font-bold">{gamesPlayed}</p>
           <p className="text-[11px] leading-tight text-muted-foreground">Games Played</p>
         </div>
+      </div>
+
+      <div className="mb-4 space-y-1.5 rounded-xl bg-background/60 p-3">
+        <div className="flex items-center justify-between text-xs">
+          <span className="font-heading font-semibold">{level.level}</span>
+          <span className="text-muted-foreground">
+            {level.nextLevel ? `${level.karmaToNextLevel} karma to ${level.nextLevel}` : "Top tier reached!"}
+          </span>
+        </div>
+        <Progress value={level.progressToNextLevel * 100} className="h-1.5" />
+        <p className="text-center text-[11px] text-muted-foreground">
+          Karma = {KARMA_BREAKDOWN.perMatch} per game · {KARMA_BREAKDOWN.perWin} per win ·{" "}
+          {KARMA_BREAKDOWN.perStreakDay} per streak day
+        </p>
       </div>
 
       <div className="mb-4 flex items-center justify-center gap-2 sm:gap-3">

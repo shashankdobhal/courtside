@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { calculatePlayStreak, calculateKarmaPoints } from "./gamification";
+import { calculatePlayStreak, calculateKarmaPoints, calculateKarmaLevel } from "./gamification";
 
 const NOW = new Date("2026-09-19T12:00:00Z");
 const daysAgo = (n: number) => new Date(NOW.getTime() - n * 24 * 60 * 60 * 1000);
@@ -61,5 +61,42 @@ describe("calculateKarmaPoints", () => {
     expect(calculateKarmaPoints({ matchesPlayed: 5, wins: 3, currentStreak: 2 })).toBe(
       5 * 10 + 3 * 15 + 2 * 5
     );
+  });
+});
+
+describe("calculateKarmaLevel", () => {
+  it("starts everyone at Rookie with a clear next target", () => {
+    expect(calculateKarmaLevel(0)).toEqual({
+      level: "Rookie",
+      levelIndex: 0,
+      nextLevel: "Rising Star",
+      karmaToNextLevel: 50,
+      progressToNextLevel: 0,
+    });
+  });
+
+  it("reports partial progress toward the next level", () => {
+    const result = calculateKarmaLevel(25);
+    expect(result.level).toBe("Rookie");
+    expect(result.nextLevel).toBe("Rising Star");
+    expect(result.karmaToNextLevel).toBe(25);
+    expect(result.progressToNextLevel).toBeCloseTo(0.5);
+  });
+
+  it("advances to the next named tier exactly at its threshold", () => {
+    const result = calculateKarmaLevel(150);
+    expect(result.level).toBe("Court Regular");
+    expect(result.levelIndex).toBe(2);
+  });
+
+  it("caps out at the top tier with no further target", () => {
+    const result = calculateKarmaLevel(5000);
+    expect(result).toEqual({
+      level: "Badminton Icon",
+      levelIndex: 5,
+      nextLevel: null,
+      karmaToNextLevel: null,
+      progressToNextLevel: 1,
+    });
   });
 });
