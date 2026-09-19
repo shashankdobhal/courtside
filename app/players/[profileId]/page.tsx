@@ -4,6 +4,7 @@ import { getPlayerProfileStats } from "@/lib/actions/player-profiles";
 import { PlayerAvatar } from "@/components/player-avatar";
 import { EmptyState } from "@/components/empty-state";
 import { ProfileEditor } from "@/components/profile-editor";
+import { StatTile } from "@/components/stat-tile";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { tournamentStatusLabel } from "@/utils/format";
@@ -17,15 +18,6 @@ const statusVariant: Record<string, "secondary" | "default" | "outline"> = {
   [TournamentStatus.COMPLETED]: "secondary",
   [TournamentStatus.CANCELLED]: "outline",
 };
-
-function StatTile({ label, value }: { label: string; value: string | number }) {
-  return (
-    <Card className="items-center gap-1 p-4 text-center">
-      <p className="text-2xl font-semibold tabular-nums">{value}</p>
-      <p className="text-xs text-muted-foreground">{label}</p>
-    </Card>
-  );
-}
 
 export default async function PlayerProfilePage({
   params,
@@ -77,7 +69,7 @@ export default async function PlayerProfilePage({
         <StatTile label="Points Scored" value={stats.pointsFor} />
         <StatTile label="Points Conceded" value={stats.pointsAgainst} />
         <Card className="items-center gap-1 p-4 text-center">
-          <p className="flex items-center gap-1 text-2xl font-semibold tabular-nums">
+          <p className="flex items-center gap-1 text-2xl font-semibold">
             {tournamentsWon}
             <Trophy className="size-4 text-amber-500" />
           </p>

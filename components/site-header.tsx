@@ -15,7 +15,7 @@ export async function SiteHeader() {
           href="/"
           className="flex items-center gap-2 text-sm font-semibold tracking-tight transition-opacity hover:opacity-70"
         >
-          <Trophy className="size-4" />
+          <Trophy className="size-4 text-primary" />
           CourtSide
         </Link>
         <div className="flex items-center gap-4">

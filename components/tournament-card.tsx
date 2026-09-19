@@ -6,6 +6,7 @@ import { CalendarDays, ArrowRight } from "lucide-react";
 import { formatDate, tournamentTypeLabel, tournamentStatusLabel } from "@/utils/format";
 import { TournamentStatus, TournamentType } from "@/types";
 import { TournamentCardActions } from "@/components/tournament-card-actions";
+import { cn } from "@/lib/utils";
 
 type TournamentCardData = {
   id: string;
@@ -23,6 +24,13 @@ const statusVariant: Record<string, "secondary" | "default" | "outline"> = {
   [TournamentStatus.CANCELLED]: "outline",
 };
 
+const statusAccent: Record<string, string> = {
+  [TournamentStatus.PENDING]: "before:bg-amber-400",
+  [TournamentStatus.ACTIVE]: "before:bg-primary",
+  [TournamentStatus.COMPLETED]: "before:bg-muted-foreground/30",
+  [TournamentStatus.CANCELLED]: "before:bg-muted-foreground/15",
+};
+
 export function TournamentCard({
   tournament,
   isOwner,
@@ -36,7 +44,12 @@ export function TournamentCard({
       : `/tournaments/${tournament.id}`;
 
   return (
-    <Card className="transition-shadow hover:shadow-md">
+    <Card
+      className={cn(
+        "relative overflow-hidden pl-1 transition-all duration-200 before:absolute before:inset-y-0 before:left-0 before:w-1 hover:-translate-y-0.5 hover:shadow-lg",
+        statusAccent[tournament.status] ?? "before:bg-border"
+      )}
+    >
       <CardHeader className="flex flex-row items-start justify-between gap-2">
         <div className="space-y-1.5">
           <h3 className="font-semibold leading-tight text-base">{tournament.name}</h3>
