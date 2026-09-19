@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { editPlayerSchema } from "@/lib/validations";
 import { resolveOrCreatePlayerProfile } from "@/lib/actions/player-profiles";
 import { progressTournament } from "@/lib/actions/matches";
+import { requireTournamentOwner } from "@/lib/auth-helpers";
 import { MatchStatus, TournamentStatus } from "@/types";
 
 export async function updatePlayer(
@@ -15,6 +16,7 @@ export async function updatePlayer(
 
   const player = await prisma.player.findUnique({ where: { id: playerId } });
   if (!player) throw new Error("Player not found");
+  await requireTournamentOwner(player.tournamentId);
 
   const siblings = await prisma.player.findMany({
     where: { tournamentId: player.tournamentId, NOT: { id: playerId } },
@@ -49,6 +51,7 @@ export async function withdrawPlayer(playerId: string) {
     include: { tournament: true },
   });
   if (!player) throw new Error("Player not found");
+  await requireTournamentOwner(player.tournamentId);
   if (player.tournament.status !== TournamentStatus.ACTIVE) {
     throw new Error("Players can only be withdrawn while the tournament is active");
   }

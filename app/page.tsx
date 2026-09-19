@@ -4,9 +4,11 @@ import { Plus } from "lucide-react";
 import { getTournaments } from "@/lib/actions/tournaments";
 import { TournamentCard } from "@/components/tournament-card";
 import { EmptyState } from "@/components/empty-state";
+import { auth } from "@/auth";
 
 export default async function HomePage() {
-  const tournaments = await getTournaments();
+  const [tournaments, session] = await Promise.all([getTournaments(), auth()]);
+  const userId = session?.user?.id;
 
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-10 sm:py-14">
@@ -32,7 +34,7 @@ export default async function HomePage() {
         ) : (
           <div className="grid gap-3 sm:grid-cols-2">
             {tournaments.map((t) => (
-              <TournamentCard key={t.id} tournament={t} />
+              <TournamentCard key={t.id} tournament={t} isOwner={!!userId && t.ownerId === userId} />
             ))}
           </div>
         )}

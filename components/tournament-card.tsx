@@ -23,7 +23,13 @@ const statusVariant: Record<string, "secondary" | "default" | "outline"> = {
   [TournamentStatus.CANCELLED]: "outline",
 };
 
-export function TournamentCard({ tournament }: { tournament: TournamentCardData }) {
+export function TournamentCard({
+  tournament,
+  isOwner,
+}: {
+  tournament: TournamentCardData;
+  isOwner: boolean;
+}) {
   const href =
     tournament.status === TournamentStatus.PENDING && tournament._count.players === 0
       ? `/tournaments/${tournament.id}/players`
@@ -43,7 +49,9 @@ export function TournamentCard({ tournament }: { tournament: TournamentCardData 
           <Badge variant={statusVariant[tournament.status] ?? "outline"}>
             {tournamentStatusLabel[tournament.status as TournamentStatus] ?? tournament.status}
           </Badge>
-          <TournamentCardActions tournamentId={tournament.id} status={tournament.status} />
+          {isOwner && (
+            <TournamentCardActions tournamentId={tournament.id} status={tournament.status} />
+          )}
         </div>
       </CardHeader>
       <CardContent className="flex items-center justify-between gap-3">

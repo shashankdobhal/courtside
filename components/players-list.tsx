@@ -20,9 +20,11 @@ export interface PlayersListPlayer {
 
 export function PlayersList({
   players,
+  isOwner = false,
   canWithdraw = false,
 }: {
   players: PlayersListPlayer[];
+  isOwner?: boolean;
   canWithdraw?: boolean;
 }) {
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -63,7 +65,7 @@ export function PlayersList({
               )}
             </div>
           </div>
-          {!player.withdrawn && (
+          {isOwner && !player.withdrawn && (
             <PlayerActionsMenu
               playerId={player.id}
               playerName={player.name}
