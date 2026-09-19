@@ -1,6 +1,24 @@
 import "server-only";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { rateLimit } from "@/lib/rate-limit";
+
+const MUTATION_LIMIT = 30;
+const MUTATION_WINDOW_MS = 60_000;
+
+/**
+ * Every mutating action funnels through one of the require* helpers below,
+ * which makes this the one place to throttle abuse (runaway client loops,
+ * bugs, scripted spam) across the whole app. Best-effort/per-instance — see
+ * lib/rate-limit.ts — but enough to stop a single bad actor from generating
+ * unbounded billed operations.
+ */
+function assertNotRateLimited(userId: string) {
+  const result = rateLimit(userId, MUTATION_LIMIT, MUTATION_WINDOW_MS);
+  if (!result.success) {
+    throw new Error(`Too many requests — try again in ${result.retryAfterSeconds}s`);
+  }
+}
 
 /**
  * Throws unless the signed-in user owns the given tournament. Every
@@ -11,6 +29,7 @@ import { prisma } from "@/lib/prisma";
 export async function requireTournamentOwner(tournamentId: string) {
   const session = await auth();
   if (!session?.user?.id) throw new Error("You need to sign in first");
+  assertNotRateLimited(session.user.id);
 
   const tournament = await prisma.tournament.findUnique({ where: { id: tournamentId } });
   if (!tournament) throw new Error("Tournament not found");
@@ -24,6 +43,7 @@ export async function requireTournamentOwner(tournamentId: string) {
 export async function requireSignedIn() {
   const session = await auth();
   if (!session?.user?.id) throw new Error("You need to sign in first");
+  assertNotRateLimited(session.user.id);
   return session;
 }
 
@@ -36,6 +56,7 @@ export async function requireSignedIn() {
 export async function requireMatchParticipantOrOwner(matchId: string) {
   const session = await auth();
   if (!session?.user?.id) throw new Error("You need to sign in first");
+  assertNotRateLimited(session.user.id);
 
   const match = await prisma.match.findUnique({
     where: { id: matchId },
@@ -73,6 +94,7 @@ export async function requireDoublesMatchParticipantOrOwner(
 ) {
   const session = await auth();
   if (!session?.user?.id) throw new Error("You need to sign in first");
+  assertNotRateLimited(session.user.id);
 
   const tournament = await prisma.tournament.findUnique({ where: { id: tournamentId } });
   if (!tournament) throw new Error("Tournament not found");
