@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Share2, Ban } from "lucide-react";
 import type { MatchCardData } from "@/components/match-card";
+import { auth } from "@/auth";
 
 export default async function TournamentPage({
   params,
@@ -22,7 +23,8 @@ export default async function TournamentPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const tournament = await getTournament(id);
+  const [tournament, session] = await Promise.all([getTournament(id), auth()]);
+  const isOwner = !!session?.user?.id && tournament?.ownerId === session.user.id;
 
   if (!tournament) notFound();
   if (tournament.status === TournamentStatus.PENDING) {
@@ -74,11 +76,13 @@ export default async function TournamentPage({
                 Share
               </Link>
             </Button>
-            <TournamentPageActions
-              tournamentId={tournament.id}
-              name={tournament.name}
-              canRegenerate={canRegenerate}
-            />
+            {isOwner && (
+              <TournamentPageActions
+                tournamentId={tournament.id}
+                name={tournament.name}
+                canRegenerate={canRegenerate}
+              />
+            )}
           </div>
         </div>
         <TournamentProgress completed={completedCount} total={tournament.matches.length} />
@@ -116,6 +120,7 @@ export default async function TournamentPage({
         <TabsContent value="players">
           <PlayersList
             players={tournament.players}
+            isOwner={isOwner}
             canWithdraw={tournament.status === TournamentStatus.ACTIVE}
           />
         </TabsContent>

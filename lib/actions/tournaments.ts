@@ -7,8 +7,10 @@ import { createTournamentSchema, editTournamentSchema, playersSchemaForType } fr
 import { TournamentStatus, TournamentType } from "@/types";
 import { generateRoundRobinFixtures } from "@/lib/algorithms/fixtures";
 import { resolveOrCreatePlayerProfile } from "@/lib/actions/player-profiles";
+import { requireSignedIn, requireTournamentOwner } from "@/lib/auth-helpers";
 
 export async function createTournament(input: { name: string; type: string; legs: number }) {
+  const session = await requireSignedIn();
   const parsed = createTournamentSchema.parse(input);
 
   const tournament = await prisma.tournament.create({
@@ -17,6 +19,7 @@ export async function createTournament(input: { name: string; type: string; legs
       type: parsed.type,
       legs: parsed.type === TournamentType.ROUND_ROBIN ? parsed.legs : 1,
       status: TournamentStatus.PENDING,
+      ownerId: session.user.id,
     },
   });
 
@@ -28,8 +31,7 @@ export async function setupPlayersAndFixtures(
   tournamentId: string,
   entries: { name: string; profileId?: string }[]
 ) {
-  const tournament = await prisma.tournament.findUnique({ where: { id: tournamentId } });
-  if (!tournament) throw new Error("Tournament not found");
+  const { tournament } = await requireTournamentOwner(tournamentId);
   if (tournament.status !== TournamentStatus.PENDING) {
     throw new Error("Players have already been set up for this tournament");
   }
@@ -62,6 +64,7 @@ export async function setupPlayersAndFixtures(
 }
 
 export async function updateTournament(tournamentId: string, input: { name: string }) {
+  await requireTournamentOwner(tournamentId);
   const parsed = editTournamentSchema.parse(input);
 
   await prisma.tournament.update({
@@ -74,8 +77,7 @@ export async function updateTournament(tournamentId: string, input: { name: stri
 }
 
 export async function discontinueTournament(tournamentId: string) {
-  const tournament = await prisma.tournament.findUnique({ where: { id: tournamentId } });
-  if (!tournament) throw new Error("Tournament not found");
+  const { tournament } = await requireTournamentOwner(tournamentId);
   if (
     tournament.status === TournamentStatus.COMPLETED ||
     tournament.status === TournamentStatus.CANCELLED
@@ -93,6 +95,7 @@ export async function discontinueTournament(tournamentId: string) {
 }
 
 export async function deleteTournament(tournamentId: string) {
+  await requireTournamentOwner(tournamentId);
   await prisma.tournament.delete({ where: { id: tournamentId } });
   revalidatePath("/");
 }

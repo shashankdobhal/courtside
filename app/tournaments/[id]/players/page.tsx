@@ -2,12 +2,16 @@ import { notFound, redirect } from "next/navigation";
 import { getTournament } from "@/lib/actions/tournaments";
 import { PlayerEntryForm } from "@/components/player-entry-form";
 import { TournamentStatus } from "@/types";
+import { auth } from "@/auth";
 
 export default async function PlayersPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const session = await auth();
+  if (!session?.user) redirect("/api/auth/signin");
+
   const { id } = await params;
   const tournament = await getTournament(id);
 

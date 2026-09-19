@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { generateRoundRobinFixtures, diffRegeneratedFixtures } from "@/lib/algorithms/fixtures";
 import { progressTournament } from "@/lib/actions/matches";
+import { requireTournamentOwner } from "@/lib/auth-helpers";
 import { MatchStatus, Round, TournamentStatus } from "@/types";
 
 /**
@@ -14,6 +15,8 @@ import { MatchStatus, Round, TournamentStatus } from "@/types";
  * Already-completed matches are never touched.
  */
 export async function regenerateFixtures(tournamentId: string) {
+  await requireTournamentOwner(tournamentId);
+
   const tournament = await prisma.tournament.findUnique({
     where: { id: tournamentId },
     include: { players: true, matches: true },
