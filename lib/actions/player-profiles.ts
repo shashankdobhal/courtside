@@ -91,11 +91,19 @@ export async function setSeasonOptIn(profileId: string, optedIn: boolean) {
   revalidatePath("/leaderboard");
 }
 
+/**
+ * Suggestions for the "add players" picker. Only surfaces profiles linked
+ * to a Google account — someone who's actually signed in at least once —
+ * so the pool of reusable identities stays trustworthy instead of filling
+ * up with one-off typed names. Typing a brand-new name still works; it
+ * just won't be offered back as a suggestion until its player signs in.
+ */
 export async function searchPlayerProfiles(query: string): Promise<{ id: string; name: string }[]> {
   const trimmed = query.trim();
 
   if (!trimmed) {
     return prisma.playerProfile.findMany({
+      where: { userId: { not: null } },
       orderBy: { createdAt: "desc" },
       take: 10,
       select: { id: true, name: true },
@@ -103,7 +111,7 @@ export async function searchPlayerProfiles(query: string): Promise<{ id: string;
   }
 
   return prisma.playerProfile.findMany({
-    where: { name: { contains: trimmed, mode: "insensitive" } },
+    where: { userId: { not: null }, name: { contains: trimmed, mode: "insensitive" } },
     orderBy: { name: "asc" },
     take: 10,
     select: { id: true, name: true },
