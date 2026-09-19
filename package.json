@@ -5,12 +5,13 @@
   "type": "module",
   "scripts": {
     "dev": "next dev",
-    "build": "prisma migrate deploy && next build",
+    "build": "prisma migrate deploy && npm run cleanup:profiles && next build",
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
     "postinstall": "prisma generate",
-    "backfill:profiles": "tsx scripts/backfill-player-profiles.ts"
+    "backfill:profiles": "tsx scripts/backfill-player-profiles.ts",
+    "cleanup:profiles": "tsx scripts/cleanup-non-google-profiles.ts"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.3",
