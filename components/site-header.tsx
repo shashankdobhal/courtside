@@ -19,21 +19,31 @@ export async function SiteHeader() {
           CourtSide
         </Link>
         <div className="flex items-center gap-4">
-          <Link
-            href="/leaderboard"
-            className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-          >
-            <BarChart3 className="size-4" />
-            Leaderboard
-          </Link>
           {session?.user ? (
-            <UserMenu name={session.user.name ?? null} image={session.user.image ?? null} />
+            <>
+              <Link
+                href="/leaderboard"
+                className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+              >
+                <BarChart3 className="size-4" />
+                Leaderboard
+              </Link>
+              <UserMenu name={session.user.name ?? null} image={session.user.image ?? null} />
+            </>
           ) : (
-            <form action={signInWithGoogle}>
-              <Button type="submit" size="sm" variant="outline">
-                Sign in
-              </Button>
-            </form>
+            <>
+              <Link
+                href="/#join"
+                className="hidden text-sm font-medium text-muted-foreground transition-colors hover:text-foreground sm:block"
+              >
+                Join a Game
+              </Link>
+              <form action={signInWithGoogle}>
+                <Button type="submit" size="sm" variant="outline">
+                  Sign in
+                </Button>
+              </form>
+            </>
           )}
         </div>
       </div>

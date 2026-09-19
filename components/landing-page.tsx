@@ -1,158 +1,269 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { PlayerAvatar } from "@/components/player-avatar";
+import { JoinInviteCard } from "@/components/join-invite-card";
 import { signInWithGoogle } from "@/lib/actions/auth";
-import {
-  Trophy,
-  Swords,
-  TrendingUp,
-  BarChart3,
-  Users,
-  ListChecks,
-  Sparkles,
-} from "lucide-react";
+import { Swords, BarChart3, Trophy, ChevronDown, Flame, Sparkles } from "lucide-react";
 
-const features = [
-  {
-    icon: Swords,
-    title: "Singles & Doubles",
-    description: "Head-to-head fixtures, or team up in pairs for a casual doubles session.",
-    bg: "bg-primary/10",
-    fg: "text-primary",
-  },
-  {
-    icon: TrendingUp,
-    title: "Live Standings",
-    description: "Every score updates the table instantly — know exactly where you stand.",
-    bg: "bg-sky-50 dark:bg-sky-950/30",
-    fg: "text-sky-600 dark:text-sky-400",
-  },
-  {
-    icon: Trophy,
-    title: "Best-of-Three Finals",
-    description: "Turn up the drama for semis and the final with a full best-of-three.",
-    bg: "bg-amber-50 dark:bg-amber-950/30",
-    fg: "text-amber-600 dark:text-amber-400",
-  },
-  {
-    icon: BarChart3,
-    title: "Weekly Leaderboard",
-    description: "Climb the season leaderboard as you rack up wins, week over week.",
-    bg: "bg-violet-50 dark:bg-violet-950/30",
-    fg: "text-violet-600 dark:text-violet-400",
-  },
+const loopSteps = [
+  { icon: Swords, title: "PLAY", description: "Join tournaments and casual doubles sessions." },
+  { icon: BarChart3, title: "TRACK", description: "Follow live scores, fixtures and standings." },
+  { icon: Trophy, title: "BUILD", description: "Every match becomes part of your badminton record." },
 ];
 
-const steps = [
-  { icon: Users, text: "Sign in and start a tournament" },
-  { icon: ListChecks, text: "Add players, generate fixtures" },
-  { icon: Sparkles, text: "Log scores, watch it play out" },
-];
+const tournamentSteps = ["Players", "Fixtures", "Scores", "Champion"];
+const doublesSteps = ["Pair teams", "Play", "Log score", "Play again"];
+const karmaLevels = ["Rookie", "Rising Star", "Court Regular", "Smash Master", "Court Legend"];
 
-export function LandingPage({
-  stats,
-}: {
-  stats: { tournaments: number; matches: number; players: number } | null;
-}) {
+function Stepper({ steps }: { steps: string[] }) {
+  return (
+    <div className="flex flex-col items-center gap-1 py-2">
+      {steps.map((step, i) => (
+        <div key={step} className="flex flex-col items-center gap-1">
+          <span className="text-sm font-medium">{step}</span>
+          {i < steps.length - 1 && <ChevronDown className="size-3.5 text-muted-foreground" />}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export function LandingPage() {
   return (
     <main className="flex-1">
-      <div className="mx-auto w-full max-w-3xl px-4 py-10 sm:py-14">
-        <div className="relative mb-10 overflow-hidden rounded-3xl border px-6 py-14 text-center sm:py-20">
-          <div
-            className="pointer-events-none absolute inset-0 -z-10"
-            style={{
-              backgroundImage:
-                "radial-gradient(ellipse 80% 60% at 20% -10%, color-mix(in oklch, var(--primary) 30%, transparent), transparent 65%), radial-gradient(ellipse 70% 50% at 85% 0%, color-mix(in oklch, oklch(0.83 0.15 80) 45%, transparent), transparent 60%), radial-gradient(ellipse 60% 50% at 50% 110%, color-mix(in oklch, oklch(0.7 0.15 300) 30%, transparent), transparent 65%)",
-            }}
-          />
-          <div className="relative flex flex-col items-center gap-6">
-            <div className="flex size-16 items-center justify-center rounded-2xl bg-background text-3xl shadow-lg ring-1 ring-foreground/10">
-              🏸
-            </div>
-            <div className="space-y-3">
-              <h1 className="font-heading text-4xl font-bold tracking-tight sm:text-5xl">
-                Your badminton crew&apos;s
-                <br />
-                new home court
-              </h1>
-              <p className="mx-auto max-w-sm text-base text-muted-foreground">
-                Run tournaments, settle rivalries, and see who&apos;s really the best on court —
-                all in seconds, right from your phone.
-              </p>
-            </div>
-            <div className="flex flex-col items-center gap-3 sm:flex-row">
-              <form action={signInWithGoogle}>
-                <Button type="submit" size="lg" className="h-12 px-8 text-base shadow-md shadow-primary/20">
-                  Sign in with Google
-                </Button>
-              </form>
-              <Button asChild variant="ghost" size="lg" className="h-12 px-6 text-base">
-                <Link href="/leaderboard">See the Leaderboard →</Link>
-              </Button>
-            </div>
-          </div>
-        </div>
+      {/* Hero */}
+      <div className="mx-auto w-full max-w-3xl px-5 pt-14 pb-10 text-center sm:px-8 sm:pt-24 sm:pb-14">
+        <div className="mx-auto max-w-[760px] duration-500 animate-in fade-in slide-in-from-bottom-2">
+          <h1 className="font-heading text-[42px] leading-[1.05] font-extrabold tracking-tight sm:text-[64px]">
+            Your next badminton game, organized.
+          </h1>
+          <p className="mx-auto mt-5 max-w-md text-base text-muted-foreground sm:text-lg">
+            Create a tournament, join a game, track every score — and build your badminton
+            history as you play.
+          </p>
 
-        {stats && (stats.tournaments > 0 || stats.matches > 0) && (
-          <div className="mb-10 grid grid-cols-3 gap-3">
-            {[
-              { label: "Tournaments", value: stats.tournaments },
-              { label: "Matches Played", value: stats.matches },
-              { label: "Players", value: stats.players },
-            ].map((s) => (
-              <Card key={s.label} className="items-center gap-1 p-4 text-center">
-                <p className="font-heading text-2xl font-bold text-primary">{s.value}</p>
-                <p className="text-xs text-muted-foreground">{s.label}</p>
-              </Card>
-            ))}
-          </div>
-        )}
-
-        <div className="mb-10 space-y-3">
-          <h2 className="text-center text-sm font-semibold tracking-wide text-muted-foreground uppercase">
-            Everything you need on match day
-          </h2>
-          <div className="grid gap-3 sm:grid-cols-2">
-            {features.map((f) => (
-              <Card key={f.title} className="gap-3 p-5">
-                <div className={`flex size-10 items-center justify-center rounded-xl ${f.bg}`}>
-                  <f.icon className={`size-5 ${f.fg}`} />
-                </div>
-                <div className="space-y-1">
-                  <p className="font-heading font-semibold">{f.title}</p>
-                  <p className="text-sm text-muted-foreground">{f.description}</p>
-                </div>
-              </Card>
-            ))}
-          </div>
-        </div>
-
-        <div className="mb-10 overflow-hidden rounded-3xl border bg-gradient-to-b from-primary/5 to-transparent p-6 sm:p-8">
-          <h2 className="mb-6 text-center text-sm font-semibold tracking-wide text-muted-foreground uppercase">
-            Up and running in three steps
-          </h2>
-          <div className="grid gap-6 sm:grid-cols-3">
-            {steps.map((step, i) => (
-              <div key={step.text} className="flex flex-col items-center gap-2 text-center">
-                <div className="flex size-12 items-center justify-center rounded-full bg-primary/10 text-primary">
-                  <step.icon className="size-5" />
-                </div>
-                <p className="text-xs font-medium text-muted-foreground">Step {i + 1}</p>
-                <p className="text-sm font-medium">{step.text}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="flex flex-col items-center gap-4 rounded-3xl border bg-gradient-to-b from-primary/10 via-primary/5 to-transparent px-6 py-10 text-center">
-          <p className="font-heading text-xl font-bold tracking-tight">Ready to smash it?</p>
-          <form action={signInWithGoogle}>
-            <Button type="submit" size="lg" className="h-12 px-8 text-base shadow-md shadow-primary/20">
-              Sign in with Google
+          <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+            <Button asChild size="lg" className="h-12 w-full px-7 text-base sm:w-auto">
+              <Link href="/#join">Join a Tournament</Link>
             </Button>
-          </form>
+            <Button asChild variant="outline" size="lg" className="h-12 w-full px-7 text-base sm:w-auto">
+              <Link href="/tournaments/new">Create a Game</Link>
+            </Button>
+          </div>
+          <p className="mt-3 text-xs text-muted-foreground">
+            Free · No app download · Works on your phone
+          </p>
         </div>
       </div>
+
+      {/* Join invite card */}
+      <div className="mx-auto w-full max-w-3xl px-5 pb-14 sm:px-8 sm:pb-20">
+        <JoinInviteCard />
+      </div>
+
+      {/* One place for every game */}
+      <div className="mx-auto w-full max-w-3xl px-5 py-14 sm:px-8 sm:py-20">
+        <div className="mx-auto max-w-lg text-center">
+          <h2 className="font-heading text-[30px] font-bold tracking-tight sm:text-[40px]">
+            One place for every game you play.
+          </h2>
+          <p className="mt-3 text-base text-muted-foreground sm:text-lg">
+            CourtSide keeps your games, scores and badminton history together.
+          </p>
+        </div>
+        <div className="mx-auto mt-10 grid max-w-2xl gap-4 sm:grid-cols-3">
+          {loopSteps.map((step) => (
+            <Card key={step.title} className="items-center gap-2 p-6 text-center">
+              <step.icon className="size-6 text-primary" />
+              <p className="text-sm font-semibold tracking-wide">{step.title}</p>
+              <p className="text-sm text-muted-foreground">{step.description}</p>
+            </Card>
+          ))}
+        </div>
+      </div>
+
+      {/* Player identity */}
+      <div className="mx-auto w-full max-w-3xl px-5 py-14 sm:px-8 sm:py-20">
+        <div className="mx-auto max-w-lg text-center">
+          <h2 className="font-heading text-[30px] font-bold tracking-tight sm:text-[40px]">
+            Every game becomes part of your record.
+          </h2>
+          <p className="mt-3 text-base text-muted-foreground sm:text-lg">
+            Your CourtSide identity follows you from game to game — across tournaments, sessions
+            and doubles matches.
+          </p>
+        </div>
+
+        <Card className="mx-auto mt-10 max-w-sm gap-5 p-6">
+          <div className="flex items-center gap-3">
+            <PlayerAvatar name="Jordan Lee" size="md" className="size-14 text-lg" />
+            <div>
+              <p className="text-lg font-semibold">Jordan Lee</p>
+              <p className="text-sm text-muted-foreground">🏸 Court Regular</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-2 text-center">
+            <div>
+              <p className="font-heading text-2xl font-bold">27</p>
+              <p className="text-xs text-muted-foreground">Matches</p>
+            </div>
+            <div>
+              <p className="font-heading text-2xl font-bold">18</p>
+              <p className="text-xs text-muted-foreground">Wins</p>
+            </div>
+            <div>
+              <p className="font-heading text-2xl font-bold">66.7%</p>
+              <p className="text-xs text-muted-foreground">Win Rate</p>
+            </div>
+          </div>
+          <p className="text-center text-sm font-medium">🏆 3 Championships</p>
+          <p className="text-center text-xs text-muted-foreground">Example profile — not real data</p>
+        </Card>
+        <p className="mt-4 text-center">
+          <Link href="/leaderboard" className="text-sm font-medium text-primary hover:underline">
+            View profile →
+          </Link>
+        </p>
+      </div>
+
+      {/* Tournament vs Doubles */}
+      <div className="mx-auto w-full max-w-3xl px-5 py-14 sm:px-8 sm:py-20">
+        <div className="mx-auto max-w-lg text-center">
+          <h2 className="font-heading text-[30px] font-bold tracking-tight sm:text-[40px]">
+            Play your way.
+          </h2>
+          <p className="mt-3 text-base text-muted-foreground sm:text-lg">
+            Whether you&apos;re running a tournament or just getting a few games in, CourtSide
+            keeps it simple.
+          </p>
+        </div>
+
+        <div className="mt-10 grid gap-4 sm:grid-cols-2">
+          <Card className="gap-4 p-6">
+            <span className="text-3xl">🏆</span>
+            <div>
+              <p className="text-xl font-semibold">Tournament</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                For competitive events with fixtures, standings and winners.
+              </p>
+            </div>
+            <Stepper steps={tournamentSteps} />
+            <p className="text-xs text-muted-foreground">Round robin · Knockout</p>
+            <Button asChild variant="outline" className="mt-1 w-full">
+              <Link href="/tournaments/new">Create Tournament →</Link>
+            </Button>
+          </Card>
+
+          <Card className="gap-4 p-6">
+            <span className="text-3xl">🏸</span>
+            <div>
+              <p className="text-xl font-semibold">Doubles Session</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                For casual badminton where teams play whoever is next.
+              </p>
+            </div>
+            <Stepper steps={doublesSteps} />
+            <p className="text-xs text-muted-foreground">Flexible · No bracket</p>
+            <Button asChild variant="outline" className="mt-1 w-full">
+              <Link href="/tournaments/new">Start a Session →</Link>
+            </Button>
+          </Card>
+        </div>
+      </div>
+
+      {/* Gamification */}
+      <div className="mx-auto w-full max-w-3xl px-5 py-14 sm:px-8 sm:py-20">
+        <div className="mx-auto max-w-lg text-center">
+          <h2 className="font-heading text-[30px] font-bold tracking-tight sm:text-[40px]">
+            Keep playing. Keep climbing.
+          </h2>
+          <p className="mt-3 text-base text-muted-foreground sm:text-lg">
+            Your activity builds streaks, karma and badminton milestones.
+          </p>
+        </div>
+
+        <div className="mx-auto mt-10 flex max-w-xl flex-wrap items-center justify-center gap-x-2 gap-y-3">
+          {karmaLevels.map((level, i) => (
+            <div key={level} className="flex items-center gap-2">
+              <span className="rounded-full border bg-background px-3 py-1.5 text-sm font-medium">
+                {level}
+              </span>
+              {i < karmaLevels.length - 1 && (
+                <span className="text-muted-foreground">→</span>
+              )}
+            </div>
+          ))}
+        </div>
+
+        <div className="mx-auto mt-8 flex max-w-xs items-center justify-center gap-8">
+          <div className="flex flex-col items-center gap-1.5">
+            <div className="flex items-center gap-1.5">
+              <Flame className="size-4 text-amber-500" />
+              <span className="text-sm font-semibold">7 day streak</span>
+            </div>
+            <div className="flex gap-1">
+              {Array.from({ length: 7 }).map((_, i) => (
+                <span key={i} className="h-2 w-4 rounded-full bg-amber-400" />
+              ))}
+            </div>
+          </div>
+          <div className="flex flex-col items-center gap-1.5">
+            <div className="flex items-center gap-1.5">
+              <Sparkles className="size-4 text-violet-500" />
+              <span className="text-sm font-semibold">Karma</span>
+            </div>
+            <p className="font-heading text-xl font-bold">1,240</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Final CTA */}
+      <div className="mx-auto w-full max-w-3xl px-5 py-16 text-center sm:px-8 sm:py-24">
+        <h2 className="font-heading text-[30px] font-bold tracking-tight sm:text-[40px]">
+          Ready for your next game?
+        </h2>
+        <p className="mx-auto mt-3 max-w-sm text-base text-muted-foreground sm:text-lg">
+          Join a game, create a session, and start building your CourtSide record.
+        </p>
+        <div className="mt-7 flex flex-col items-center gap-3">
+          <Button asChild size="lg" className="h-12 w-full max-w-xs px-7 text-base sm:w-auto">
+            <Link href="/#join">Join a Tournament</Link>
+          </Button>
+          <Link href="/tournaments/new" className="text-sm font-medium text-primary hover:underline">
+            Create a Game →
+          </Link>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <footer className="border-t">
+        <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-5 py-10 sm:flex-row sm:items-start sm:justify-between sm:px-8">
+          <div>
+            <p className="font-heading text-sm font-bold tracking-tight">🏸 CourtSide</p>
+            <p className="mt-1 text-sm text-muted-foreground">Badminton, organized.</p>
+          </div>
+          <div className="flex flex-col gap-2 text-sm">
+            <form action={signInWithGoogle}>
+              <button type="submit" className="text-muted-foreground hover:text-foreground">
+                Sign In
+              </button>
+            </form>
+            <Link href="/#join" className="text-muted-foreground hover:text-foreground">
+              Join a Game
+            </Link>
+            <Link href="/privacy" className="text-muted-foreground hover:text-foreground">
+              Privacy
+            </Link>
+            <Link href="/terms" className="text-muted-foreground hover:text-foreground">
+              Terms
+            </Link>
+          </div>
+        </div>
+        <div className="border-t px-5 py-4 text-center text-xs text-muted-foreground sm:px-8">
+          © 2026 CourtSide
+        </div>
+      </footer>
     </main>
   );
 }
