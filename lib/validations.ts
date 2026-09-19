@@ -12,7 +12,7 @@ export const playerNameSchema = z.string().trim().min(1, "Name is required").max
 
 function buildPlayersSchema(minPlayers: number) {
   return z
-    .array(z.object({ name: playerNameSchema }))
+    .array(z.object({ name: playerNameSchema, profileId: z.string().optional() }))
     .min(minPlayers, `At least ${minPlayers} players are required`)
     .max(32, "Maximum 32 players allowed")
     .superRefine((players, ctx) => {
@@ -49,6 +49,11 @@ export const aliasSchema = z
   .max(40, "Alias must be 40 characters or fewer")
   .optional()
   .or(z.literal(""));
+
+export const editTournamentSchema = z.object({
+  name: z.string().trim().min(1, "Tournament name is required").max(80),
+});
+export type EditTournamentInput = z.infer<typeof editTournamentSchema>;
 
 export const editPlayerSchema = z.object({
   name: playerNameSchema,

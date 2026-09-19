@@ -15,6 +15,7 @@ export type TournamentStatus = (typeof TournamentStatus)[keyof typeof Tournament
 export const MatchStatus = {
   PENDING: "PENDING",
   COMPLETED: "COMPLETED",
+  VOID: "VOID",
 } as const;
 export type MatchStatus = (typeof MatchStatus)[keyof typeof MatchStatus];
 
@@ -26,11 +27,19 @@ export const Round = {
 } as const;
 export type Round = (typeof Round)[keyof typeof Round];
 
+export interface PlayerProfile {
+  id: string;
+  name: string;
+  createdAt: Date;
+}
+
 export interface Player {
   id: string;
   tournamentId: string;
   name: string;
   alias: string | null;
+  profileId: string | null;
+  withdrawn: boolean;
 }
 
 export interface Match {
@@ -44,6 +53,7 @@ export interface Match {
   round: string;
   status: MatchStatus;
   matchOrder: number;
+  completedAt: Date | null;
 }
 
 export interface Tournament {

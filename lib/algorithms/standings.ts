@@ -5,6 +5,8 @@ interface StandingsPlayer {
   tournamentId: string;
   name: string;
   alias: string | null;
+  profileId: string | null;
+  withdrawn: boolean;
 }
 
 interface StandingsMatch {
@@ -29,8 +31,9 @@ export function calculateStandings(
   players: StandingsPlayer[],
   matches: StandingsMatch[]
 ): StandingsRow[] {
+  const activePlayers = players.filter((player) => !player.withdrawn);
   const rows = new Map<string, StandingsRow>(
-    players.map((player) => [
+    activePlayers.map((player) => [
       player.id,
       { player, played: 0, won: 0, lost: 0, pointsFor: 0, pointsAgainst: 0, pointDifference: 0 },
     ])
@@ -49,6 +52,8 @@ export function calculateStandings(
 
     const row1 = rows.get(match.player1Id);
     const row2 = rows.get(match.player2Id);
+    // A withdrawn player has no row, so any match touching them (played or
+    // not) is excluded here automatically — as if it never happened.
     if (!row1 || !row2) continue;
 
     row1.played += 1;
@@ -95,7 +100,9 @@ export function calculateChampion(params: {
 
   const leagueMatches = matches.filter((m) => m.round === Round.LEAGUE);
   if (leagueMatches.length === 0) return null;
-  const allCompleted = leagueMatches.every((m) => m.status === MatchStatus.COMPLETED);
+  const allCompleted = leagueMatches.every(
+    (m) => m.status === MatchStatus.COMPLETED || m.status === MatchStatus.VOID
+  );
   if (!allCompleted) return null;
 
   return standings[0]?.player ?? null;

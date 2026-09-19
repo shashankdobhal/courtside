@@ -3,9 +3,9 @@ import { calculateStandings, calculateChampion, calculatePointDifference } from 
 import { MatchStatus, Round, TournamentType } from "@/types";
 
 const players = [
-  { id: "p1", tournamentId: "t1", name: "Rahul", alias: null },
-  { id: "p2", tournamentId: "t1", name: "Amit", alias: null },
-  { id: "p3", tournamentId: "t1", name: "Priya", alias: null },
+  { id: "p1", tournamentId: "t1", name: "Rahul", alias: null, profileId: null, withdrawn: false },
+  { id: "p2", tournamentId: "t1", name: "Amit", alias: null, profileId: null, withdrawn: false },
+  { id: "p3", tournamentId: "t1", name: "Priya", alias: null, profileId: null, withdrawn: false },
 ];
 
 function match(overrides: Partial<Parameters<typeof calculateStandings>[1][number]>) {
@@ -94,6 +94,45 @@ describe("calculateStandings", () => {
     expect(rows.map((r) => r.player.id)).toEqual(["p3", "p1", "p2"]);
   });
 
+  it("excludes a withdrawn player and any of their matches from everyone's numbers", () => {
+    const withdrawnPlayers = [
+      players[0],
+      players[1],
+      { ...players[2], withdrawn: true },
+    ];
+    const rows = calculateStandings(withdrawnPlayers, [
+      match({
+        player1Id: "p1",
+        player2Id: "p2",
+        score1: 21,
+        score2: 15,
+        winnerId: "p1",
+        status: MatchStatus.COMPLETED,
+      }),
+      match({
+        player1Id: "p1",
+        player2Id: "p3",
+        score1: 21,
+        score2: 10,
+        winnerId: "p1",
+        status: MatchStatus.COMPLETED,
+      }),
+      match({
+        player1Id: "p2",
+        player2Id: "p3",
+        status: MatchStatus.VOID,
+      }),
+    ]);
+
+    expect(rows.some((r) => r.player.id === "p3")).toBe(false);
+    const p1 = rows.find((r) => r.player.id === "p1")!;
+    const p2 = rows.find((r) => r.player.id === "p2")!;
+    expect(p1.played).toBe(1);
+    expect(p1.won).toBe(1);
+    expect(p2.played).toBe(1);
+    expect(p2.lost).toBe(1);
+  });
+
   it("ignores knockout-round matches when building the table", () => {
     const rows = calculateStandings(players, [
       match({
@@ -131,6 +170,24 @@ describe("calculateChampion", () => {
       }),
     ];
     const standings = calculateStandings(players.slice(0, 2), matches);
+    const champion = calculateChampion({ type: TournamentType.ROUND_ROBIN, standings, matches });
+    expect(champion?.id).toBe("p1");
+  });
+
+  it("treats a voided league match as non-blocking for ROUND_ROBIN completion", () => {
+    const matches = [
+      match({
+        player1Id: "p1",
+        player2Id: "p2",
+        score1: 21,
+        score2: 10,
+        winnerId: "p1",
+        status: MatchStatus.COMPLETED,
+      }),
+      match({ player1Id: "p1", player2Id: "p3", status: MatchStatus.VOID }),
+      match({ player1Id: "p2", player2Id: "p3", status: MatchStatus.VOID }),
+    ];
+    const standings = calculateStandings(players, matches);
     const champion = calculateChampion({ type: TournamentType.ROUND_ROBIN, standings, matches });
     expect(champion?.id).toBe("p1");
   });

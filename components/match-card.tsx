@@ -3,11 +3,12 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { ScoreEntryDialog } from "@/components/score-entry-dialog";
 import { PlayerAvatar } from "@/components/player-avatar";
 import { MatchStatus } from "@/types";
-import { Pencil, Trophy } from "lucide-react";
+import { Pencil, Trophy, Ban } from "lucide-react";
 
 export interface MatchCardData {
   id: string;
@@ -33,11 +34,15 @@ export function MatchCard({
 }) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const isCompleted = match.status === MatchStatus.COMPLETED;
+  const isVoid = match.status === MatchStatus.VOID;
 
   return (
     <>
       <Card
-        className="flex-row items-center justify-between gap-3 p-4 duration-300 animate-in fade-in slide-in-from-bottom-2 fill-mode-both"
+        className={cn(
+          "flex-row items-center justify-between gap-3 p-4 duration-300 animate-in fade-in slide-in-from-bottom-2 fill-mode-both",
+          isVoid && "border-dashed opacity-60"
+        )}
         style={{ animationDelay: `${Math.min(index, 12) * 40}ms` }}
       >
         <div className="flex min-w-0 flex-1 items-center justify-between gap-3">
@@ -55,7 +60,13 @@ export function MatchCard({
           />
         </div>
 
-        {!readOnly && !isCompleted && (
+        {isVoid && (
+          <Badge variant="outline" className="shrink-0 gap-1 text-muted-foreground">
+            <Ban className="size-3" />
+            Voided
+          </Badge>
+        )}
+        {!readOnly && !isCompleted && !isVoid && (
           <Button size="sm" variant="secondary" className="shrink-0" onClick={() => setDialogOpen(true)}>
             Enter Score
           </Button>

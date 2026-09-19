@@ -1,0 +1,84 @@
+"use server";
+
+import { startOfWeek, endOfWeek, startOfMonth, endOfMonth, subWeeks, subMonths } from "date-fns";
+import { prisma } from "@/lib/prisma";
+import { MatchStatus } from "@/types";
+import {
+  calculateLeaderboard,
+  computeTrends,
+  type LeaderboardMatchRecord,
+  type LeaderboardRow,
+  type Trend,
+} from "@/lib/algorithms/leaderboard";
+
+async function fetchMatchRecords(start: Date, end: Date): Promise<LeaderboardMatchRecord[]> {
+  const matches = await prisma.match.findMany({
+    where: {
+      status: MatchStatus.COMPLETED,
+      completedAt: { gte: start, lt: end },
+      player1: { withdrawn: false, profileId: { not: null } },
+      player2: { withdrawn: false, profileId: { not: null } },
+    },
+    include: {
+      player1: { include: { profile: true } },
+      player2: { include: { profile: true } },
+    },
+  });
+
+  const records: LeaderboardMatchRecord[] = [];
+  for (const m of matches) {
+    if (
+      !m.player1.profile ||
+      !m.player2?.profile ||
+      m.score1 === null ||
+      m.score2 === null ||
+      !m.winnerId
+    ) {
+      continue;
+    }
+    const winnerProfileId =
+      m.winnerId === m.player1Id ? m.player1.profile.id : m.player2.profile.id;
+    records.push({
+      player1ProfileId: m.player1.profile.id,
+      player2ProfileId: m.player2.profile.id,
+      player1Name: m.player1.profile.name,
+      player2Name: m.player2.profile.name,
+      score1: m.score1,
+      score2: m.score2,
+      winnerProfileId,
+    });
+  }
+  return records;
+}
+
+export interface LeaderboardResult {
+  range: { start: Date; end: Date };
+  rows: LeaderboardRow[];
+  trends: Map<string, Trend>;
+}
+
+export async function getLeaderboard(period: "week" | "month"): Promise<LeaderboardResult> {
+  const now = new Date();
+  const start = period === "week" ? startOfWeek(now, { weekStartsOn: 1 }) : startOfMonth(now);
+  const end = period === "week" ? endOfWeek(now, { weekStartsOn: 1 }) : endOfMonth(now);
+  const previousStart = period === "week" ? subWeeks(start, 1) : subMonths(start, 1);
+
+  const [currentRecords, previousRecords] = await Promise.all([
+    fetchMatchRecords(start, end),
+    fetchMatchRecords(previousStart, start),
+  ]);
+
+  const rows = calculateLeaderboard(currentRecords);
+  const previousRows = calculateLeaderboard(previousRecords);
+  const trends = computeTrends(rows, previousRows);
+
+  return { range: { start, end }, rows, trends };
+}
+
+export async function getWeeklyLeaderboard() {
+  return getLeaderboard("week");
+}
+
+export async function getMonthlyLeaderboard() {
+  return getLeaderboard("month");
+}

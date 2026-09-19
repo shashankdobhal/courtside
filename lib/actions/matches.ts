@@ -7,7 +7,7 @@ import { calculateStandings } from "@/lib/algorithms/standings";
 import { generateKnockoutFixtures } from "@/lib/algorithms/fixtures";
 import { MatchStatus, Round, TournamentStatus, TournamentType } from "@/types";
 
-async function progressTournament(tournamentId: string) {
+export async function progressTournament(tournamentId: string) {
   const tournament = await prisma.tournament.findUnique({
     where: { id: tournamentId },
     include: { players: true, matches: true },
@@ -16,7 +16,8 @@ async function progressTournament(tournamentId: string) {
 
   const leagueMatches = tournament.matches.filter((m) => m.round === Round.LEAGUE);
   const leagueDone =
-    leagueMatches.length > 0 && leagueMatches.every((m) => m.status === MatchStatus.COMPLETED);
+    leagueMatches.length > 0 &&
+    leagueMatches.every((m) => m.status === MatchStatus.COMPLETED || m.status === MatchStatus.VOID);
 
   if (tournament.type === TournamentType.ROUND_ROBIN) {
     if (leagueDone && tournament.status !== TournamentStatus.COMPLETED) {
@@ -62,6 +63,9 @@ export async function submitScore(matchId: string, score1: number, score2: numbe
   if (match.tournament.status === TournamentStatus.CANCELLED) {
     throw new Error("This tournament has been discontinued");
   }
+  if (match.status === MatchStatus.VOID) {
+    throw new Error("This match has been voided and no longer accepts a score");
+  }
 
   const winnerId = parsed.score1 > parsed.score2 ? match.player1Id : match.player2Id;
 
@@ -72,6 +76,7 @@ export async function submitScore(matchId: string, score1: number, score2: numbe
       score2: parsed.score2,
       winnerId,
       status: MatchStatus.COMPLETED,
+      completedAt: match.completedAt ?? new Date(),
     },
   });
 

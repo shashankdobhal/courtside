@@ -2,13 +2,14 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getTournament } from "@/lib/actions/tournaments";
 import { calculateStandings, calculateChampion } from "@/lib/algorithms/standings";
-import { TournamentStatus, MatchStatus } from "@/types";
+import { TournamentStatus, MatchStatus, Round } from "@/types";
 import { displayName } from "@/utils/format";
 import { TournamentProgress } from "@/components/tournament-progress";
 import { ChampionBanner } from "@/components/champion-banner";
 import { StandingsTable } from "@/components/standings-table";
 import { FixturesList } from "@/components/fixtures-list";
 import { PlayersList } from "@/components/players-list";
+import { TournamentPageActions } from "@/components/tournament-page-actions";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -57,17 +58,28 @@ export default async function TournamentPage({
     (m) => m.status === MatchStatus.COMPLETED
   ).length;
 
+  const canRegenerate =
+    tournament.status === TournamentStatus.ACTIVE &&
+    tournament.matches.every((m) => m.round === Round.LEAGUE);
+
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-8 sm:py-12">
       <div className="mb-6 space-y-4">
         <div className="flex items-start justify-between gap-3">
           <h1 className="text-2xl font-semibold tracking-tight">{tournament.name}</h1>
-          <Button asChild variant="outline" size="sm" className="shrink-0">
-            <Link href={`/tournaments/${tournament.id}/share`}>
-              <Share2 className="size-3.5" />
-              Share
-            </Link>
-          </Button>
+          <div className="flex shrink-0 items-center gap-2">
+            <Button asChild variant="outline" size="sm">
+              <Link href={`/tournaments/${tournament.id}/share`}>
+                <Share2 className="size-3.5" />
+                Share
+              </Link>
+            </Button>
+            <TournamentPageActions
+              tournamentId={tournament.id}
+              name={tournament.name}
+              canRegenerate={canRegenerate}
+            />
+          </div>
         </div>
         <TournamentProgress completed={completedCount} total={tournament.matches.length} />
       </div>
@@ -102,7 +114,10 @@ export default async function TournamentPage({
           <StandingsTable standings={standings} />
         </TabsContent>
         <TabsContent value="players">
-          <PlayersList players={tournament.players} />
+          <PlayersList
+            players={tournament.players}
+            canWithdraw={tournament.status === TournamentStatus.ACTIVE}
+          />
         </TabsContent>
       </Tabs>
     </main>

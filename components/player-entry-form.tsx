@@ -1,12 +1,11 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useFieldArray, useForm } from "react-hook-form";
+import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   playersSchemaForType,
   MIN_PLAYERS_ROUND_ROBIN,
@@ -15,6 +14,7 @@ import {
 import { setupPlayersAndFixtures } from "@/lib/actions/tournaments";
 import { TournamentType } from "@/types";
 import { PlayerAvatar } from "@/components/player-avatar";
+import { PlayerPickerCombobox } from "@/components/player-picker-combobox";
 import { Plus, X, Loader2, Users } from "lucide-react";
 
 const MAX_PLAYERS = 32;
@@ -39,14 +39,13 @@ export function PlayerEntryForm({
 
   const {
     control,
-    register,
     handleSubmit,
     watch,
     formState: { errors },
   } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      players: Array.from({ length: MIN_PLAYERS }, () => ({ name: "" })),
+      players: Array.from({ length: MIN_PLAYERS }, () => ({ name: "", profileId: undefined })),
     },
   });
 
@@ -54,10 +53,9 @@ export function PlayerEntryForm({
 
   const onSubmit = (data: FormValues) => {
     setServerError(null);
-    const names = data.players.map((p) => p.name);
     startTransition(async () => {
       try {
-        await setupPlayersAndFixtures(tournamentId, names);
+        await setupPlayersAndFixtures(tournamentId, data.players);
       } catch (err) {
         if (err instanceof Error && err.message === "NEXT_REDIRECT") throw err;
         setServerError("Something went wrong. Please try again.");
@@ -85,11 +83,17 @@ export function PlayerEntryForm({
                   {index + 1}
                 </div>
               )}
-              <Input
-                placeholder="Player Name"
-                className="h-11 text-base"
-                autoFocus={index === 0}
-                {...register(`players.${index}.name` as const)}
+              <Controller
+                control={control}
+                name={`players.${index}`}
+                render={({ field }) => (
+                  <PlayerPickerCombobox
+                    value={{ name: field.value.name, profileId: field.value.profileId }}
+                    onChange={field.onChange}
+                    placeholder="Player Name"
+                    autoFocus={index === 0}
+                  />
+                )}
               />
               <Button
                 type="button"
@@ -122,7 +126,7 @@ export function PlayerEntryForm({
         type="button"
         variant="outline"
         className="h-11 w-full"
-        onClick={() => append({ name: "" })}
+        onClick={() => append({ name: "", profileId: undefined })}
         disabled={fields.length >= MAX_PLAYERS}
       >
         <Plus className="size-4" />
