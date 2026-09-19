@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { ScoreEntryDialog } from "@/components/score-entry-dialog";
 import { PlayerAvatar } from "@/components/player-avatar";
-import { MatchStatus } from "@/types";
+import { MatchStatus, Round } from "@/types";
 import { Pencil, Trophy, Ban } from "lucide-react";
 
 export interface MatchCardData {
@@ -22,6 +22,13 @@ export interface MatchCardData {
   player2Id: string;
   status: string;
   canEdit: boolean;
+  isBestOfThree: boolean;
+  game1Score1: number | null;
+  game1Score2: number | null;
+  game2Score1: number | null;
+  game2Score2: number | null;
+  game3Score1: number | null;
+  game3Score2: number | null;
 }
 
 export function MatchCard({
@@ -47,19 +54,24 @@ export function MatchCard({
         )}
         style={{ animationDelay: `${Math.min(index, 12) * 40}ms` }}
       >
-        <div className="flex min-w-0 flex-1 items-center justify-between gap-3">
-          <PlayerLabel
-            name={match.player1Name}
-            score={match.score1}
-            isWinner={isCompleted && match.winnerId === match.player1Id}
-          />
-          <span className="shrink-0 text-xs font-medium text-muted-foreground">vs</span>
-          <PlayerLabel
-            name={match.player2Name}
-            score={match.score2}
-            isWinner={isCompleted && match.winnerId === match.player2Id}
-            align="right"
-          />
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
+          <div className="flex min-w-0 items-center justify-between gap-3">
+            <PlayerLabel
+              name={match.player1Name}
+              score={match.score1}
+              isWinner={isCompleted && match.winnerId === match.player1Id}
+            />
+            <span className="shrink-0 text-xs font-medium text-muted-foreground">vs</span>
+            <PlayerLabel
+              name={match.player2Name}
+              score={match.score2}
+              isWinner={isCompleted && match.winnerId === match.player2Id}
+              align="right"
+            />
+          </div>
+          {isCompleted && match.isBestOfThree && (
+            <p className="text-center text-xs text-muted-foreground">{gameBreakdown(match)}</p>
+          )}
         </div>
 
         {isVoid && (
@@ -93,11 +105,34 @@ export function MatchCard({
         player2Name={match.player2Name}
         initialScore1={match.score1}
         initialScore2={match.score2}
+        allowBestOfThree={match.round !== Round.LEAGUE}
+        initialIsBestOfThree={match.isBestOfThree}
+        initialGames={gamesFromMatch(match)}
         open={dialogOpen}
         onOpenChange={setDialogOpen}
       />
     </>
   );
+}
+
+function gamesFromMatch(match: MatchCardData): { score1: number; score2: number }[] {
+  const games: { score1: number; score2: number }[] = [];
+  if (match.game1Score1 !== null && match.game1Score2 !== null) {
+    games.push({ score1: match.game1Score1, score2: match.game1Score2 });
+  }
+  if (match.game2Score1 !== null && match.game2Score2 !== null) {
+    games.push({ score1: match.game2Score1, score2: match.game2Score2 });
+  }
+  if (match.game3Score1 !== null && match.game3Score2 !== null) {
+    games.push({ score1: match.game3Score1, score2: match.game3Score2 });
+  }
+  return games;
+}
+
+function gameBreakdown(match: MatchCardData): string {
+  return gamesFromMatch(match)
+    .map((g) => `${g.score1}-${g.score2}`)
+    .join(" · ");
 }
 
 function PlayerLabel({

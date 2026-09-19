@@ -35,7 +35,7 @@ export default async function SharePage({
   return (
     <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-10 sm:py-14 print:py-4">
       <div className="mb-8 space-y-1 text-center">
-        <h1 className="text-2xl font-semibold tracking-tight">{tournament.name}</h1>
+        <h1 className="font-heading text-2xl font-bold tracking-tight">{tournament.name}</h1>
         <p className="text-sm text-muted-foreground">{formatDate(tournament.createdAt)}</p>
       </div>
 

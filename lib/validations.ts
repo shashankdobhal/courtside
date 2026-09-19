@@ -83,3 +83,39 @@ export const scoreEntrySchema = z
     path: ["score2"],
   });
 export type ScoreEntryInput = z.infer<typeof scoreEntrySchema>;
+
+const gameScoreSchema = z
+  .object({
+    score1: z.number({ error: "Required" }).int().min(0).max(99),
+    score2: z.number({ error: "Required" }).int().min(0).max(99),
+  })
+  .refine((data) => data.score1 !== data.score2, {
+    message: "Scores cannot be equal",
+    path: ["score2"],
+  });
+
+/**
+ * Semifinal/final matches can opt into best-of-three. Game 3 is only
+ * required when games 1 and 2 split — otherwise one player already has
+ * the 2 game wins needed to win the match.
+ */
+export const bestOfThreeScoreEntrySchema = z
+  .object({
+    game1: gameScoreSchema,
+    game2: gameScoreSchema,
+    game3: gameScoreSchema.optional(),
+  })
+  .superRefine((data, ctx) => {
+    const games = [data.game1, data.game2, data.game3];
+    const player1Wins = games.filter((g) => g && g.score1 > g.score2).length;
+    const player2Wins = games.filter((g) => g && g.score2 > g.score1).length;
+    if (Math.max(player1Wins, player2Wins) < 2) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Game 3 is required when the first two games split",
+        path: ["game3"],
+      });
+    }
+  });
+export type BestOfThreeScoreEntryInput = z.infer<typeof bestOfThreeScoreEntrySchema>;
+export type GameScoreInput = z.infer<typeof gameScoreSchema>;
