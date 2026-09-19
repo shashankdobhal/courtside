@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -24,6 +24,14 @@ const spaceGrotesk = Space_Grotesk({
 export const metadata: Metadata = {
   title: "CourtSide",
   description: "Run casual badminton tournaments — fixtures, scores, and standings in seconds.",
+  appleWebApp: {
+    title: "CourtSide",
+    statusBarStyle: "default",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#047857",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
