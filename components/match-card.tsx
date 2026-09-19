@@ -21,6 +21,7 @@ export interface MatchCardData {
   player1Id: string;
   player2Id: string;
   status: string;
+  canEdit: boolean;
 }
 
 export function MatchCard({
@@ -35,6 +36,7 @@ export function MatchCard({
   const [dialogOpen, setDialogOpen] = useState(false);
   const isCompleted = match.status === MatchStatus.COMPLETED;
   const isVoid = match.status === MatchStatus.VOID;
+  const canEdit = !readOnly && match.canEdit;
 
   return (
     <>
@@ -66,12 +68,12 @@ export function MatchCard({
             Voided
           </Badge>
         )}
-        {!readOnly && !isCompleted && !isVoid && (
+        {canEdit && !isCompleted && !isVoid && (
           <Button size="sm" variant="secondary" className="shrink-0" onClick={() => setDialogOpen(true)}>
             Enter Score
           </Button>
         )}
-        {!readOnly && isCompleted && (
+        {canEdit && isCompleted && (
           <Button
             size="sm"
             variant="ghost"

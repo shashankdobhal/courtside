@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { scoreEntrySchema } from "@/lib/validations";
 import { calculateStandings } from "@/lib/algorithms/standings";
 import { generateKnockoutFixtures } from "@/lib/algorithms/fixtures";
+import { requireMatchParticipantOrOwner } from "@/lib/auth-helpers";
 import { MatchStatus, Round, TournamentStatus, TournamentType } from "@/types";
 
 export async function progressTournament(tournamentId: string) {
@@ -52,13 +53,9 @@ export async function progressTournament(tournamentId: string) {
 }
 
 export async function submitScore(matchId: string, score1: number, score2: number) {
+  const { match } = await requireMatchParticipantOrOwner(matchId);
   const parsed = scoreEntrySchema.parse({ score1, score2 });
 
-  const match = await prisma.match.findUnique({
-    where: { id: matchId },
-    include: { tournament: true },
-  });
-  if (!match) throw new Error("Match not found");
   if (!match.player2Id) throw new Error("Match has no second player");
   if (match.tournament.status === TournamentStatus.CANCELLED) {
     throw new Error("This tournament has been discontinued");

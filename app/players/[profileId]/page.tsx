@@ -3,11 +3,13 @@ import { notFound } from "next/navigation";
 import { getPlayerProfileStats } from "@/lib/actions/player-profiles";
 import { PlayerAvatar } from "@/components/player-avatar";
 import { EmptyState } from "@/components/empty-state";
+import { ProfileEditor } from "@/components/profile-editor";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { tournamentStatusLabel } from "@/utils/format";
 import { TournamentStatus } from "@/types";
 import { Trophy, Flame } from "lucide-react";
+import { auth } from "@/auth";
 
 const statusVariant: Record<string, "secondary" | "default" | "outline"> = {
   [TournamentStatus.PENDING]: "outline",
@@ -31,19 +33,37 @@ export default async function PlayerProfilePage({
   params: Promise<{ profileId: string }>;
 }) {
   const { profileId } = await params;
-  const data = await getPlayerProfileStats(profileId);
+  const [data, session] = await Promise.all([getPlayerProfileStats(profileId), auth()]);
 
   if (!data) notFound();
 
   const { profile, stats, tournamentsWon, currentStreak, tournaments } = data;
   const winPct = stats.played > 0 ? Math.round((stats.won / stats.played) * 100) : 0;
+  const isOwnProfile = !!session?.user?.id && profile.userId === session.user.id;
+  const bioLine = [profile.playingStyle, profile.hometown].filter(Boolean).join(" · ");
 
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-8 sm:py-12">
-      <div className="mb-6 flex items-center gap-3">
-        <PlayerAvatar name={profile.name} size="md" />
-        <h1 className="text-2xl font-semibold tracking-tight">{profile.name}</h1>
+      <div className="mb-6 flex items-start justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <PlayerAvatar name={profile.name} size="md" />
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight">{profile.name}</h1>
+            {bioLine && <p className="text-sm text-muted-foreground">{bioLine}</p>}
+          </div>
+        </div>
+        {isOwnProfile && (
+          <ProfileEditor
+            profileId={profile.id}
+            bio={profile.bio}
+            playingStyle={profile.playingStyle}
+            hometown={profile.hometown}
+            seasonOptIn={profile.seasonOptIn}
+          />
+        )}
       </div>
+
+      {profile.bio && <p className="mb-6 text-sm text-foreground">{profile.bio}</p>}
 
       <div className="mb-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
         <StatTile label="Played" value={stats.played} />
