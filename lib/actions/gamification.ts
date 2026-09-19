@@ -1,12 +1,19 @@
 import { format, subDays } from "date-fns";
 import { prisma } from "@/lib/prisma";
 import { MatchStatus } from "@/types";
-import { calculatePlayStreak, calculateKarmaPoints, type PlayStreak } from "@/lib/algorithms/gamification";
+import {
+  calculatePlayStreak,
+  calculateKarmaPoints,
+  calculateKarmaLevel,
+  type PlayStreak,
+  type KarmaProgress,
+} from "@/lib/algorithms/gamification";
 
 export interface PlayerGamificationStats {
   gamesPlayed: number;
   wins: number;
   karma: number;
+  karmaLevel: KarmaProgress;
   streak: PlayStreak;
   last7Labels: string[];
 }
@@ -38,7 +45,14 @@ export async function getPlayerGamificationStats(userId: string): Promise<Player
   const playerIds = playerRows.map((p) => p.id);
 
   if (playerIds.length === 0) {
-    return { gamesPlayed: 0, wins: 0, karma: 0, streak: EMPTY_STREAK, last7Labels: last7DayLabels(new Date()) };
+    return {
+      gamesPlayed: 0,
+      wins: 0,
+      karma: 0,
+      karmaLevel: calculateKarmaLevel(0),
+      streak: EMPTY_STREAK,
+      last7Labels: last7DayLabels(new Date()),
+    };
   }
 
   const matches = await prisma.match.findMany({
@@ -54,6 +68,7 @@ export async function getPlayerGamificationStats(userId: string): Promise<Player
   const completedDates = matches.map((m) => m.completedAt).filter((d): d is Date => d !== null);
   const streak = calculatePlayStreak(completedDates);
   const karma = calculateKarmaPoints({ matchesPlayed: gamesPlayed, wins, currentStreak: streak.current });
+  const karmaLevel = calculateKarmaLevel(karma);
 
-  return { gamesPlayed, wins, karma, streak, last7Labels: last7DayLabels(new Date()) };
+  return { gamesPlayed, wins, karma, karmaLevel, streak, last7Labels: last7DayLabels(new Date()) };
 }
