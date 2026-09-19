@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { StatTile } from "@/components/stat-tile";
 import { Plus, Zap, Trophy, Swords } from "lucide-react";
-import { getTournaments } from "@/lib/actions/tournaments";
+import { getMyTournaments, getPublicActivityStats } from "@/lib/actions/tournaments";
 import { TournamentCard } from "@/components/tournament-card";
 import { EmptyState } from "@/components/empty-state";
 import { LandingPage } from "@/components/landing-page";
@@ -12,24 +12,23 @@ import { TournamentStatus } from "@/types";
 import { auth } from "@/auth";
 
 export default async function HomePage() {
-  const [tournaments, session] = await Promise.all([getTournaments(), auth()]);
+  const session = await auth();
   const userId = session?.user?.id;
   const firstName = session?.user?.name?.trim().split(" ")[0];
+
+  if (!session?.user) {
+    const stats = await getPublicActivityStats();
+    return <LandingPage stats={stats} />;
+  }
+
+  const [tournaments, gamificationStats] = await Promise.all([
+    getMyTournaments(userId!),
+    getPlayerGamificationStats(userId!),
+  ]);
 
   const activeCount = tournaments.filter((t) => t.status === TournamentStatus.ACTIVE).length;
   const completedCount = tournaments.filter((t) => t.status === TournamentStatus.COMPLETED).length;
   const totalMatches = tournaments.reduce((sum, t) => sum + t._count.matches, 0);
-
-  if (!session?.user) {
-    const totalPlayers = tournaments.reduce((sum, t) => sum + t._count.players, 0);
-    return (
-      <LandingPage
-        stats={{ tournaments: tournaments.length, matches: totalMatches, players: totalPlayers }}
-      />
-    );
-  }
-
-  const gamificationStats = userId ? await getPlayerGamificationStats(userId) : null;
 
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-10 sm:py-14">
