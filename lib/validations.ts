@@ -84,7 +84,7 @@ export const scoreEntrySchema = z
   });
 export type ScoreEntryInput = z.infer<typeof scoreEntrySchema>;
 
-const gameScoreSchema = z
+export const gameScoreSchema = z
   .object({
     score1: z.number({ error: "Required" }).int().min(0).max(99),
     score2: z.number({ error: "Required" }).int().min(0).max(99),
