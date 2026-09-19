@@ -2,11 +2,19 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { scoreEntrySchema } from "@/lib/validations";
+import { scoreEntrySchema, bestOfThreeScoreEntrySchema, type GameScoreInput } from "@/lib/validations";
 import { calculateStandings } from "@/lib/algorithms/standings";
 import { generateKnockoutFixtures } from "@/lib/algorithms/fixtures";
 import { requireMatchParticipantOrOwner } from "@/lib/auth-helpers";
 import { MatchStatus, Round, TournamentStatus, TournamentType } from "@/types";
+
+async function finishMatchUpdate(tournamentId: string) {
+  await progressTournament(tournamentId);
+
+  revalidatePath("/");
+  revalidatePath(`/tournaments/${tournamentId}`);
+  revalidatePath(`/tournaments/${tournamentId}/share`);
+}
 
 export async function progressTournament(tournamentId: string) {
   const tournament = await prisma.tournament.findUnique({
@@ -74,12 +82,67 @@ export async function submitScore(matchId: string, score1: number, score2: numbe
       winnerId,
       status: MatchStatus.COMPLETED,
       completedAt: match.completedAt ?? new Date(),
+      isBestOfThree: false,
+      game1Score1: null,
+      game1Score2: null,
+      game2Score1: null,
+      game2Score2: null,
+      game3Score1: null,
+      game3Score2: null,
     },
   });
 
-  await progressTournament(match.tournamentId);
+  await finishMatchUpdate(match.tournamentId);
+}
 
-  revalidatePath("/");
-  revalidatePath(`/tournaments/${match.tournamentId}`);
-  revalidatePath(`/tournaments/${match.tournamentId}/share`);
+/**
+ * Semifinal/final matches can opt into best-of-three instead of a single
+ * game — league matches always stay single-game since they feed the
+ * standings table, which only ever reads score1/score2 as points.
+ */
+export async function submitBestOfThreeScore(matchId: string, games: GameScoreInput[]) {
+  const { match } = await requireMatchParticipantOrOwner(matchId);
+  const parsed = bestOfThreeScoreEntrySchema.parse({
+    game1: games[0],
+    game2: games[1],
+    game3: games[2],
+  });
+
+  if (!match.player2Id) throw new Error("Match has no second player");
+  if (match.round === Round.LEAGUE) {
+    throw new Error("Best of three is only available for semifinal and final matches");
+  }
+  if (match.tournament.status === TournamentStatus.CANCELLED) {
+    throw new Error("This tournament has been discontinued");
+  }
+  if (match.status === MatchStatus.VOID) {
+    throw new Error("This match has been voided and no longer accepts a score");
+  }
+
+  const playedGames = [parsed.game1, parsed.game2, parsed.game3].filter(
+    (g): g is GameScoreInput => !!g
+  );
+  const player1Wins = playedGames.filter((g) => g.score1 > g.score2).length;
+  const player2Wins = playedGames.filter((g) => g.score2 > g.score1).length;
+  const winnerId = player1Wins > player2Wins ? match.player1Id : match.player2Id;
+
+  await prisma.match.update({
+    where: { id: matchId },
+    data: {
+      score1: player1Wins,
+      score2: player2Wins,
+      winnerId,
+      status: MatchStatus.COMPLETED,
+      completedAt: match.completedAt ?? new Date(),
+      isBestOfThree: true,
+      game1Score1: parsed.game1.score1,
+      game1Score2: parsed.game1.score2,
+      game2Score1: parsed.game2.score1,
+      game2Score2: parsed.game2.score2,
+      game3Score1: parsed.game3?.score1 ?? null,
+      game3Score2: parsed.game3?.score2 ?? null,
+    },
+  });
+
+  await finishMatchUpdate(match.tournamentId);
 }

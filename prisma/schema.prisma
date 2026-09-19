@@ -114,17 +114,24 @@ model Player {
 }
 
 model Match {
-  id           String    @id @default(cuid())
-  tournamentId String
-  player1Id    String
-  player2Id    String?
-  score1       Int?
-  score2       Int?
-  winnerId     String?
-  round        String // e.g. "LEAGUE", "SEMI_FINAL_1", "SEMI_FINAL_2", "FINAL"
-  status       String    @default("PENDING") // MatchStatus: PENDING | COMPLETED | VOID
-  matchOrder   Int
-  completedAt  DateTime? // set once, the first time status becomes COMPLETED; used for leaderboard bucketing
+  id            String    @id @default(cuid())
+  tournamentId  String
+  player1Id     String
+  player2Id     String?
+  score1        Int? // for a best-of-three match, this is games won (0-2), not points
+  score2        Int?
+  winnerId      String?
+  round         String // e.g. "LEAGUE", "SEMI_FINAL_1", "SEMI_FINAL_2", "FINAL"
+  status        String    @default("PENDING") // MatchStatus: PENDING | COMPLETED | VOID
+  matchOrder    Int
+  completedAt   DateTime? // set once, the first time status becomes COMPLETED; used for leaderboard bucketing
+  isBestOfThree Boolean   @default(false) // knockout-round option; league matches are always single-game
+  game1Score1   Int?
+  game1Score2   Int?
+  game2Score1   Int?
+  game2Score2   Int?
+  game3Score1   Int?
+  game3Score2   Int?
 
   tournament Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
   player1    Player     @relation("Player1Matches", fields: [player1Id], references: [id], onDelete: Cascade)

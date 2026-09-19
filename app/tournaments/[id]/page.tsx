@@ -75,6 +75,13 @@ export default async function TournamentPage({
       winnerId: m.winnerId,
       status: m.status,
       canEdit: isOwner || viewerPlayerIds.has(m.player1Id) || viewerPlayerIds.has(m.player2Id ?? ""),
+      isBestOfThree: m.isBestOfThree,
+      game1Score1: m.game1Score1,
+      game1Score2: m.game1Score2,
+      game2Score1: m.game2Score1,
+      game2Score2: m.game2Score2,
+      game3Score1: m.game3Score1,
+      game3Score2: m.game3Score2,
     };
   });
 

@@ -54,6 +54,13 @@ export interface Match {
   status: MatchStatus;
   matchOrder: number;
   completedAt: Date | null;
+  isBestOfThree: boolean;
+  game1Score1: number | null;
+  game1Score2: number | null;
+  game2Score1: number | null;
+  game2Score2: number | null;
+  game3Score1: number | null;
+  game3Score2: number | null;
 }
 
 export interface Tournament {
