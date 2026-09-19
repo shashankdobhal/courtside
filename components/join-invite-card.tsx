@@ -4,26 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { extractTournamentId } from "@/lib/extract-tournament-id";
 import { ArrowRight } from "lucide-react";
-
-/**
- * Pulls a tournament id out of whatever someone pastes — a full invite URL
- * (any environment/host), a bare id, or a path fragment — with no new
- * backend involved. Routing to /tournaments/[id]/players is the existing,
- * unmodified self-join entry point; this is just getting the user there.
- */
-function extractTournamentId(input: string): string | null {
-  const trimmed = input.trim();
-  if (!trimmed) return null;
-
-  const tournamentPathMatch = trimmed.match(/\/tournaments\/([a-zA-Z0-9_-]+)/);
-  if (tournamentPathMatch) return tournamentPathMatch[1];
-
-  // A bare id/code with no slashes or spaces — treat it as the id directly.
-  if (/^[a-zA-Z0-9_-]+$/.test(trimmed)) return trimmed;
-
-  return null;
-}
 
 export function JoinInviteCard() {
   const router = useRouter();

@@ -171,7 +171,10 @@ export async function getMyTournaments(userId: string) {
       ],
     },
     orderBy: { createdAt: "desc" },
-    include: { _count: { select: { matches: true, players: true } } },
+    include: {
+      _count: { select: { matches: true, players: true } },
+      matches: { select: { status: true } },
+    },
   });
 }
 

@@ -47,6 +47,17 @@ export async function resolveOrCreateUserPlayerProfile(
   });
 }
 
+/**
+ * Convenience wrapper around getPlayerProfileStats for the signed-in
+ * user's own identity — used by the homepage, which only knows the
+ * session's userId, not a profileId.
+ */
+export async function getMyProfileStats(userId: string) {
+  const profile = await prisma.playerProfile.findUnique({ where: { userId } });
+  if (!profile) return null;
+  return getPlayerProfileStats(profile.id);
+}
+
 async function requireOwnProfile(profileId: string) {
   const session = await requireSignedIn();
   const profile = await prisma.playerProfile.findUnique({ where: { id: profileId } });
