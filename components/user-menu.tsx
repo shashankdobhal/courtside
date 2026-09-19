@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -7,7 +8,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { signOutAction } from "@/lib/actions/auth";
-import { LogOut } from "lucide-react";
+import { LogOut, User } from "lucide-react";
 
 export function UserMenu({ name, image }: { name: string | null; image: string | null }) {
   const initial = (name?.trim().charAt(0) || "?").toUpperCase();
@@ -32,6 +33,12 @@ export function UserMenu({ name, image }: { name: string | null; image: string |
         {name && (
           <div className="max-w-40 truncate px-2 py-1.5 text-sm font-medium">{name}</div>
         )}
+        <DropdownMenuItem asChild>
+          <Link href="/profile">
+            <User className="size-3.5" />
+            My Profile
+          </Link>
+        </DropdownMenuItem>
         <form action={signOutAction}>
           <DropdownMenuItem asChild>
             <button type="submit" className="w-full">
