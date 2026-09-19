@@ -6,6 +6,8 @@ import { getTournaments } from "@/lib/actions/tournaments";
 import { TournamentCard } from "@/components/tournament-card";
 import { EmptyState } from "@/components/empty-state";
 import { LandingPage } from "@/components/landing-page";
+import { GamificationPanel } from "@/components/gamification-panel";
+import { getPlayerGamificationStats } from "@/lib/actions/gamification";
 import { TournamentStatus } from "@/types";
 import { auth } from "@/auth";
 
@@ -27,6 +29,8 @@ export default async function HomePage() {
     );
   }
 
+  const gamificationStats = userId ? await getPlayerGamificationStats(userId) : null;
+
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-10 sm:py-14">
       <div className="relative mb-8 overflow-hidden rounded-3xl border bg-gradient-to-b from-primary/10 via-primary/5 to-transparent px-6 py-10 text-center sm:mb-10 sm:py-14">
@@ -47,6 +51,8 @@ export default async function HomePage() {
           </Button>
         </div>
       </div>
+
+      <GamificationPanel stats={gamificationStats} />
 
       {tournaments.length > 0 && (
         <div className="mb-10 grid grid-cols-3 gap-3">
