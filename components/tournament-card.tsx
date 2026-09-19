@@ -4,13 +4,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CalendarDays, ArrowRight } from "lucide-react";
 import { formatDate, tournamentTypeLabel, tournamentStatusLabel } from "@/utils/format";
-import { TournamentStatus, TournamentType } from "@/types";
+import { TournamentFormat, TournamentStatus, TournamentType } from "@/types";
 import { TournamentCardActions } from "@/components/tournament-card-actions";
 import { cn } from "@/lib/utils";
 
 type TournamentCardData = {
   id: string;
   name: string;
+  format: string;
   type: string;
   status: string;
   createdAt: Date;
@@ -69,7 +70,9 @@ export function TournamentCard({
       </CardHeader>
       <CardContent className="flex items-center justify-between gap-3">
         <span className="text-sm text-muted-foreground">
-          {tournamentTypeLabel[tournament.type as TournamentType] ?? tournament.type}
+          {tournament.format === TournamentFormat.DOUBLES
+            ? "Doubles · Friendly"
+            : (tournamentTypeLabel[tournament.type as TournamentType] ?? tournament.type)}
         </span>
         <Button asChild size="sm" variant="secondary">
           <Link href={href}>

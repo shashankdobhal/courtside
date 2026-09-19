@@ -4,6 +4,12 @@ export const TournamentType = {
 } as const;
 export type TournamentType = (typeof TournamentType)[keyof typeof TournamentType];
 
+export const TournamentFormat = {
+  SINGLES: "SINGLES",
+  DOUBLES: "DOUBLES",
+} as const;
+export type TournamentFormat = (typeof TournamentFormat)[keyof typeof TournamentFormat];
+
 export const TournamentStatus = {
   PENDING: "PENDING",
   ACTIVE: "ACTIVE",
@@ -39,6 +45,7 @@ export interface Player {
   name: string;
   alias: string | null;
   profileId: string | null;
+  partnerProfileId: string | null;
   withdrawn: boolean;
 }
 
@@ -67,6 +74,7 @@ export interface Tournament {
   id: string;
   name: string;
   type: TournamentType;
+  format: TournamentFormat;
   status: TournamentStatus;
   legs: number;
   createdAt: Date;

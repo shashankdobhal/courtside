@@ -1,8 +1,9 @@
 import { z } from "zod";
-import { TournamentType } from "@/types";
+import { TournamentType, TournamentFormat } from "@/types";
 
 export const createTournamentSchema = z.object({
   name: z.string().trim().min(1, "Tournament name is required").max(80),
+  format: z.enum([TournamentFormat.SINGLES, TournamentFormat.DOUBLES]),
   type: z.enum([TournamentType.ROUND_ROBIN, TournamentType.ROUND_ROBIN_KNOCKOUT]),
   legs: z.number().int().min(1).max(3),
 });
@@ -13,6 +14,13 @@ export const playerNameSchema = z.string().trim().min(1, "Name is required").max
 export const MIN_PLAYERS_ROUND_ROBIN = 2;
 export const MIN_PLAYERS_KNOCKOUT = 4;
 export const MAX_PLAYERS = 32;
+export const MIN_DOUBLES_TEAMS = 2;
+
+export const doublesTeamSchema = z.object({
+  player1: z.object({ name: playerNameSchema, profileId: z.string().optional() }),
+  player2: z.object({ name: playerNameSchema, profileId: z.string().optional() }),
+});
+export type DoublesTeamInput = z.infer<typeof doublesTeamSchema>;
 
 /**
  * Validates a batch of new players being added to a tournament's roster,

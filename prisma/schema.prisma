@@ -15,7 +15,8 @@ datasource db {
 model Tournament {
   id        String   @id @default(cuid())
   name      String
-  type      String // TournamentType: ROUND_ROBIN | ROUND_ROBIN_KNOCKOUT
+  type      String // TournamentType: ROUND_ROBIN | ROUND_ROBIN_KNOCKOUT -- meaningless for DOUBLES, which has no generated fixtures
+  format    String   @default("SINGLES") // TournamentFormat: SINGLES | DOUBLES
   status    String   @default("PENDING") // TournamentStatus: PENDING | ACTIVE | COMPLETED
   legs      Int      @default(1) // how many times each pair plays in the league stage (1-3)
   ownerId   String? // null for tournaments created before accounts existed, until claimed
@@ -88,22 +89,25 @@ model PlayerProfile {
   playingStyle String?
   hometown     String?
 
-  user    User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
-  players Player[]
+  user             User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  players          Player[]
+  partneredPlayers Player[] @relation("PlayerPartnerProfile")
 
   @@index([name])
 }
 
 model Player {
-  id           String  @id @default(cuid())
-  tournamentId String
-  name         String
-  alias        String? // optional fun nickname shown in place of the real name
-  profileId    String? // links to a reusable cross-tournament identity; null for legacy rows until backfilled
-  withdrawn    Boolean @default(false)
+  id               String  @id @default(cuid())
+  tournamentId     String
+  name             String
+  alias            String? // optional fun nickname shown in place of the real name
+  profileId        String? // links to a reusable cross-tournament identity; null for legacy rows until backfilled
+  partnerProfileId String? // doubles only: this Player row is a two-person team; profileId + partnerProfileId are its two members
+  withdrawn        Boolean @default(false)
 
-  tournament Tournament     @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
-  profile    PlayerProfile? @relation(fields: [profileId], references: [id], onDelete: SetNull)
+  tournament     Tournament     @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  profile        PlayerProfile? @relation(fields: [profileId], references: [id], onDelete: SetNull)
+  partnerProfile PlayerProfile? @relation("PlayerPartnerProfile", fields: [partnerProfileId], references: [id], onDelete: SetNull)
 
   matchesAsPlayer1 Match[] @relation("Player1Matches")
   matchesAsPlayer2 Match[] @relation("Player2Matches")
@@ -111,6 +115,7 @@ model Player {
 
   @@index([tournamentId])
   @@index([profileId])
+  @@index([partnerProfileId])
 }
 
 model Match {

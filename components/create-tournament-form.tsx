@@ -7,11 +7,26 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { createTournamentSchema, type CreateTournamentInput } from "@/lib/validations";
 import { createTournament } from "@/lib/actions/tournaments";
-import { TournamentType } from "@/types";
+import { TournamentType, TournamentFormat } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Users, Swords, Loader2 } from "lucide-react";
+import { Users, Swords, Loader2, UserRound, UsersRound } from "lucide-react";
+
+const formatOptions = [
+  {
+    value: TournamentFormat.SINGLES,
+    label: "Singles",
+    description: "One player per side. Fixtures, standings, a champion.",
+    icon: UserRound,
+  },
+  {
+    value: TournamentFormat.DOUBLES,
+    label: "Doubles",
+    description: "Team up in pairs. Casual, friendly — matches logged as you play.",
+    icon: UsersRound,
+  },
+];
 
 const typeOptions = [
   {
@@ -46,9 +61,15 @@ export function CreateTournamentForm() {
     formState: { errors },
   } = useForm<CreateTournamentInput>({
     resolver: zodResolver(createTournamentSchema),
-    defaultValues: { name: "", type: TournamentType.ROUND_ROBIN, legs: 1 },
+    defaultValues: {
+      name: "",
+      format: TournamentFormat.SINGLES,
+      type: TournamentType.ROUND_ROBIN,
+      legs: 1,
+    },
   });
 
+  const selectedFormat = watch("format");
   const selectedType = watch("type");
   const selectedLegs = watch("legs");
 
@@ -80,16 +101,16 @@ export function CreateTournamentForm() {
       </div>
 
       <div className="space-y-2">
-        <Label>Tournament Type</Label>
+        <Label>Format</Label>
         <div className="grid gap-3 sm:grid-cols-2">
-          {typeOptions.map((option) => {
+          {formatOptions.map((option) => {
             const Icon = option.icon;
-            const isSelected = selectedType === option.value;
+            const isSelected = selectedFormat === option.value;
             return (
               <button
                 key={option.value}
                 type="button"
-                onClick={() => setValue("type", option.value, { shouldValidate: true })}
+                onClick={() => setValue("format", option.value, { shouldValidate: true })}
                 className={cn(
                   "flex flex-col items-start gap-2 rounded-xl border p-4 text-left transition-colors",
                   "min-h-28 active:scale-[0.99]",
@@ -107,30 +128,62 @@ export function CreateTournamentForm() {
         </div>
       </div>
 
-      {selectedType === TournamentType.ROUND_ROBIN && (
-        <div className="space-y-2">
-          <Label>How many times should each pair play?</Label>
-          <div className="grid grid-cols-3 gap-2">
-            {legsOptions.map((option) => {
-              const isSelected = selectedLegs === option.value;
-              return (
-                <button
-                  key={option.value}
-                  type="button"
-                  onClick={() => setValue("legs", option.value, { shouldValidate: true })}
-                  className={cn(
-                    "h-11 rounded-lg border text-sm font-medium transition-colors active:scale-[0.99]",
-                    isSelected
-                      ? "border-primary bg-primary/5 ring-1 ring-primary"
-                      : "border-border hover:bg-accent"
-                  )}
-                >
-                  {option.label}
-                </button>
-              );
-            })}
+      {selectedFormat === TournamentFormat.SINGLES && (
+        <>
+          <div className="space-y-2">
+            <Label>Tournament Type</Label>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {typeOptions.map((option) => {
+                const Icon = option.icon;
+                const isSelected = selectedType === option.value;
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => setValue("type", option.value, { shouldValidate: true })}
+                    className={cn(
+                      "flex flex-col items-start gap-2 rounded-xl border p-4 text-left transition-colors",
+                      "min-h-28 active:scale-[0.99]",
+                      isSelected
+                        ? "border-primary bg-primary/5 ring-1 ring-primary"
+                        : "border-border hover:bg-accent"
+                    )}
+                  >
+                    <Icon className="size-5" />
+                    <span className="font-medium leading-tight">{option.label}</span>
+                    <span className="text-xs text-muted-foreground">{option.description}</span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
-        </div>
+
+          {selectedType === TournamentType.ROUND_ROBIN && (
+            <div className="space-y-2">
+              <Label>How many times should each pair play?</Label>
+              <div className="grid grid-cols-3 gap-2">
+                {legsOptions.map((option) => {
+                  const isSelected = selectedLegs === option.value;
+                  return (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => setValue("legs", option.value, { shouldValidate: true })}
+                      className={cn(
+                        "h-11 rounded-lg border text-sm font-medium transition-colors active:scale-[0.99]",
+                        isSelected
+                          ? "border-primary bg-primary/5 ring-1 ring-primary"
+                          : "border-border hover:bg-accent"
+                      )}
+                    >
+                      {option.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </>
       )}
 
       {serverError && <p className="text-sm text-destructive">{serverError}</p>}

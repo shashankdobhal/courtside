@@ -7,7 +7,7 @@ import { calculateStandings, calculateChampion } from "@/lib/algorithms/standing
 import { calculateChampionStreak, aggregateProfileStats } from "@/lib/algorithms/player-stats";
 import { requireSignedIn } from "@/lib/auth-helpers";
 import { editPlayerProfileSchema, type EditPlayerProfileInput } from "@/lib/validations";
-import { TournamentStatus, type StandingsRow } from "@/types";
+import { TournamentFormat, TournamentStatus, type StandingsRow } from "@/types";
 
 type Db = PrismaClient | Prisma.TransactionClient;
 
@@ -128,7 +128,7 @@ export async function getPlayerProfileStats(profileId: string) {
   if (!profile) return null;
 
   const playerRows = await prisma.player.findMany({
-    where: { profileId },
+    where: { profileId, tournament: { format: TournamentFormat.SINGLES } },
     include: { tournament: { include: { players: true, matches: true } } },
   });
 
