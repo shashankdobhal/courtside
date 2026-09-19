@@ -5,6 +5,7 @@ import { Plus, Zap, Trophy, Swords } from "lucide-react";
 import { getTournaments } from "@/lib/actions/tournaments";
 import { TournamentCard } from "@/components/tournament-card";
 import { EmptyState } from "@/components/empty-state";
+import { LandingPage } from "@/components/landing-page";
 import { TournamentStatus } from "@/types";
 import { auth } from "@/auth";
 
@@ -16,6 +17,15 @@ export default async function HomePage() {
   const activeCount = tournaments.filter((t) => t.status === TournamentStatus.ACTIVE).length;
   const completedCount = tournaments.filter((t) => t.status === TournamentStatus.COMPLETED).length;
   const totalMatches = tournaments.reduce((sum, t) => sum + t._count.matches, 0);
+
+  if (!session?.user) {
+    const totalPlayers = tournaments.reduce((sum, t) => sum + t._count.players, 0);
+    return (
+      <LandingPage
+        stats={{ tournaments: tournaments.length, matches: totalMatches, players: totalPlayers }}
+      />
+    );
+  }
 
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-10 sm:py-14">
