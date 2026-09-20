@@ -27,10 +27,11 @@ model Tournament {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
-  owner   User?    @relation(fields: [ownerId], references: [id], onDelete: SetNull)
-  event   Event?   @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  players Player[]
-  matches Match[]
+  owner    User?     @relation(fields: [ownerId], references: [id], onDelete: SetNull)
+  event    Event?    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  players  Player[]
+  matches  Match[]
+  expenses Expense[]
 
   @@index([ownerId])
   @@index([eventId])
@@ -142,6 +143,9 @@ model Player {
   matchesAsPlayer2 Match[] @relation("Player2Matches")
   matchesWon       Match[] @relation("MatchWinner")
 
+  expensesPaid          Expense[]            @relation("ExpensePaidBy")
+  expenseParticipations ExpenseParticipant[] @relation("ExpenseParticipant")
+
   @@index([tournamentId])
   @@index([profileId])
   @@index([partnerProfileId])
@@ -173,4 +177,40 @@ model Match {
   winner     Player?    @relation("MatchWinner", fields: [winnerId], references: [id])
 
   @@index([tournamentId])
+}
+
+/**
+ * Something the group paid for together — court booking, shuttles, food —
+ * logged by the organizer against one player who fronted the money.
+ * Each participant's exact share lives on ExpenseParticipant, whether it
+ * came from an even split or was typed in by hand; settlement math only
+ * ever reads shareAmount, never re-derives it.
+ */
+model Expense {
+  id             String   @id @default(cuid())
+  tournamentId   String
+  description    String
+  amount         Int // total, in whole rupees
+  splitMode      String   @default("EQUAL") // "EQUAL" | "CUSTOM" -- display only, not used in settlement math
+  paidByPlayerId String
+  createdAt      DateTime @default(now())
+
+  tournament   Tournament           @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  paidBy       Player               @relation("ExpensePaidBy", fields: [paidByPlayerId], references: [id], onDelete: Cascade)
+  participants ExpenseParticipant[]
+
+  @@index([tournamentId])
+}
+
+model ExpenseParticipant {
+  id          String @id @default(cuid())
+  expenseId   String
+  playerId    String
+  shareAmount Int // this participant's portion of the expense, in rupees
+
+  expense Expense @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  player  Player  @relation("ExpenseParticipant", fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@unique([expenseId, playerId])
+  @@index([playerId])
 }
