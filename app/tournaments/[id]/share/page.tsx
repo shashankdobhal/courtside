@@ -1,9 +1,10 @@
 import { notFound } from "next/navigation";
 import { getTournament } from "@/lib/actions/tournaments";
 import { calculateStandings, calculateChampion } from "@/lib/algorithms/standings";
+import { KNOCKOUT_ROUND_SEQUENCE, knockoutRoundsFromFirst } from "@/lib/algorithms/bracket";
 import { StandingsTable } from "@/components/standings-table";
 import { ShareActions } from "@/components/share-actions";
-import { MatchStatus, Round } from "@/types";
+import { MatchStatus, Round, TournamentType } from "@/types";
 import { formatDate, roundLabel, displayName } from "@/utils/format";
 import { Trophy } from "lucide-react";
 
@@ -24,9 +25,18 @@ export default async function SharePage({
     matches: tournament.matches,
   });
 
-  const roundOrder: string[] = [Round.LEAGUE, Round.SEMI_FINAL_1, Round.SEMI_FINAL_2, Round.FINAL];
+  const showStandings = tournament.type !== TournamentType.KNOCKOUT;
+  const roundOrder: string[] =
+    tournament.type === TournamentType.KNOCKOUT
+      ? (() => {
+          const presentRounds = tournament.matches.map((m) => m.round);
+          const firstRound = KNOCKOUT_ROUND_SEQUENCE.find((r) => presentRounds.includes(r));
+          return firstRound ? knockoutRoundsFromFirst(firstRound) : [];
+        })()
+      : [Round.LEAGUE, Round.SEMI_FINAL_1, Round.SEMI_FINAL_2, Round.FINAL];
   const completedMatches = tournament.matches
-    .filter((m) => m.status === MatchStatus.COMPLETED)
+    // A knockout bye auto-completes with no game played — not a real result to recap.
+    .filter((m) => m.status === MatchStatus.COMPLETED && m.player2Id)
     .sort(
       (a, b) =>
         roundOrder.indexOf(a.round) - roundOrder.indexOf(b.round) || a.matchOrder - b.matchOrder
@@ -53,10 +63,12 @@ export default async function SharePage({
       </div>
 
       <div className="space-y-8">
-        <section className="space-y-3">
-          <h2 className="text-sm font-medium text-muted-foreground">Final Standings</h2>
-          <StandingsTable standings={standings} />
-        </section>
+        {showStandings && (
+          <section className="space-y-3">
+            <h2 className="text-sm font-medium text-muted-foreground">Final Standings</h2>
+            <StandingsTable standings={standings} />
+          </section>
+        )}
 
         {completedMatches.length > 0 && (
           <section className="space-y-3">

@@ -43,7 +43,10 @@ export function MatchCard({
   const [dialogOpen, setDialogOpen] = useState(false);
   const isCompleted = match.status === MatchStatus.COMPLETED;
   const isVoid = match.status === MatchStatus.VOID;
-  const canEdit = !readOnly && match.canEdit;
+  // A knockout bracket bye: no second player, auto-completed with no game
+  // played — nothing to score or edit.
+  const isBye = !match.player2Id;
+  const canEdit = !readOnly && match.canEdit && !isBye;
 
   return (
     <>
@@ -62,12 +65,16 @@ export function MatchCard({
               isWinner={isCompleted && match.winnerId === match.player1Id}
             />
             <span className="shrink-0 text-xs font-medium text-muted-foreground">vs</span>
-            <PlayerLabel
-              name={match.player2Name}
-              score={match.score2}
-              isWinner={isCompleted && match.winnerId === match.player2Id}
-              align="right"
-            />
+            {isBye ? (
+              <span className="shrink-0 text-sm text-muted-foreground italic">Bye</span>
+            ) : (
+              <PlayerLabel
+                name={match.player2Name}
+                score={match.score2}
+                isWinner={isCompleted && match.winnerId === match.player2Id}
+                align="right"
+              />
+            )}
           </div>
           {isCompleted && match.isBestOfThree && (
             <p className="text-center text-xs text-muted-foreground">{gameBreakdown(match)}</p>
@@ -78,6 +85,11 @@ export function MatchCard({
           <Badge variant="outline" className="shrink-0 gap-1 text-muted-foreground">
             <Ban className="size-3" />
             Voided
+          </Badge>
+        )}
+        {isBye && (
+          <Badge variant="outline" className="shrink-0 text-muted-foreground">
+            Advanced
           </Badge>
         )}
         {canEdit && !isCompleted && !isVoid && (

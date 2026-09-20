@@ -9,11 +9,13 @@ import {
   editTournamentSchema,
   newPlayersSchema,
   youtubeUrlSchema,
+  knockoutBracketSlotsSchema,
   MIN_PLAYERS_ROUND_ROBIN,
   MIN_PLAYERS_KNOCKOUT,
 } from "@/lib/validations";
-import { TournamentFormat, TournamentStatus, TournamentType } from "@/types";
+import { MatchStatus, TournamentFormat, TournamentStatus, TournamentType } from "@/types";
 import { generateRoundRobinFixtures } from "@/lib/algorithms/fixtures";
+import { bracketSizeFor, knockoutRoundsFor, pairBracketSlots } from "@/lib/algorithms/bracket";
 import { resolveOrCreatePlayerProfile } from "@/lib/actions/player-profiles";
 import { requireSignedIn, requireTournamentOwner } from "@/lib/auth-helpers";
 import { generateJoinCode } from "@/lib/join-code";
@@ -131,6 +133,9 @@ export async function generateFixturesAndActivate(tournamentId: string) {
   if (tournament.format !== TournamentFormat.SINGLES) {
     throw new Error("This tournament doesn't use generated fixtures");
   }
+  if (tournament.type === TournamentType.KNOCKOUT) {
+    throw new Error("Use the bracket builder to generate a knockout tournament's fixtures");
+  }
   if (tournament.status !== TournamentStatus.PENDING) {
     throw new Error("Fixtures have already been generated for this tournament");
   }
@@ -150,6 +155,81 @@ export async function generateFixturesAndActivate(tournamentId: string) {
     prisma.match.createMany({
       data: fixtures.map((f) => ({ ...f, tournamentId })),
     }),
+    prisma.tournament.update({
+      where: { id: tournamentId },
+      data: { status: TournamentStatus.ACTIVE },
+    }),
+  ]);
+
+  revalidatePath("/");
+  redirect(`/tournaments/${tournamentId}`);
+}
+
+/**
+ * Generates a pure knockout tournament's first round from the organizer's
+ * manual bracket placement (`slots` is ordered, one entry per bracket seat —
+ * a Player id, or null for an empty seat). A seat paired against an empty
+ * one is a bye: that Match is created already COMPLETED with no game
+ * played, so the player advances immediately and bracket progression
+ * (progressTournament) can treat every round uniformly from here on.
+ */
+export async function generateKnockoutBracket(tournamentId: string, slots: (string | null)[]) {
+  const { tournament } = await requireTournamentOwner(tournamentId);
+  if (tournament.format !== TournamentFormat.SINGLES || tournament.type !== TournamentType.KNOCKOUT) {
+    throw new Error("This tournament doesn't use a knockout bracket");
+  }
+  if (tournament.status !== TournamentStatus.PENDING) {
+    throw new Error("The bracket has already been generated for this tournament");
+  }
+
+  const parsedSlots = knockoutBracketSlotsSchema.parse(slots);
+
+  const players = await prisma.player.findMany({ where: { tournamentId, withdrawn: false } });
+  if (players.length < MIN_PLAYERS_KNOCKOUT) {
+    throw new Error(`At least ${MIN_PLAYERS_KNOCKOUT} players are required`);
+  }
+
+  const expectedSize = bracketSizeFor(players.length);
+  if (parsedSlots.length !== expectedSize) {
+    throw new Error("Bracket size doesn't match the player count");
+  }
+
+  const placedIds = parsedSlots.filter((id): id is string => id !== null);
+  if (new Set(placedIds).size !== placedIds.length) {
+    throw new Error("Each player can only be placed in one bracket slot");
+  }
+  const rosterIds = new Set(players.map((p) => p.id));
+  if (!placedIds.every((id) => rosterIds.has(id))) {
+    throw new Error("Invalid player in bracket slots");
+  }
+  if (placedIds.length !== players.length) {
+    throw new Error("Every player must be placed in the bracket before generating it");
+  }
+  for (let i = 0; i < parsedSlots.length; i += 2) {
+    if (parsedSlots[i] === null && parsedSlots[i + 1] === null) {
+      throw new Error("Two empty bracket slots can't be paired together");
+    }
+  }
+
+  const pairings = pairBracketSlots(parsedSlots);
+  const roundName = knockoutRoundsFor(expectedSize)[0];
+  const now = new Date();
+
+  await prisma.$transaction([
+    ...pairings.map((pair, i) =>
+      prisma.match.create({
+        data: {
+          tournamentId,
+          player1Id: pair.player1Id,
+          player2Id: pair.player2Id,
+          round: roundName,
+          matchOrder: i,
+          ...(pair.player2Id === null
+            ? { status: MatchStatus.COMPLETED, winnerId: pair.player1Id, completedAt: now }
+            : {}),
+        },
+      })
+    ),
     prisma.tournament.update({
       where: { id: tournamentId },
       data: { status: TournamentStatus.ACTIVE },

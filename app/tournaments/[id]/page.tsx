@@ -2,8 +2,9 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getTournament } from "@/lib/actions/tournaments";
 import { prisma } from "@/lib/prisma";
+import { cn } from "@/lib/utils";
 import { calculateStandings, calculateChampion } from "@/lib/algorithms/standings";
-import { TournamentFormat, TournamentStatus, MatchStatus, Round } from "@/types";
+import { TournamentFormat, TournamentStatus, TournamentType, MatchStatus, Round } from "@/types";
 import { displayName } from "@/utils/format";
 import { TournamentProgress } from "@/components/tournament-progress";
 import { ChampionBanner } from "@/components/champion-banner";
@@ -94,6 +95,9 @@ export default async function TournamentPage({
   ).length;
 
   const isDoubles = tournament.format === TournamentFormat.DOUBLES;
+  // A pure knockout bracket has no league stage, so a standings table would
+  // just be every player at zero — not meaningful, so it's left out entirely.
+  const showStandings = tournament.type !== TournamentType.KNOCKOUT;
   const canRegenerate =
     !isDoubles &&
     tournament.status === TournamentStatus.ACTIVE &&
@@ -174,9 +178,9 @@ export default async function TournamentPage({
       )}
 
       <Tabs defaultValue="fixtures">
-        <TabsList className="mb-4 grid w-full grid-cols-3">
+        <TabsList className={cn("mb-4 grid w-full", showStandings ? "grid-cols-3" : "grid-cols-2")}>
           <TabsTrigger value="fixtures">Fixtures</TabsTrigger>
-          <TabsTrigger value="standings">Standings</TabsTrigger>
+          {showStandings && <TabsTrigger value="standings">Standings</TabsTrigger>}
           <TabsTrigger value="players">{isDoubles ? "Teams" : "Players"}</TabsTrigger>
         </TabsList>
         <TabsContent value="fixtures">
@@ -186,9 +190,11 @@ export default async function TournamentPage({
             tournamentType={tournament.type}
           />
         </TabsContent>
-        <TabsContent value="standings">
-          <StandingsTable standings={standings} />
-        </TabsContent>
+        {showStandings && (
+          <TabsContent value="standings">
+            <StandingsTable standings={standings} />
+          </TabsContent>
+        )}
         <TabsContent value="players">
           <PlayersList
             players={tournament.players}

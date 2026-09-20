@@ -6,6 +6,7 @@ import { PlayersList } from "@/components/players-list";
 import { ShareActions } from "@/components/share-actions";
 import { JoinTournamentButton } from "@/components/join-tournament-button";
 import { GenerateFixturesButton } from "@/components/generate-fixtures-button";
+import { BracketBuilder } from "@/components/bracket-builder";
 import { DoublesTeamForm } from "@/components/doubles-team-form";
 import { ActivateDoublesSessionButton } from "@/components/activate-doubles-session-button";
 import { Button } from "@/components/ui/button";
@@ -42,8 +43,9 @@ export default async function PlayersPage({
   }
 
   const isDoubles = tournament.format === TournamentFormat.DOUBLES;
+  const isKnockout = tournament.type === TournamentType.KNOCKOUT;
   const minPlayers =
-    tournament.type === TournamentType.ROUND_ROBIN_KNOCKOUT
+    tournament.type === TournamentType.ROUND_ROBIN_KNOCKOUT || isKnockout
       ? MIN_PLAYERS_KNOCKOUT
       : MIN_PLAYERS_ROUND_ROBIN;
 
@@ -92,11 +94,21 @@ export default async function PlayersPage({
         <div className="space-y-8">
           <ShareActions title={tournament.name} joinCode={tournament.joinCode} />
           <PlayerEntryForm tournamentId={tournament.id} />
-          <GenerateFixturesButton
-            tournamentId={tournament.id}
-            canGenerate={tournament.players.length >= minPlayers}
-            minPlayers={minPlayers}
-          />
+          {isKnockout ? (
+            tournament.players.length >= minPlayers ? (
+              <BracketBuilder tournamentId={tournament.id} players={tournament.players} />
+            ) : (
+              <p className="text-center text-sm text-muted-foreground">
+                At least {minPlayers} players are required to build the bracket.
+              </p>
+            )
+          ) : (
+            <GenerateFixturesButton
+              tournamentId={tournament.id}
+              canGenerate={tournament.players.length >= minPlayers}
+              minPlayers={minPlayers}
+            />
+          )}
         </div>
       ) : session?.user ? (
         hasJoined ? (

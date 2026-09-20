@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { scoreEntrySchema, bestOfThreeScoreEntrySchema, type GameScoreInput } from "@/lib/validations";
 import { calculateStandings } from "@/lib/algorithms/standings";
 import { generateKnockoutFixtures } from "@/lib/algorithms/fixtures";
+import { KNOCKOUT_ROUND_SEQUENCE, knockoutRoundsFromFirst, nextKnockoutRound } from "@/lib/algorithms/bracket";
 import { requireMatchParticipantOrOwner } from "@/lib/auth-helpers";
 import { MatchStatus, Round, TournamentFormat, TournamentStatus, TournamentType } from "@/types";
 
@@ -34,6 +35,41 @@ export async function progressTournament(tournamentId: string) {
 
   if (tournament.type === TournamentType.ROUND_ROBIN) {
     if (leagueDone && tournament.status !== TournamentStatus.COMPLETED) {
+      await prisma.tournament.update({
+        where: { id: tournamentId },
+        data: { status: TournamentStatus.COMPLETED },
+      });
+    }
+    return;
+  }
+
+  if (tournament.type === TournamentType.KNOCKOUT) {
+    if (tournament.matches.length === 0) return;
+
+    const presentRounds = new Set(tournament.matches.map((m) => m.round));
+    const firstRound = KNOCKOUT_ROUND_SEQUENCE.find((r) => presentRounds.has(r));
+    const sequence = firstRound ? knockoutRoundsFromFirst(firstRound) : [];
+
+    for (let i = 0; i < sequence.length - 1; i++) {
+      const roundName = sequence[i];
+      const nextRoundName = sequence[i + 1];
+      if (presentRounds.has(nextRoundName)) continue;
+
+      const roundMatches = tournament.matches.filter((m) => m.round === roundName);
+      const newFixtures = nextKnockoutRound(roundMatches, nextRoundName);
+      if (newFixtures.length > 0) {
+        await prisma.match.createMany({
+          data: newFixtures.map((f) => ({ ...f, tournamentId })),
+        });
+      }
+      break;
+    }
+
+    const finalMatch = tournament.matches.find((m) => m.round === Round.FINAL);
+    if (
+      finalMatch?.status === MatchStatus.COMPLETED &&
+      tournament.status !== TournamentStatus.COMPLETED
+    ) {
       await prisma.tournament.update({
         where: { id: tournamentId },
         data: { status: TournamentStatus.COMPLETED },

@@ -5,7 +5,11 @@ import { extractYoutubeVideoId } from "@/lib/youtube";
 export const createTournamentSchema = z.object({
   name: z.string().trim().min(1, "Tournament name is required").max(80),
   format: z.enum([TournamentFormat.SINGLES, TournamentFormat.DOUBLES]),
-  type: z.enum([TournamentType.ROUND_ROBIN, TournamentType.ROUND_ROBIN_KNOCKOUT]),
+  type: z.enum([
+    TournamentType.ROUND_ROBIN,
+    TournamentType.ROUND_ROBIN_KNOCKOUT,
+    TournamentType.KNOCKOUT,
+  ]),
   legs: z.number().int().min(1).max(3),
 });
 export type CreateTournamentInput = z.infer<typeof createTournamentSchema>;
@@ -16,6 +20,9 @@ export const MIN_PLAYERS_ROUND_ROBIN = 2;
 export const MIN_PLAYERS_KNOCKOUT = 4;
 export const MAX_PLAYERS = 32;
 export const MIN_DOUBLES_TEAMS = 2;
+
+/** One entry per bracket slot: a Player id, or null for an empty (bye) seat. */
+export const knockoutBracketSlotsSchema = z.array(z.string().nullable()).min(MIN_PLAYERS_KNOCKOUT);
 
 export const doublesTeamSchema = z.object({
   player1: z.object({ name: playerNameSchema, profileId: z.string().optional() }),

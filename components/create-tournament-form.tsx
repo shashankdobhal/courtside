@@ -11,7 +11,7 @@ import { TournamentType, TournamentFormat } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Users, Swords, Loader2, UserRound, UsersRound } from "lucide-react";
+import { Users, Swords, Loader2, UserRound, UsersRound, Trophy } from "lucide-react";
 
 const formatOptions = [
   {
@@ -40,6 +40,12 @@ const typeOptions = [
     label: "Round Robin + Knockout",
     description: "League stage, then semis and a final.",
     icon: Swords,
+  },
+  {
+    value: TournamentType.KNOCKOUT,
+    label: "Knockout Bracket",
+    description: "Straight single-elimination bracket. Lose once, you're out.",
+    icon: Trophy,
   },
 ];
 
