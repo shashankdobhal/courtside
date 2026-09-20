@@ -30,11 +30,13 @@ export function TournamentPageActions({
   name,
   canRegenerate,
   youtubeUrl,
+  youtubeUrlPublic,
 }: {
   tournamentId: string;
   name: string;
   canRegenerate: boolean;
   youtubeUrl: string | null;
+  youtubeUrlPublic: boolean;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -98,6 +100,7 @@ export function TournamentPageActions({
       <EditYoutubeDialog
         tournamentId={tournamentId}
         youtubeUrl={youtubeUrl}
+        isPublic={youtubeUrlPublic}
         open={youtubeOpen}
         onOpenChange={setYoutubeOpen}
       />

@@ -27,6 +27,7 @@ export function AddLivestreamPrompt({ tournamentId }: { tournamentId: string }) 
       <EditYoutubeDialog
         tournamentId={tournamentId}
         youtubeUrl={null}
+        isPublic={false}
         open={open}
         onOpenChange={setOpen}
       />

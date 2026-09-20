@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import {
@@ -16,6 +16,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { youtubeUrlSchema, type YoutubeUrlInput } from "@/lib/validations";
 import { setTournamentYoutubeUrl } from "@/lib/actions/tournaments";
 import { Loader2 } from "lucide-react";
@@ -23,11 +24,13 @@ import { Loader2 } from "lucide-react";
 export function EditYoutubeDialog({
   tournamentId,
   youtubeUrl,
+  isPublic,
   open,
   onOpenChange,
 }: {
   tournamentId: string;
   youtubeUrl: string | null;
+  isPublic: boolean;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
@@ -37,26 +40,27 @@ export function EditYoutubeDialog({
 
   const {
     register,
+    control,
     handleSubmit,
     reset,
     formState: { errors },
   } = useForm<YoutubeUrlInput>({
     resolver: zodResolver(youtubeUrlSchema),
-    defaultValues: { youtubeUrl: youtubeUrl ?? "" },
+    defaultValues: { youtubeUrl: youtubeUrl ?? "", isPublic },
   });
 
   useEffect(() => {
     if (open) {
-      reset({ youtubeUrl: youtubeUrl ?? "" });
+      reset({ youtubeUrl: youtubeUrl ?? "", isPublic });
       setServerError(null);
     }
-  }, [open, youtubeUrl, reset]);
+  }, [open, youtubeUrl, isPublic, reset]);
 
   const onSubmit = (data: YoutubeUrlInput) => {
     setServerError(null);
     startTransition(async () => {
       try {
-        await setTournamentYoutubeUrl(tournamentId, data.youtubeUrl ?? "");
+        await setTournamentYoutubeUrl(tournamentId, data.youtubeUrl ?? "", data.isPublic);
         toast.success(data.youtubeUrl ? "Livestream link saved" : "Livestream link removed");
         onOpenChange(false);
         router.refresh();
@@ -96,6 +100,28 @@ export function EditYoutubeDialog({
             {errors.youtubeUrl && (
               <p className="text-sm text-destructive">{errors.youtubeUrl.message}</p>
             )}
+          </div>
+
+          <div className="flex items-center justify-between gap-3 rounded-lg border p-3">
+            <div>
+              <Label htmlFor="youtube-public">List on public Live page</Label>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                Lets anyone browsing courtside.art/live find this stream, even signed out.
+                Otherwise the stream is only visible to people with this tournament&apos;s link.
+              </p>
+            </div>
+            <Controller
+              name="isPublic"
+              control={control}
+              render={({ field }) => (
+                <Switch
+                  id="youtube-public"
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                  className="shrink-0"
+                />
+              )}
+            />
           </div>
 
           {serverError && <p className="text-sm text-destructive">{serverError}</p>}
