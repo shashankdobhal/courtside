@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import {
   createTournamentSchema,
@@ -14,6 +15,9 @@ import { TournamentFormat, TournamentStatus, TournamentType } from "@/types";
 import { generateRoundRobinFixtures } from "@/lib/algorithms/fixtures";
 import { resolveOrCreatePlayerProfile } from "@/lib/actions/player-profiles";
 import { requireSignedIn, requireTournamentOwner } from "@/lib/auth-helpers";
+import { generateJoinCode } from "@/lib/join-code";
+
+const MAX_JOIN_CODE_ATTEMPTS = 5;
 
 export async function createTournament(input: {
   name: string;
@@ -24,19 +28,60 @@ export async function createTournament(input: {
   const session = await requireSignedIn();
   const parsed = createTournamentSchema.parse(input);
 
-  const tournament = await prisma.tournament.create({
-    data: {
-      name: parsed.name,
-      format: parsed.format,
-      type: parsed.type,
-      legs: parsed.type === TournamentType.ROUND_ROBIN ? parsed.legs : 1,
-      status: TournamentStatus.PENDING,
-      ownerId: session.user.id,
-    },
-  });
+  const data = {
+    name: parsed.name,
+    format: parsed.format,
+    type: parsed.type,
+    legs: parsed.type === TournamentType.ROUND_ROBIN ? parsed.legs : 1,
+    status: TournamentStatus.PENDING,
+    ownerId: session.user.id,
+  };
+
+  let tournament;
+  for (let attempt = 1; ; attempt++) {
+    try {
+      tournament = await prisma.tournament.create({
+        data: { ...data, joinCode: generateJoinCode() },
+      });
+      break;
+    } catch (err) {
+      const isJoinCodeCollision =
+        err instanceof Prisma.PrismaClientKnownRequestError &&
+        err.code === "P2002" &&
+        (err.meta?.target as string[] | undefined)?.includes("joinCode");
+      if (!isJoinCodeCollision || attempt >= MAX_JOIN_CODE_ATTEMPTS) throw err;
+    }
+  }
 
   revalidatePath("/");
   redirect(`/tournaments/${tournament.id}/players`);
+}
+
+/**
+ * Resolves whatever a would-be joiner pasted — a full invite link, a bare
+ * tournament id, or a short join code — to a real tournament id, or null if
+ * nothing matches. Shared by both the pre-login join card and the signed-in
+ * Join Game dialog.
+ */
+export async function resolveJoinTarget(input: string): Promise<string | null> {
+  const trimmed = input.trim();
+  if (!trimmed) return null;
+
+  const pathMatch = trimmed.match(/\/tournaments\/([a-zA-Z0-9_-]+)/);
+  const candidate = pathMatch ? pathMatch[1] : trimmed;
+  if (!/^[a-zA-Z0-9_-]+$/.test(candidate)) return null;
+
+  const byCode = await prisma.tournament.findUnique({
+    where: { joinCode: candidate.toUpperCase() },
+    select: { id: true },
+  });
+  if (byCode) return byCode.id;
+
+  const byId = await prisma.tournament.findUnique({
+    where: { id: candidate },
+    select: { id: true },
+  });
+  return byId?.id ?? null;
 }
 
 /**

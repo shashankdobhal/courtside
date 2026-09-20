@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   Dialog,
@@ -13,23 +13,27 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { extractTournamentId } from "@/lib/extract-tournament-id";
+import { resolveJoinTarget } from "@/lib/actions/tournaments";
+import { Loader2 } from "lucide-react";
 
 export function JoinGameDialog() {
   const router = useRouter();
+  const [isPending, startTransition] = useTransition();
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const id = extractTournamentId(value);
-    if (!id) {
-      setError("Enter a valid game code or invite link.");
-      return;
-    }
-    setOpen(false);
-    router.push(`/tournaments/${id}/players`);
+    startTransition(async () => {
+      const tournamentId = await resolveJoinTarget(value);
+      if (!tournamentId) {
+        setError("We couldn't find a game with that code or link.");
+        return;
+      }
+      setOpen(false);
+      router.push(`/tournaments/${tournamentId}/players`);
+    });
   };
 
   return (
@@ -67,7 +71,8 @@ export function JoinGameDialog() {
           />
           {error && <p className="text-sm text-destructive">{error}</p>}
           <DialogFooter>
-            <Button type="submit" size="lg" className="h-12 w-full text-base">
+            <Button type="submit" size="lg" className="h-12 w-full text-base" disabled={isPending}>
+              {isPending && <Loader2 className="size-4 animate-spin" />}
               Join Game
             </Button>
           </DialogFooter>

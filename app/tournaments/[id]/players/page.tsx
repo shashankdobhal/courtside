@@ -74,6 +74,7 @@ export default async function PlayersPage({
       {isDoubles ? (
         isOwner ? (
           <div className="space-y-8">
+            {/* No join code here: doubles has no self-join flow yet, only organizer-formed teams. */}
             <ShareActions title={tournament.name} />
             <DoublesTeamForm tournamentId={tournament.id} />
             <ActivateDoublesSessionButton
@@ -89,7 +90,7 @@ export default async function PlayersPage({
         )
       ) : isOwner ? (
         <div className="space-y-8">
-          <ShareActions title={tournament.name} />
+          <ShareActions title={tournament.name} joinCode={tournament.joinCode} />
           <PlayerEntryForm tournamentId={tournament.id} />
           <GenerateFixturesButton
             tournamentId={tournament.id}
