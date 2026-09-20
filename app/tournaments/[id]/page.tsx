@@ -3,7 +3,11 @@ import { notFound, redirect } from "next/navigation";
 import { getTournament } from "@/lib/actions/tournaments";
 import { prisma } from "@/lib/prisma";
 import { cn } from "@/lib/utils";
-import { calculateStandings, calculateChampion } from "@/lib/algorithms/standings";
+import {
+  calculateStandings,
+  calculateIndividualDoublesStandings,
+  calculateChampion,
+} from "@/lib/algorithms/standings";
 import { TournamentFormat, TournamentStatus, TournamentType, MatchStatus, Round } from "@/types";
 import { displayName } from "@/utils/format";
 import { TournamentProgress } from "@/components/tournament-progress";
@@ -14,8 +18,8 @@ import { PlayersList } from "@/components/players-list";
 import { TournamentPageActions } from "@/components/tournament-page-actions";
 import { YoutubeEmbed } from "@/components/youtube-embed";
 import { AddLivestreamPrompt } from "@/components/add-livestream-prompt";
-import { AddDoublesMatchDialog } from "@/components/add-doubles-match-dialog";
-import { CompleteDoublesSessionButton } from "@/components/complete-doubles-session-button";
+import { AddSessionMatchDialog } from "@/components/add-session-match-dialog";
+import { CompleteSessionButton } from "@/components/complete-session-button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -58,7 +62,18 @@ export default async function TournamentPage({
   );
 
   const playersById = new Map(tournament.players.map((p) => [p.id, p]));
-  const standings = calculateStandings(tournament.players, tournament.matches);
+  const isDoubles = tournament.format === TournamentFormat.DOUBLES;
+  const isSession = tournament.type === TournamentType.SESSION;
+  const isDoublesSession = isDoubles && isSession;
+  // In a casual doubles session, `players` is a mix of the visible roster
+  // (individuals) and on-the-fly pairing rows created as matches get
+  // logged (see resolveDoublesPairing) — never shown directly, only
+  // unwrapped into their two members for individual standings below.
+  const rosterPlayers = tournament.players.filter((p) => !p.partnerProfileId);
+  const pairingPlayers = tournament.players.filter((p) => p.partnerProfileId);
+  const standings = isDoublesSession
+    ? calculateIndividualDoublesStandings(rosterPlayers, pairingPlayers, tournament.matches)
+    : calculateStandings(tournament.players, tournament.matches);
   const champion = calculateChampion({
     type: tournament.type,
     standings,
@@ -94,11 +109,6 @@ export default async function TournamentPage({
     (m) => m.status === MatchStatus.COMPLETED
   ).length;
 
-  const isDoubles = tournament.format === TournamentFormat.DOUBLES;
-  // A casual session (doubles-only) has no generated fixtures to regenerate,
-  // no fixed match count to show progress against, and no single "final"
-  // match to crown a champion off of — those are all tournament-style-only.
-  const isSession = tournament.type === TournamentType.SESSION;
   // A pure knockout bracket has no league stage, so a standings table would
   // just be every player at zero — not meaningful, so it's left out entirely.
   const showStandings = tournament.type !== TournamentType.KNOCKOUT;
@@ -108,11 +118,14 @@ export default async function TournamentPage({
     tournament.matches.every((m) => m.round === Round.LEAGUE);
   const typeLabel =
     tournamentTypeLabel[tournament.type as keyof typeof tournamentTypeLabel] ?? tournament.type;
-  const subtitle =
-    isDoubles && isSession ? "Doubles · Friendly" : isDoubles ? `Doubles · ${typeLabel}` : typeLabel;
-  const doublesTeams = tournament.players
+  const subtitle = isDoubles ? `Doubles · ${typeLabel}` : typeLabel;
+  // The session "Add Match" dialog only ever picks from the visible
+  // individual roster — a doubles session's own on-the-fly pairing rows are
+  // resolved behind the scenes, never offered as pickable participants.
+  const sessionRoster = rosterPlayers
     .filter((p) => !p.withdrawn)
     .map((p) => ({ id: p.id, name: displayName(p) }));
+  const visibleRosterPlayers = isDoublesSession ? rosterPlayers : tournament.players;
 
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-8 sm:py-12">
@@ -134,8 +147,8 @@ export default async function TournamentPage({
                 Share
               </Link>
             </Button>
-            {isOwner && isDoubles && isSession && tournament.status === TournamentStatus.ACTIVE && (
-              <CompleteDoublesSessionButton tournamentId={tournament.id} />
+            {isOwner && isSession && tournament.status === TournamentStatus.ACTIVE && (
+              <CompleteSessionButton tournamentId={tournament.id} />
             )}
             {isOwner && (
               <TournamentPageActions
@@ -174,9 +187,13 @@ export default async function TournamentPage({
         </div>
       )}
 
-      {isDoubles && isSession && isOwner && tournament.status === TournamentStatus.ACTIVE && (
+      {isSession && isOwner && tournament.status === TournamentStatus.ACTIVE && (
         <div className="mb-6">
-          <AddDoublesMatchDialog tournamentId={tournament.id} teams={doublesTeams} />
+          <AddSessionMatchDialog
+            tournamentId={tournament.id}
+            roster={sessionRoster}
+            sideSize={isDoubles ? 2 : 1}
+          />
         </div>
       )}
 
@@ -184,7 +201,7 @@ export default async function TournamentPage({
         <TabsList className={cn("mb-4 grid w-full", showStandings ? "grid-cols-3" : "grid-cols-2")}>
           <TabsTrigger value="fixtures">Fixtures</TabsTrigger>
           {showStandings && <TabsTrigger value="standings">Standings</TabsTrigger>}
-          <TabsTrigger value="players">{isDoubles ? "Teams" : "Players"}</TabsTrigger>
+          <TabsTrigger value="players">{isDoubles && !isSession ? "Teams" : "Players"}</TabsTrigger>
         </TabsList>
         <TabsContent value="fixtures">
           <FixturesList
@@ -200,9 +217,14 @@ export default async function TournamentPage({
         )}
         <TabsContent value="players">
           <PlayersList
-            players={tournament.players}
+            players={visibleRosterPlayers}
             isOwner={isOwner}
-            canWithdraw={tournament.status === TournamentStatus.ACTIVE}
+            // Withdrawal voids a player's pending matches by their own row id —
+            // in a doubles session, matches reference the on-the-fly pairing
+            // row instead, so that wiring doesn't apply here (a withdrawn
+            // individual is still excluded from *new* matches, just not
+            // retroactively voided out of ones already logged).
+            canWithdraw={tournament.status === TournamentStatus.ACTIVE && !isDoublesSession}
           />
         </TabsContent>
       </Tabs>

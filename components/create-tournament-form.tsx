@@ -11,34 +11,50 @@ import { TournamentType, TournamentFormat } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Users, Swords, Loader2, UserRound, UsersRound, Trophy, Shuffle } from "lucide-react";
+import {
+  Users,
+  Swords,
+  Loader2,
+  UserRound,
+  UsersRound,
+  Trophy,
+  Shuffle,
+  Check,
+  type LucideIcon,
+} from "lucide-react";
 
-const formatOptions = [
+interface Option<T extends string> {
+  value: T;
+  label: string;
+  description: string;
+  icon: LucideIcon;
+}
+
+const formatOptions: Option<TournamentFormat>[] = [
   {
     value: TournamentFormat.SINGLES,
     label: "Singles",
-    description: "One player per side. Fixtures, standings, a champion.",
+    description: "One player per side.",
     icon: UserRound,
   },
   {
     value: TournamentFormat.DOUBLES,
     label: "Doubles",
-    description: "Team up in pairs — a casual session or a full tournament bracket.",
+    description: "Team up in pairs.",
     icon: UsersRound,
   },
 ];
 
-// Casual Session has no generated fixtures — doubles-only, and the default
-// when a doubles tournament is picked, since it's the familiar, lower-effort
-// flow. Singles never offers it.
-const sessionTypeOption = {
+// Casual Session has no generated fixtures — available for either format,
+// and the default for Doubles, since it's the familiar, lower-effort flow.
+const sessionTypeOption: Option<TournamentType> = {
   value: TournamentType.SESSION,
   label: "Casual Session",
   description: "No bracket — log matches as you play, whoever's next.",
   icon: Shuffle,
 };
 
-const tournamentTypeOptions = [
+const tournamentTypeOptions: Option<TournamentType>[] = [
   {
     value: TournamentType.ROUND_ROBIN,
     label: "Everyone Plays Everyone",
@@ -54,10 +70,12 @@ const tournamentTypeOptions = [
   {
     value: TournamentType.KNOCKOUT,
     label: "Knockout Bracket",
-    description: "Straight single-elimination bracket. Lose once, you're out.",
+    description: "Single-elimination bracket. Lose once, you're out.",
     icon: Trophy,
   },
 ];
+
+const typeOptions: Option<TournamentType>[] = [sessionTypeOption, ...tournamentTypeOptions];
 
 const defaultTypeForFormat: Record<TournamentFormat, TournamentType> = {
   [TournamentFormat.SINGLES]: TournamentType.ROUND_ROBIN,
@@ -69,6 +87,42 @@ const legsOptions = [
   { value: 2, label: "Twice" },
   { value: 3, label: "Thrice" },
 ];
+
+function OptionRow<T extends string>({
+  option,
+  isSelected,
+  onSelect,
+}: {
+  option: Option<T>;
+  isSelected: boolean;
+  onSelect: () => void;
+}) {
+  const Icon = option.icon;
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      className={cn(
+        "flex w-full items-center gap-3 rounded-xl border p-3 text-left transition-colors active:scale-[0.99]",
+        isSelected ? "border-primary bg-primary/5 ring-1 ring-primary" : "border-border hover:bg-accent"
+      )}
+    >
+      <span
+        className={cn(
+          "flex size-9 shrink-0 items-center justify-center rounded-full",
+          isSelected ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+        )}
+      >
+        <Icon className="size-4" />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block text-sm font-medium leading-tight">{option.label}</span>
+        <span className="block truncate text-xs text-muted-foreground">{option.description}</span>
+      </span>
+      {isSelected && <Check className="size-4 shrink-0 text-primary" />}
+    </button>
+  );
+}
 
 export function CreateTournamentForm() {
   const [isPending, startTransition] = useTransition();
@@ -93,11 +147,6 @@ export function CreateTournamentForm() {
   const selectedFormat = watch("format");
   const selectedType = watch("type");
   const selectedLegs = watch("legs");
-
-  const typeOptions =
-    selectedFormat === TournamentFormat.DOUBLES
-      ? [sessionTypeOption, ...tournamentTypeOptions]
-      : tournamentTypeOptions;
 
   const onSubmit = (data: CreateTournamentInput) => {
     setServerError(null);
@@ -128,60 +177,32 @@ export function CreateTournamentForm() {
 
       <div className="space-y-2">
         <Label>Format</Label>
-        <div className="grid gap-3 sm:grid-cols-2">
-          {formatOptions.map((option) => {
-            const Icon = option.icon;
-            const isSelected = selectedFormat === option.value;
-            return (
-              <button
-                key={option.value}
-                type="button"
-                onClick={() => {
-                  setValue("format", option.value, { shouldValidate: true });
-                  setValue("type", defaultTypeForFormat[option.value], { shouldValidate: true });
-                }}
-                className={cn(
-                  "flex flex-col items-start gap-2 rounded-xl border p-4 text-left transition-colors",
-                  "min-h-28 active:scale-[0.99]",
-                  isSelected
-                    ? "border-primary bg-primary/5 ring-1 ring-primary"
-                    : "border-border hover:bg-accent"
-                )}
-              >
-                <Icon className="size-5" />
-                <span className="font-medium leading-tight">{option.label}</span>
-                <span className="text-xs text-muted-foreground">{option.description}</span>
-              </button>
-            );
-          })}
+        <div className="grid gap-2 sm:grid-cols-2">
+          {formatOptions.map((option) => (
+            <OptionRow
+              key={option.value}
+              option={option}
+              isSelected={selectedFormat === option.value}
+              onSelect={() => {
+                setValue("format", option.value, { shouldValidate: true });
+                setValue("type", defaultTypeForFormat[option.value], { shouldValidate: true });
+              }}
+            />
+          ))}
         </div>
       </div>
 
       <div className="space-y-2">
         <Label>Tournament Type</Label>
-        <div className="grid gap-3 sm:grid-cols-2">
-          {typeOptions.map((option) => {
-            const Icon = option.icon;
-            const isSelected = selectedType === option.value;
-            return (
-              <button
-                key={option.value}
-                type="button"
-                onClick={() => setValue("type", option.value, { shouldValidate: true })}
-                className={cn(
-                  "flex flex-col items-start gap-2 rounded-xl border p-4 text-left transition-colors",
-                  "min-h-28 active:scale-[0.99]",
-                  isSelected
-                    ? "border-primary bg-primary/5 ring-1 ring-primary"
-                    : "border-border hover:bg-accent"
-                )}
-              >
-                <Icon className="size-5" />
-                <span className="font-medium leading-tight">{option.label}</span>
-                <span className="text-xs text-muted-foreground">{option.description}</span>
-              </button>
-            );
-          })}
+        <div className="space-y-2">
+          {typeOptions.map((option) => (
+            <OptionRow
+              key={option.value}
+              option={option}
+              isSelected={selectedType === option.value}
+              onSelect={() => setValue("type", option.value, { shouldValidate: true })}
+            />
+          ))}
         </div>
       </div>
 

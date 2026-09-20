@@ -13,10 +13,11 @@ import {
   MIN_PLAYERS_ROUND_ROBIN,
   MIN_PLAYERS_KNOCKOUT,
 } from "@/lib/validations";
-import { MatchStatus, TournamentFormat, TournamentStatus, TournamentType } from "@/types";
+import { MatchStatus, TournamentStatus, TournamentType } from "@/types";
 import { generateRoundRobinFixtures } from "@/lib/algorithms/fixtures";
 import { bracketSizeFor, knockoutRoundsFor, pairBracketSlots } from "@/lib/algorithms/bracket";
 import { resolveOrCreatePlayerProfile } from "@/lib/actions/player-profiles";
+import { usesIndividualRoster } from "@/lib/tournament-mode";
 import { requireSignedIn, requireTournamentOwner } from "@/lib/auth-helpers";
 import { generateJoinCode } from "@/lib/join-code";
 import { extractYoutubeVideoId } from "@/lib/youtube";
@@ -99,7 +100,7 @@ export async function addPlayers(
   entries: { name: string; profileId?: string }[]
 ) {
   const { tournament } = await requireTournamentOwner(tournamentId);
-  if (tournament.format !== TournamentFormat.SINGLES) {
+  if (!usesIndividualRoster(tournament)) {
     throw new Error("This tournament doesn't use individual players");
   }
   if (tournament.status !== TournamentStatus.PENDING) {

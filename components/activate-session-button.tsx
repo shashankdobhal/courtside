@@ -4,17 +4,20 @@ import { useTransition } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { activateDoublesSession } from "@/lib/actions/doubles";
+import { activateSession } from "@/lib/actions/sessions";
 import { Loader2, Play } from "lucide-react";
 
-export function ActivateDoublesSessionButton({
+export function ActivateSessionButton({
   tournamentId,
   canActivate,
-  minTeams,
+  minPlayers,
+  entityLabel = "player",
 }: {
   tournamentId: string;
   canActivate: boolean;
-  minTeams: number;
+  minPlayers: number;
+  /** "player" or "team" — a casual session always deals in individual players. */
+  entityLabel?: string;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -22,7 +25,7 @@ export function ActivateDoublesSessionButton({
   const handleActivate = () => {
     startTransition(async () => {
       try {
-        await activateDoublesSession(tournamentId);
+        await activateSession(tournamentId);
         router.push(`/tournaments/${tournamentId}`);
       } catch (err) {
         const message =
@@ -45,7 +48,8 @@ export function ActivateDoublesSessionButton({
       </Button>
       {!canActivate && (
         <p className="text-center text-sm text-muted-foreground">
-          At least {minTeams} teams are required to start.
+          At least {minPlayers} {entityLabel}
+          {minPlayers === 1 ? "" : "s"} are required to start.
         </p>
       )}
     </div>

@@ -2,24 +2,18 @@ import { z } from "zod";
 import { TournamentType, TournamentFormat } from "@/types";
 import { extractYoutubeVideoId } from "@/lib/youtube";
 
-export const createTournamentSchema = z
-  .object({
-    name: z.string().trim().min(1, "Tournament name is required").max(80),
-    format: z.enum([TournamentFormat.SINGLES, TournamentFormat.DOUBLES]),
-    // SESSION (ad-hoc, no generated fixtures) is doubles-only — singles
-    // always picks one of the three generated-fixture types.
-    type: z.enum([
-      TournamentType.ROUND_ROBIN,
-      TournamentType.ROUND_ROBIN_KNOCKOUT,
-      TournamentType.KNOCKOUT,
-      TournamentType.SESSION,
-    ]),
-    legs: z.number().int().min(1).max(3),
-  })
-  .refine((data) => data.format === TournamentFormat.DOUBLES || data.type !== TournamentType.SESSION, {
-    message: "Singles tournaments need a tournament type",
-    path: ["type"],
-  });
+export const createTournamentSchema = z.object({
+  name: z.string().trim().min(1, "Tournament name is required").max(80),
+  format: z.enum([TournamentFormat.SINGLES, TournamentFormat.DOUBLES]),
+  // SESSION (ad-hoc, no generated fixtures) is available for either format.
+  type: z.enum([
+    TournamentType.ROUND_ROBIN,
+    TournamentType.ROUND_ROBIN_KNOCKOUT,
+    TournamentType.KNOCKOUT,
+    TournamentType.SESSION,
+  ]),
+  legs: z.number().int().min(1).max(3),
+});
 export type CreateTournamentInput = z.infer<typeof createTournamentSchema>;
 
 export const playerNameSchema = z.string().trim().min(1, "Name is required").max(40);
@@ -27,7 +21,10 @@ export const playerNameSchema = z.string().trim().min(1, "Name is required").max
 export const MIN_PLAYERS_ROUND_ROBIN = 2;
 export const MIN_PLAYERS_KNOCKOUT = 4;
 export const MAX_PLAYERS = 32;
-export const MIN_DOUBLES_TEAMS = 2;
+// Minimum roster size to activate a casual session — enough people for one
+// match: two individuals for singles, four (two per side) for doubles.
+export const MIN_SESSION_PLAYERS_SINGLES = 2;
+export const MIN_SESSION_PLAYERS_DOUBLES = 4;
 
 /** One entry per bracket slot: a Player id, or null for an empty (bye) seat. */
 export const knockoutBracketSlotsSchema = z.array(z.string().nullable()).min(MIN_PLAYERS_KNOCKOUT);
@@ -37,6 +34,29 @@ export const doublesTeamSchema = z.object({
   player2: z.object({ name: playerNameSchema, profileId: z.string().optional() }),
 });
 export type DoublesTeamInput = z.infer<typeof doublesTeamSchema>;
+
+/**
+ * One side per array of roster Player ids — length 1 for a singles-session
+ * match, 2 for a doubles-session match (a pair formed on the fly, not a
+ * pre-registered team). Both sides must match in size and share no players.
+ */
+export const sessionMatchSchema = z
+  .object({
+    side1PlayerIds: z.array(z.string()).min(1).max(2),
+    side2PlayerIds: z.array(z.string()).min(1).max(2),
+  })
+  .refine((data) => data.side1PlayerIds.length === data.side2PlayerIds.length, {
+    message: "Both sides need the same number of players",
+    path: ["side2PlayerIds"],
+  })
+  .refine(
+    (data) => {
+      const all = [...data.side1PlayerIds, ...data.side2PlayerIds];
+      return new Set(all).size === all.length;
+    },
+    { message: "A player can only be on one side", path: ["side2PlayerIds"] }
+  );
+export type SessionMatchInput = z.infer<typeof sessionMatchSchema>;
 
 /**
  * Validates a batch of new players being added to a tournament's roster,
