@@ -74,6 +74,7 @@ export const youtubeUrlSchema = z.object({
     .refine((value) => !value || extractYoutubeVideoId(value) !== null, {
       message: "Enter a valid YouTube video or live stream link",
     }),
+  isPublic: z.boolean(),
 });
 export type YoutubeUrlInput = z.infer<typeof youtubeUrlSchema>;
 

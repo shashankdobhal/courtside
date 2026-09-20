@@ -136,6 +136,7 @@ export default async function TournamentPage({
                 name={tournament.name}
                 canRegenerate={canRegenerate}
                 youtubeUrl={tournament.youtubeUrl}
+                youtubeUrlPublic={tournament.youtubeUrlPublic}
               />
             )}
           </div>

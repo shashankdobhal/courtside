@@ -173,9 +173,13 @@ export async function updateTournament(tournamentId: string, input: { name: stri
   revalidatePath(`/tournaments/${tournamentId}`);
 }
 
-export async function setTournamentYoutubeUrl(tournamentId: string, youtubeUrl: string) {
+export async function setTournamentYoutubeUrl(
+  tournamentId: string,
+  youtubeUrl: string,
+  isPublic: boolean
+) {
   await requireTournamentOwner(tournamentId);
-  const parsed = youtubeUrlSchema.parse({ youtubeUrl });
+  const parsed = youtubeUrlSchema.parse({ youtubeUrl, isPublic });
   const trimmed = parsed.youtubeUrl?.trim() || null;
   if (trimmed && !extractYoutubeVideoId(trimmed)) {
     throw new Error("Enter a valid YouTube video or live stream link");
@@ -183,7 +187,7 @@ export async function setTournamentYoutubeUrl(tournamentId: string, youtubeUrl: 
 
   await prisma.tournament.update({
     where: { id: tournamentId },
-    data: { youtubeUrl: trimmed },
+    data: { youtubeUrl: trimmed, youtubeUrlPublic: trimmed ? parsed.isPublic : false },
   });
 
   revalidatePath(`/tournaments/${tournamentId}`);
@@ -215,13 +219,15 @@ export async function deleteTournament(tournamentId: string) {
 }
 
 /**
- * Every tournament whose organizer has attached a YouTube link, for the
- * public /live hub. Surfaced deliberately — an organizer opts in by pasting
- * a link — so this isn't filtered by ownership like getMyTournaments is.
+ * Every tournament whose organizer has attached a YouTube link AND opted
+ * into public listing, for the /live hub — visible to signed-out visitors,
+ * so this is a second, separate opt-in from just pasting a link (which only
+ * ever shows the embed on the tournament's own page). Not filtered by
+ * ownership like getMyTournaments is; that's the point of "public."
  */
 export async function getLivestreamTournaments() {
   const tournaments = await prisma.tournament.findMany({
-    where: { youtubeUrl: { not: null } },
+    where: { youtubeUrl: { not: null }, youtubeUrlPublic: true },
     orderBy: { updatedAt: "desc" },
     select: {
       id: true,
