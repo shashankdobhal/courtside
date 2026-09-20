@@ -12,6 +12,7 @@ import { FixturesList } from "@/components/fixtures-list";
 import { PlayersList } from "@/components/players-list";
 import { TournamentPageActions } from "@/components/tournament-page-actions";
 import { YoutubeEmbed } from "@/components/youtube-embed";
+import { AddLivestreamPrompt } from "@/components/add-livestream-prompt";
 import { AddDoublesMatchDialog } from "@/components/add-doubles-match-dialog";
 import { CompleteDoublesSessionButton } from "@/components/complete-doubles-session-button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -144,10 +145,12 @@ export default async function TournamentPage({
         )}
       </div>
 
-      {tournament.youtubeUrl && (
+      {tournament.youtubeUrl ? (
         <div className="mb-6">
           <YoutubeEmbed url={tournament.youtubeUrl} title={tournament.name} />
         </div>
+      ) : (
+        isOwner && <AddLivestreamPrompt tournamentId={tournament.id} />
       )}
 
       {tournament.status === TournamentStatus.CANCELLED && (
