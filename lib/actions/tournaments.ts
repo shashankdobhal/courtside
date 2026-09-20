@@ -130,7 +130,7 @@ export async function addPlayers(
  */
 export async function generateFixturesAndActivate(tournamentId: string) {
   const { tournament } = await requireTournamentOwner(tournamentId);
-  if (tournament.format !== TournamentFormat.SINGLES) {
+  if (tournament.type === TournamentType.SESSION) {
     throw new Error("This tournament doesn't use generated fixtures");
   }
   if (tournament.type === TournamentType.KNOCKOUT) {
@@ -175,7 +175,7 @@ export async function generateFixturesAndActivate(tournamentId: string) {
  */
 export async function generateKnockoutBracket(tournamentId: string, slots: (string | null)[]) {
   const { tournament } = await requireTournamentOwner(tournamentId);
-  if (tournament.format !== TournamentFormat.SINGLES || tournament.type !== TournamentType.KNOCKOUT) {
+  if (tournament.type !== TournamentType.KNOCKOUT) {
     throw new Error("This tournament doesn't use a knockout bracket");
   }
   if (tournament.status !== TournamentStatus.PENDING) {

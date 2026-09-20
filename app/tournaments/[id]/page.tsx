@@ -95,13 +95,21 @@ export default async function TournamentPage({
   ).length;
 
   const isDoubles = tournament.format === TournamentFormat.DOUBLES;
+  // A casual session (doubles-only) has no generated fixtures to regenerate,
+  // no fixed match count to show progress against, and no single "final"
+  // match to crown a champion off of — those are all tournament-style-only.
+  const isSession = tournament.type === TournamentType.SESSION;
   // A pure knockout bracket has no league stage, so a standings table would
   // just be every player at zero — not meaningful, so it's left out entirely.
   const showStandings = tournament.type !== TournamentType.KNOCKOUT;
   const canRegenerate =
-    !isDoubles &&
+    !isSession &&
     tournament.status === TournamentStatus.ACTIVE &&
     tournament.matches.every((m) => m.round === Round.LEAGUE);
+  const typeLabel =
+    tournamentTypeLabel[tournament.type as keyof typeof tournamentTypeLabel] ?? tournament.type;
+  const subtitle =
+    isDoubles && isSession ? "Doubles · Friendly" : isDoubles ? `Doubles · ${typeLabel}` : typeLabel;
   const doublesTeams = tournament.players
     .filter((p) => !p.withdrawn)
     .map((p) => ({ id: p.id, name: displayName(p) }));
@@ -117,12 +125,7 @@ export default async function TournamentPage({
                 {tournamentStatusLabel[tournament.status as TournamentStatus] ?? tournament.status}
               </Badge>
             </div>
-            <p className="text-sm text-muted-foreground">
-              {isDoubles
-                ? "Doubles · Friendly"
-                : (tournamentTypeLabel[tournament.type as keyof typeof tournamentTypeLabel] ??
-                  tournament.type)}
-            </p>
+            <p className="text-sm text-muted-foreground">{subtitle}</p>
           </div>
           <div className="flex shrink-0 items-center gap-2">
             <Button asChild variant="outline" size="sm">
@@ -131,7 +134,7 @@ export default async function TournamentPage({
                 Share
               </Link>
             </Button>
-            {isOwner && isDoubles && tournament.status === TournamentStatus.ACTIVE && (
+            {isOwner && isDoubles && isSession && tournament.status === TournamentStatus.ACTIVE && (
               <CompleteDoublesSessionButton tournamentId={tournament.id} />
             )}
             {isOwner && (
@@ -145,7 +148,7 @@ export default async function TournamentPage({
             )}
           </div>
         </div>
-        {!isDoubles && (
+        {!isSession && (
           <TournamentProgress completed={completedCount} total={tournament.matches.length} />
         )}
       </div>
@@ -165,13 +168,13 @@ export default async function TournamentPage({
         </Badge>
       )}
 
-      {!isDoubles && champion && (
+      {!isSession && champion && (
         <div className="mb-6">
           <ChampionBanner name={displayName(champion)} tournamentId={tournament.id} />
         </div>
       )}
 
-      {isDoubles && isOwner && tournament.status === TournamentStatus.ACTIVE && (
+      {isDoubles && isSession && isOwner && tournament.status === TournamentStatus.ACTIVE && (
         <div className="mb-6">
           <AddDoublesMatchDialog tournamentId={tournament.id} teams={doublesTeams} />
         </div>

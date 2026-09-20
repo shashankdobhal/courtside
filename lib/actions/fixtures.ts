@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { generateRoundRobinFixtures, diffRegeneratedFixtures } from "@/lib/algorithms/fixtures";
 import { progressTournament } from "@/lib/actions/matches";
 import { requireTournamentOwner } from "@/lib/auth-helpers";
-import { MatchStatus, Round, TournamentFormat, TournamentStatus } from "@/types";
+import { MatchStatus, Round, TournamentStatus, TournamentType } from "@/types";
 
 /**
  * Rebuilds not-yet-played league fixtures from the current (active) player
@@ -22,7 +22,7 @@ export async function regenerateFixtures(tournamentId: string) {
     include: { players: true, matches: true },
   });
   if (!tournament) throw new Error("Tournament not found");
-  if (tournament.format !== TournamentFormat.SINGLES) {
+  if (tournament.type === TournamentType.SESSION) {
     throw new Error("This tournament doesn't use generated fixtures");
   }
   if (tournament.status !== TournamentStatus.ACTIVE) {

@@ -11,7 +11,7 @@ import { TournamentType, TournamentFormat } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Users, Swords, Loader2, UserRound, UsersRound, Trophy } from "lucide-react";
+import { Users, Swords, Loader2, UserRound, UsersRound, Trophy, Shuffle } from "lucide-react";
 
 const formatOptions = [
   {
@@ -23,12 +23,22 @@ const formatOptions = [
   {
     value: TournamentFormat.DOUBLES,
     label: "Doubles",
-    description: "Team up in pairs. Casual, friendly — matches logged as you play.",
+    description: "Team up in pairs — a casual session or a full tournament bracket.",
     icon: UsersRound,
   },
 ];
 
-const typeOptions = [
+// Casual Session has no generated fixtures — doubles-only, and the default
+// when a doubles tournament is picked, since it's the familiar, lower-effort
+// flow. Singles never offers it.
+const sessionTypeOption = {
+  value: TournamentType.SESSION,
+  label: "Casual Session",
+  description: "No bracket — log matches as you play, whoever's next.",
+  icon: Shuffle,
+};
+
+const tournamentTypeOptions = [
   {
     value: TournamentType.ROUND_ROBIN,
     label: "Everyone Plays Everyone",
@@ -48,6 +58,11 @@ const typeOptions = [
     icon: Trophy,
   },
 ];
+
+const defaultTypeForFormat: Record<TournamentFormat, TournamentType> = {
+  [TournamentFormat.SINGLES]: TournamentType.ROUND_ROBIN,
+  [TournamentFormat.DOUBLES]: TournamentType.SESSION,
+};
 
 const legsOptions = [
   { value: 1, label: "Once" },
@@ -78,6 +93,11 @@ export function CreateTournamentForm() {
   const selectedFormat = watch("format");
   const selectedType = watch("type");
   const selectedLegs = watch("legs");
+
+  const typeOptions =
+    selectedFormat === TournamentFormat.DOUBLES
+      ? [sessionTypeOption, ...tournamentTypeOptions]
+      : tournamentTypeOptions;
 
   const onSubmit = (data: CreateTournamentInput) => {
     setServerError(null);
@@ -116,7 +136,10 @@ export function CreateTournamentForm() {
               <button
                 key={option.value}
                 type="button"
-                onClick={() => setValue("format", option.value, { shouldValidate: true })}
+                onClick={() => {
+                  setValue("format", option.value, { shouldValidate: true });
+                  setValue("type", defaultTypeForFormat[option.value], { shouldValidate: true });
+                }}
                 className={cn(
                   "flex flex-col items-start gap-2 rounded-xl border p-4 text-left transition-colors",
                   "min-h-28 active:scale-[0.99]",
@@ -134,62 +157,58 @@ export function CreateTournamentForm() {
         </div>
       </div>
 
-      {selectedFormat === TournamentFormat.SINGLES && (
-        <>
-          <div className="space-y-2">
-            <Label>Tournament Type</Label>
-            <div className="grid gap-3 sm:grid-cols-2">
-              {typeOptions.map((option) => {
-                const Icon = option.icon;
-                const isSelected = selectedType === option.value;
-                return (
-                  <button
-                    key={option.value}
-                    type="button"
-                    onClick={() => setValue("type", option.value, { shouldValidate: true })}
-                    className={cn(
-                      "flex flex-col items-start gap-2 rounded-xl border p-4 text-left transition-colors",
-                      "min-h-28 active:scale-[0.99]",
-                      isSelected
-                        ? "border-primary bg-primary/5 ring-1 ring-primary"
-                        : "border-border hover:bg-accent"
-                    )}
-                  >
-                    <Icon className="size-5" />
-                    <span className="font-medium leading-tight">{option.label}</span>
-                    <span className="text-xs text-muted-foreground">{option.description}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+      <div className="space-y-2">
+        <Label>Tournament Type</Label>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {typeOptions.map((option) => {
+            const Icon = option.icon;
+            const isSelected = selectedType === option.value;
+            return (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => setValue("type", option.value, { shouldValidate: true })}
+                className={cn(
+                  "flex flex-col items-start gap-2 rounded-xl border p-4 text-left transition-colors",
+                  "min-h-28 active:scale-[0.99]",
+                  isSelected
+                    ? "border-primary bg-primary/5 ring-1 ring-primary"
+                    : "border-border hover:bg-accent"
+                )}
+              >
+                <Icon className="size-5" />
+                <span className="font-medium leading-tight">{option.label}</span>
+                <span className="text-xs text-muted-foreground">{option.description}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
-          {selectedType === TournamentType.ROUND_ROBIN && (
-            <div className="space-y-2">
-              <Label>How many times should each pair play?</Label>
-              <div className="grid grid-cols-3 gap-2">
-                {legsOptions.map((option) => {
-                  const isSelected = selectedLegs === option.value;
-                  return (
-                    <button
-                      key={option.value}
-                      type="button"
-                      onClick={() => setValue("legs", option.value, { shouldValidate: true })}
-                      className={cn(
-                        "h-11 rounded-lg border text-sm font-medium transition-colors active:scale-[0.99]",
-                        isSelected
-                          ? "border-primary bg-primary/5 ring-1 ring-primary"
-                          : "border-border hover:bg-accent"
-                      )}
-                    >
-                      {option.label}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-        </>
+      {selectedType === TournamentType.ROUND_ROBIN && (
+        <div className="space-y-2">
+          <Label>How many times should each pair play?</Label>
+          <div className="grid grid-cols-3 gap-2">
+            {legsOptions.map((option) => {
+              const isSelected = selectedLegs === option.value;
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => setValue("legs", option.value, { shouldValidate: true })}
+                  className={cn(
+                    "h-11 rounded-lg border text-sm font-medium transition-colors active:scale-[0.99]",
+                    isSelected
+                      ? "border-primary bg-primary/5 ring-1 ring-primary"
+                      : "border-border hover:bg-accent"
+                  )}
+                >
+                  {option.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
       )}
 
       {serverError && <p className="text-sm text-destructive">{serverError}</p>}

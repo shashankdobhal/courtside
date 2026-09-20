@@ -4,13 +4,14 @@ import { Button } from "@/components/ui/button";
 import { TournamentCardActions } from "@/components/tournament-card-actions";
 import { formatDate } from "@/utils/format";
 import { gameFormatLabel, gameHref } from "@/lib/tournament-display";
-import { MatchStatus, TournamentFormat, TournamentStatus } from "@/types";
+import { MatchStatus, TournamentStatus, TournamentType } from "@/types";
 import { cn } from "@/lib/utils";
 
 type ActiveGameData = {
   id: string;
   name: string;
   format: string;
+  type: string;
   status: string;
   createdAt: Date;
   _count: { players: number };
@@ -25,8 +26,11 @@ export function ActiveGameCard({
   isOwner: boolean;
 }) {
   const isPending = tournament.status === TournamentStatus.PENDING;
+  // A casual session has no fixed fixture list, so "N remaining" isn't
+  // meaningful — every other tournament (singles or doubles) has generated
+  // fixtures and a real count.
   const matchesRemaining =
-    tournament.format === TournamentFormat.SINGLES && !isPending
+    tournament.type !== TournamentType.SESSION && !isPending
       ? tournament.matches.filter((m) => m.status === MatchStatus.PENDING).length
       : null;
 

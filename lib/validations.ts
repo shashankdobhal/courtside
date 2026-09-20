@@ -2,16 +2,24 @@ import { z } from "zod";
 import { TournamentType, TournamentFormat } from "@/types";
 import { extractYoutubeVideoId } from "@/lib/youtube";
 
-export const createTournamentSchema = z.object({
-  name: z.string().trim().min(1, "Tournament name is required").max(80),
-  format: z.enum([TournamentFormat.SINGLES, TournamentFormat.DOUBLES]),
-  type: z.enum([
-    TournamentType.ROUND_ROBIN,
-    TournamentType.ROUND_ROBIN_KNOCKOUT,
-    TournamentType.KNOCKOUT,
-  ]),
-  legs: z.number().int().min(1).max(3),
-});
+export const createTournamentSchema = z
+  .object({
+    name: z.string().trim().min(1, "Tournament name is required").max(80),
+    format: z.enum([TournamentFormat.SINGLES, TournamentFormat.DOUBLES]),
+    // SESSION (ad-hoc, no generated fixtures) is doubles-only — singles
+    // always picks one of the three generated-fixture types.
+    type: z.enum([
+      TournamentType.ROUND_ROBIN,
+      TournamentType.ROUND_ROBIN_KNOCKOUT,
+      TournamentType.KNOCKOUT,
+      TournamentType.SESSION,
+    ]),
+    legs: z.number().int().min(1).max(3),
+  })
+  .refine((data) => data.format === TournamentFormat.DOUBLES || data.type !== TournamentType.SESSION, {
+    message: "Singles tournaments need a tournament type",
+    path: ["type"],
+  });
 export type CreateTournamentInput = z.infer<typeof createTournamentSchema>;
 
 export const playerNameSchema = z.string().trim().min(1, "Name is required").max(40);
