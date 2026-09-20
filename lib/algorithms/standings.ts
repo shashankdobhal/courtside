@@ -84,7 +84,8 @@ export function calculateStandings(
 
 /**
  * ROUND_ROBIN: champion is the top of the table once every league match is
- * complete. ROUND_ROBIN_KNOCKOUT: champion is whoever wins the Final.
+ * complete. ROUND_ROBIN_KNOCKOUT and KNOCKOUT: champion is whoever wins the
+ * Final (KNOCKOUT has no league stage, so standings is never consulted for it).
  */
 export function calculateChampion(params: {
   type: string;
@@ -93,7 +94,7 @@ export function calculateChampion(params: {
 }): StandingsPlayer | null {
   const { type, standings, matches } = params;
 
-  if (type === TournamentType.ROUND_ROBIN_KNOCKOUT) {
+  if (type === TournamentType.ROUND_ROBIN_KNOCKOUT || type === TournamentType.KNOCKOUT) {
     const final = matches.find((m) => m.round === Round.FINAL);
     if (!final || final.status !== MatchStatus.COMPLETED || !final.winnerId) return null;
     return standings.find((s) => s.player.id === final.winnerId)?.player ?? null;

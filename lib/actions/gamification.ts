@@ -58,6 +58,9 @@ export async function getPlayerGamificationStats(userId: string): Promise<Player
   const matches = await prisma.match.findMany({
     where: {
       status: MatchStatus.COMPLETED,
+      // A knockout bracket bye auto-completes with no game actually played —
+      // excluded here so it can't inflate games-played/streak/karma.
+      player2Id: { not: null },
       OR: [{ player1Id: { in: playerIds } }, { player2Id: { in: playerIds } }],
     },
     select: { completedAt: true, winnerId: true },

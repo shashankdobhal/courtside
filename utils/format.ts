@@ -19,6 +19,7 @@ export function timeGreeting(date: Date = new Date()): string {
 export const tournamentTypeLabel: Record<TournamentType, string> = {
   [TournamentType.ROUND_ROBIN]: "Everyone Plays Everyone",
   [TournamentType.ROUND_ROBIN_KNOCKOUT]: "Round Robin + Knockout",
+  [TournamentType.KNOCKOUT]: "Knockout Bracket",
 };
 
 export const tournamentStatusLabel: Record<TournamentStatus, string> = {
@@ -32,5 +33,9 @@ export const roundLabel: Record<string, string> = {
   LEAGUE: "League",
   SEMI_FINAL_1: "Semi Final 1",
   SEMI_FINAL_2: "Semi Final 2",
+  ROUND_OF_32: "Round of 32",
+  ROUND_OF_16: "Round of 16",
+  QUARTERFINAL: "Quarterfinal",
+  SEMI_FINAL: "Semi Final",
   FINAL: "Final",
 };

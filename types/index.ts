@@ -1,6 +1,7 @@
 export const TournamentType = {
   ROUND_ROBIN: "ROUND_ROBIN",
   ROUND_ROBIN_KNOCKOUT: "ROUND_ROBIN_KNOCKOUT",
+  KNOCKOUT: "KNOCKOUT",
 } as const;
 export type TournamentType = (typeof TournamentType)[keyof typeof TournamentType];
 
@@ -29,6 +30,13 @@ export const Round = {
   LEAGUE: "LEAGUE",
   SEMI_FINAL_1: "SEMI_FINAL_1",
   SEMI_FINAL_2: "SEMI_FINAL_2",
+  // Pure-knockout bracket rounds (TournamentType.KNOCKOUT) — a single round
+  // can hold several matches (e.g. 4 quarterfinals), unlike SEMI_FINAL_1/2
+  // above which are two individually-named matches in ROUND_ROBIN_KNOCKOUT.
+  ROUND_OF_32: "ROUND_OF_32",
+  ROUND_OF_16: "ROUND_OF_16",
+  QUARTERFINAL: "QUARTERFINAL",
+  SEMI_FINAL: "SEMI_FINAL",
   FINAL: "FINAL",
 } as const;
 export type Round = (typeof Round)[keyof typeof Round];
