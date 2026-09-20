@@ -50,6 +50,15 @@ describe("calculatePlayStreak", () => {
     expect(result.current).toBe(1);
     expect(result.longest).toBe(4);
   });
+
+  it("resolves the calendar day using the given timezone, not the server's own", () => {
+    // 2026-09-19 23:00 UTC is already 2026-09-20 04:30 in Asia/Kolkata (UTC+5:30).
+    const match = new Date("2026-09-19T23:00:00Z");
+    const now = new Date("2026-09-20T01:00:00Z");
+
+    expect(calculatePlayStreak([match], now, "UTC").playedToday).toBe(false);
+    expect(calculatePlayStreak([match], now, "Asia/Kolkata").playedToday).toBe(true);
+  });
 });
 
 describe("calculateKarmaPoints", () => {

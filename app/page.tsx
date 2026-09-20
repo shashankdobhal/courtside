@@ -13,6 +13,7 @@ import { EmptyState } from "@/components/empty-state";
 import { Greeting } from "@/components/greeting";
 import { TournamentStatus } from "@/types";
 import { auth } from "@/auth";
+import { getViewerTimeZone } from "@/lib/timezone";
 
 const HISTORY_LIMIT = 8;
 
@@ -25,9 +26,10 @@ export default async function HomePage() {
     return <LandingPage />;
   }
 
+  const timeZone = await getViewerTimeZone();
   const [tournaments, gamificationStats, profileStats] = await Promise.all([
     getMyTournaments(userId!),
-    getPlayerGamificationStats(userId!),
+    getPlayerGamificationStats(userId!, timeZone),
     getMyProfileStats(userId!),
   ]);
 

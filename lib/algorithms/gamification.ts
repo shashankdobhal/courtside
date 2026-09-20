@@ -1,9 +1,22 @@
-import { startOfDay, subDays } from "date-fns";
-
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-function dayKey(d: Date): number {
-  return startOfDay(d).getTime();
+/**
+ * The calendar day `d` falls on in `timeZone`, as a UTC-midnight timestamp.
+ * Using Intl here (rather than date-fns' startOfDay, which uses the JS
+ * runtime's own timezone) means "today" reflects the viewer's timezone even
+ * though this runs on a server that's always in UTC.
+ */
+function dayKey(d: Date, timeZone: string): number {
+  const [y, m, day] = new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  })
+    .format(d)
+    .split("-")
+    .map(Number);
+  return Date.UTC(y, m - 1, day);
 }
 
 export interface PlayStreak {
@@ -20,18 +33,23 @@ export interface PlayStreak {
  * day of grace — if you played yesterday but not yet today, it still shows
  * as active — but breaks once a full day is skipped.
  */
-export function calculatePlayStreak(completedDates: Date[], now: Date = new Date()): PlayStreak {
-  const daySet = new Set(completedDates.map(dayKey));
-  const today = startOfDay(now);
-  const playedToday = daySet.has(dayKey(today));
-  const playedYesterday = daySet.has(dayKey(subDays(today, 1)));
+export function calculatePlayStreak(
+  completedDates: Date[],
+  now: Date = new Date(),
+  timeZone: string = "UTC"
+): PlayStreak {
+  const daySet = new Set(completedDates.map((d) => dayKey(d, timeZone)));
+  const today = dayKey(now, timeZone);
+  const yesterday = today - DAY_MS;
+  const playedToday = daySet.has(today);
+  const playedYesterday = daySet.has(yesterday);
 
   let current = 0;
   if (playedToday || playedYesterday) {
-    let cursor = playedToday ? today : subDays(today, 1);
-    while (daySet.has(dayKey(cursor))) {
+    let cursor = playedToday ? today : yesterday;
+    while (daySet.has(cursor)) {
       current += 1;
-      cursor = subDays(cursor, 1);
+      cursor -= DAY_MS;
     }
   }
 
@@ -45,7 +63,7 @@ export function calculatePlayStreak(completedDates: Date[], now: Date = new Date
     prev = d;
   }
 
-  const last7Days = Array.from({ length: 7 }, (_, i) => daySet.has(dayKey(subDays(today, 6 - i))));
+  const last7Days = Array.from({ length: 7 }, (_, i) => daySet.has(today - (6 - i) * DAY_MS));
 
   return { current, longest, playedToday, last7Days };
 }
