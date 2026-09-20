@@ -19,6 +19,7 @@ model Tournament {
   format    String   @default("SINGLES") // TournamentFormat: SINGLES | DOUBLES
   status    String   @default("PENDING") // TournamentStatus: PENDING | ACTIVE | COMPLETED
   legs      Int      @default(1) // how many times each pair plays in the league stage (1-3)
+  joinCode  String   @unique // short human-friendly code for self-join, alternative to sharing the full link
   ownerId   String? // null for tournaments created before accounts existed, until claimed
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
