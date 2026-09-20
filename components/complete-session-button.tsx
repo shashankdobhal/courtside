@@ -15,10 +15,10 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { completeDoublesSession } from "@/lib/actions/doubles";
+import { completeSession } from "@/lib/actions/sessions";
 import { Loader2, Flag } from "lucide-react";
 
-export function CompleteDoublesSessionButton({ tournamentId }: { tournamentId: string }) {
+export function CompleteSessionButton({ tournamentId }: { tournamentId: string }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -26,7 +26,7 @@ export function CompleteDoublesSessionButton({ tournamentId }: { tournamentId: s
   const handleComplete = () => {
     startTransition(async () => {
       try {
-        await completeDoublesSession(tournamentId);
+        await completeSession(tournamentId);
         setOpen(false);
         router.refresh();
       } catch (err) {

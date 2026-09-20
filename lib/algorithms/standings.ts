@@ -83,6 +83,85 @@ export function calculateStandings(
 }
 
 /**
+ * Individual standings for a casual doubles session, where each match's
+ * "player1Id"/"player2Id" is an on-the-fly pairing row (see
+ * resolveDoublesPairing in lib/actions/doubles.ts), not a person. Every
+ * completed match credits BOTH members of each side individually, so a
+ * person's row reflects everything they played regardless of partner —
+ * e.g. A+B one match and A+D the next both count toward A's own total.
+ */
+export function calculateIndividualDoublesStandings(
+  rosterPlayers: StandingsPlayer[],
+  pairingPlayers: StandingsPlayer[],
+  matches: StandingsMatch[]
+): StandingsRow[] {
+  const activeRoster = rosterPlayers.filter((player) => !player.withdrawn);
+  const rosterByProfileId = new Map(
+    activeRoster.filter((p) => p.profileId).map((p) => [p.profileId as string, p])
+  );
+  const pairingById = new Map(pairingPlayers.map((p) => [p.id, p]));
+
+  const rows = new Map<string, StandingsRow>(
+    activeRoster.map((player) => [
+      player.id,
+      { player, played: 0, won: 0, lost: 0, pointsFor: 0, pointsAgainst: 0, pointDifference: 0 },
+    ])
+  );
+
+  const membersOf = (pairing: StandingsPlayer) =>
+    [pairing.profileId, pairing.partnerProfileId]
+      .filter((id): id is string => !!id)
+      .map((id) => rosterByProfileId.get(id))
+      .filter((p): p is StandingsPlayer => !!p);
+
+  for (const match of matches) {
+    if (
+      match.round !== Round.LEAGUE ||
+      match.status !== MatchStatus.COMPLETED ||
+      match.score1 === null ||
+      match.score2 === null ||
+      !match.player2Id
+    ) {
+      continue;
+    }
+
+    const side1 = pairingById.get(match.player1Id);
+    const side2 = pairingById.get(match.player2Id);
+    if (!side1 || !side2) continue;
+
+    const side1Won = match.winnerId === match.player1Id;
+    const side2Won = match.winnerId === match.player2Id;
+
+    for (const member of membersOf(side1)) {
+      const row = rows.get(member.id);
+      if (!row) continue;
+      row.played += 1;
+      row.pointsFor += match.score1;
+      row.pointsAgainst += match.score2;
+      if (side1Won) row.won += 1;
+      else if (side2Won) row.lost += 1;
+    }
+    for (const member of membersOf(side2)) {
+      const row = rows.get(member.id);
+      if (!row) continue;
+      row.played += 1;
+      row.pointsFor += match.score2;
+      row.pointsAgainst += match.score1;
+      if (side2Won) row.won += 1;
+      else if (side1Won) row.lost += 1;
+    }
+  }
+
+  for (const row of rows.values()) {
+    row.pointDifference = calculatePointDifference(row.pointsFor, row.pointsAgainst);
+  }
+
+  return Array.from(rows.values()).sort(
+    (a, b) => b.won - a.won || b.pointDifference - a.pointDifference || b.pointsFor - a.pointsFor
+  );
+}
+
+/**
  * ROUND_ROBIN: champion is the top of the table once every league match is
  * complete. ROUND_ROBIN_KNOCKOUT and KNOCKOUT: champion is whoever wins the
  * Final (KNOCKOUT has no league stage, so standings is never consulted for it).

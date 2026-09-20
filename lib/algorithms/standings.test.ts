@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { calculateStandings, calculateChampion, calculatePointDifference } from "./standings";
+import {
+  calculateStandings,
+  calculateIndividualDoublesStandings,
+  calculateChampion,
+  calculatePointDifference,
+} from "./standings";
 import { MatchStatus, Round, TournamentType } from "@/types";
 
 const players = [
@@ -168,6 +173,64 @@ describe("calculateStandings", () => {
         round: Round.FINAL,
         status: MatchStatus.COMPLETED,
       }),
+    ]);
+    expect(rows.every((r) => r.played === 0)).toBe(true);
+  });
+});
+
+describe("calculateIndividualDoublesStandings", () => {
+  const roster = [
+    { id: "a", tournamentId: "t1", name: "Alice", alias: null, profileId: "profA", partnerProfileId: null, withdrawn: false },
+    { id: "b", tournamentId: "t1", name: "Bob", alias: null, profileId: "profB", partnerProfileId: null, withdrawn: false },
+    { id: "c", tournamentId: "t1", name: "Carol", alias: null, profileId: "profC", partnerProfileId: null, withdrawn: false },
+    { id: "d", tournamentId: "t1", name: "Dave", alias: null, profileId: "profD", partnerProfileId: null, withdrawn: false },
+  ];
+  // On-the-fly pairing rows: partners rotate between matches (A+B / C+D in
+  // one match, A+D / B+C in the next) — exactly the "teams on the fly"
+  // scenario this exists for.
+  const pairings = [
+    { id: "t1", tournamentId: "t1", name: "Alice & Bob", alias: null, profileId: "profA", partnerProfileId: "profB", withdrawn: false },
+    { id: "t2", tournamentId: "t1", name: "Carol & Dave", alias: null, profileId: "profC", partnerProfileId: "profD", withdrawn: false },
+    { id: "t3", tournamentId: "t1", name: "Alice & Dave", alias: null, profileId: "profA", partnerProfileId: "profD", withdrawn: false },
+    { id: "t4", tournamentId: "t1", name: "Bob & Carol", alias: null, profileId: "profB", partnerProfileId: "profC", withdrawn: false },
+  ];
+
+  it("credits both members of each side individually, across different partners", () => {
+    const matches = [
+      match({
+        player1Id: "t1",
+        player2Id: "t2",
+        score1: 21,
+        score2: 15,
+        winnerId: "t1",
+        status: MatchStatus.COMPLETED,
+      }),
+      match({
+        player1Id: "t3",
+        player2Id: "t4",
+        score1: 18,
+        score2: 21,
+        winnerId: "t4",
+        status: MatchStatus.COMPLETED,
+      }),
+    ];
+    const rows = calculateIndividualDoublesStandings(roster, pairings, matches);
+    const byId = new Map(rows.map((r) => [r.player.id, r]));
+
+    // Alice played once with Bob (won) and once with Dave (lost).
+    expect(byId.get("a")).toMatchObject({ played: 2, won: 1, lost: 1, pointsFor: 39, pointsAgainst: 36 });
+    // Bob played once with Alice (won) and once with Carol (won).
+    expect(byId.get("b")).toMatchObject({ played: 2, won: 2, lost: 0, pointsFor: 42, pointsAgainst: 33 });
+    expect(byId.get("c")).toMatchObject({ played: 2, won: 1, lost: 1, pointsFor: 36, pointsAgainst: 39 });
+    // Dave was on the losing side both times (with Carol, then with Alice).
+    expect(byId.get("d")).toMatchObject({ played: 2, won: 0, lost: 2, pointsFor: 33, pointsAgainst: 42 });
+
+    expect(rows.map((r) => r.player.id)).toEqual(["b", "a", "c", "d"]);
+  });
+
+  it("ignores pending matches and matches with no resolvable pairing", () => {
+    const rows = calculateIndividualDoublesStandings(roster, pairings, [
+      match({ player1Id: "t1", player2Id: "t2", status: MatchStatus.PENDING }),
     ]);
     expect(rows.every((r) => r.played === 0)).toBe(true);
   });
