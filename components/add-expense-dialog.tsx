@@ -68,8 +68,7 @@ export function AddExpenseDialog({
     amount > 0 &&
     !!paidByPlayerId &&
     includedRoster.length > 0 &&
-    allocated === amount &&
-    (splitMode === "EQUAL" || includedRoster.every((_, i) => shareFor(includedRoster[i].id, i) > 0));
+    allocated === amount;
 
   const reset = () => {
     setDescription("");

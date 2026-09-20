@@ -187,8 +187,9 @@ export type GameScoreInput = z.infer<typeof gameScoreSchema>;
 /**
  * shareAmount is always the participant's exact rupee portion — computed
  * client-side for an equal split, typed by hand for a custom one — so
- * this validates the same way regardless of splitMode: the shares must
- * add up to the total, and (for a custom split) nobody's share is zero.
+ * this validates the same way regardless of splitMode: the shares just
+ * need to add up to the total. A ₹0 share is fine — it's how someone
+ * stays listed on an expense without owing anything for it.
  */
 export const expenseSchema = z
   .object({
@@ -206,13 +207,6 @@ export const expenseSchema = z
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "Shares must add up to the total amount",
-        path: ["participants"],
-      });
-    }
-    if (data.splitMode === "CUSTOM" && data.participants.some((p) => p.shareAmount <= 0)) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Each participant's share must be greater than ₹0",
         path: ["participants"],
       });
     }
