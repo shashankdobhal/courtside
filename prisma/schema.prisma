@@ -23,12 +23,36 @@ model Tournament {
   youtubeUrl       String? // organizer-pasted YouTube video/live link, always shown as an embed on this tournament's own page
   youtubeUrlPublic Boolean  @default(false) // opt-in: also list this stream on the public /live hub for signed-out/discovery visitors
   ownerId          String? // null for tournaments created before accounts existed, until claimed
+  eventId          String? // links this category into a multi-category Event (e.g. Men's Singles under a corporate sports day); null for a standalone tournament
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
   owner   User?    @relation(fields: [ownerId], references: [id], onDelete: SetNull)
+  event   Event?   @relation(fields: [eventId], references: [id], onDelete: Cascade)
   players Player[]
   matches Match[]
+
+  @@index([ownerId])
+  @@index([eventId])
+}
+
+/**
+ * A lightweight umbrella grouping several Tournament rows ("categories") —
+ * Men's Singles, Doubles, Mixed Doubles — under one shared name and join
+ * link, for events that run more than one draw at once. Each category
+ * remains a full, independent Tournament with its own roster/fixtures/
+ * standings; the Event just clusters them for a shared hub page.
+ */
+model Event {
+  id        String   @id @default(cuid())
+  name      String
+  joinCode  String   @unique
+  ownerId   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  owner       User?        @relation(fields: [ownerId], references: [id], onDelete: SetNull)
+  tournaments Tournament[]
 
   @@index([ownerId])
 }
@@ -43,6 +67,7 @@ model User {
   accounts         Account[]
   sessions         Session[]
   ownedTournaments Tournament[]
+  ownedEvents      Event[]
   playerProfile    PlayerProfile?
 }
 
@@ -91,6 +116,7 @@ model PlayerProfile {
   bio          String?
   playingStyle String?
   hometown     String?
+  company      String? // e.g. employer/team name, shown on the roster for corporate tournaments
 
   user             User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
   players          Player[]

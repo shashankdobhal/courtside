@@ -6,6 +6,7 @@ import { getMyProfileStats } from "@/lib/actions/player-profiles";
 import { LandingPage } from "@/components/landing-page";
 import { PrimaryGameActions } from "@/components/primary-game-actions";
 import { ActiveGameCard } from "@/components/active-game-card";
+import { EventGroup } from "@/components/event-group";
 import { RecentResultsList, type RecentResult } from "@/components/recent-results-list";
 import { PersonalStatsTile } from "@/components/personal-stats-tile";
 import { GamificationPanel } from "@/components/gamification-panel";
@@ -18,6 +19,35 @@ import { auth } from "@/auth";
 import { getViewerTimeZone } from "@/lib/timezone";
 
 const HISTORY_LIMIT = 8;
+
+type MyTournament = Awaited<ReturnType<typeof getMyTournaments>>[number];
+
+/**
+ * Clusters tournaments sharing an event into one group, in first-seen
+ * order, so multi-category events render as one card on the homepage
+ * instead of N unrelated-looking entries. Standalone tournaments (no
+ * event) each stay their own single-item group, unchanged from today.
+ */
+function groupByEvent(tournaments: MyTournament[]) {
+  const groups: { eventId: string | null; eventName: string | null; tournaments: MyTournament[] }[] = [];
+  const indexByEventId = new Map<string, number>();
+
+  for (const tournament of tournaments) {
+    if (tournament.event) {
+      const existingIndex = indexByEventId.get(tournament.event.id);
+      if (existingIndex !== undefined) {
+        groups[existingIndex].tournaments.push(tournament);
+        continue;
+      }
+      indexByEventId.set(tournament.event.id, groups.length);
+      groups.push({ eventId: tournament.event.id, eventName: tournament.event.name, tournaments: [tournament] });
+    } else {
+      groups.push({ eventId: null, eventName: null, tournaments: [tournament] });
+    }
+  }
+
+  return groups;
+}
 
 export default async function HomePage() {
   const session = await auth();
@@ -109,13 +139,18 @@ export default async function HomePage() {
               />
             ) : (
               <div className="space-y-3">
-                {activeGames.map((t) => (
-                  <ActiveGameCard
-                    key={t.id}
-                    tournament={t}
-                    isOwner={!!userId && t.ownerId === userId}
-                  />
-                ))}
+                {groupByEvent(activeGames).map((group) => {
+                  const cards = group.tournaments.map((t) => (
+                    <ActiveGameCard key={t.id} tournament={t} isOwner={!!userId && t.ownerId === userId} />
+                  ));
+                  return group.eventId ? (
+                    <EventGroup key={group.eventId} eventId={group.eventId} eventName={group.eventName!}>
+                      {cards}
+                    </EventGroup>
+                  ) : (
+                    cards
+                  );
+                })}
               </div>
             )}
           </div>

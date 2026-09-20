@@ -18,7 +18,7 @@ import { generateRoundRobinFixtures } from "@/lib/algorithms/fixtures";
 import { bracketSizeFor, knockoutRoundsFor, pairBracketSlots } from "@/lib/algorithms/bracket";
 import { resolveOrCreatePlayerProfile } from "@/lib/actions/player-profiles";
 import { usesIndividualRoster } from "@/lib/tournament-mode";
-import { requireSignedIn, requireTournamentOwner } from "@/lib/auth-helpers";
+import { requireSignedIn, requireTournamentOwner, requireEventOwner } from "@/lib/auth-helpers";
 import { generateJoinCode } from "@/lib/join-code";
 import { extractYoutubeVideoId } from "@/lib/youtube";
 
@@ -29,9 +29,13 @@ export async function createTournament(input: {
   format: string;
   type: string;
   legs: number;
+  eventId?: string;
 }) {
-  const session = await requireSignedIn();
   const parsed = createTournamentSchema.parse(input);
+
+  const ownerId = input.eventId
+    ? (await requireEventOwner(input.eventId)).session.user.id
+    : (await requireSignedIn()).user.id;
 
   const data = {
     name: parsed.name,
@@ -39,7 +43,8 @@ export async function createTournament(input: {
     type: parsed.type,
     legs: parsed.type === TournamentType.ROUND_ROBIN ? parsed.legs : 1,
     status: TournamentStatus.PENDING,
-    ownerId: session.user.id,
+    ownerId,
+    eventId: input.eventId,
   };
 
   let tournament;
@@ -59,34 +64,51 @@ export async function createTournament(input: {
   }
 
   revalidatePath("/");
+  if (input.eventId) {
+    revalidatePath(`/events/${input.eventId}`);
+    redirect(`/events/${input.eventId}`);
+  }
   redirect(`/tournaments/${tournament.id}/players`);
 }
 
+export type JoinTarget = { type: "tournament" | "event"; id: string };
+
 /**
  * Resolves whatever a would-be joiner pasted — a full invite link, a bare
- * tournament id, or a short join code — to a real tournament id, or null if
- * nothing matches. Shared by both the pre-login join card and the signed-in
- * Join Game dialog.
+ * tournament/event id, or a short join code — to a real tournament or
+ * event, or null if nothing matches. Shared by both the pre-login join
+ * card and the signed-in Join Game dialog.
  */
-export async function resolveJoinTarget(input: string): Promise<string | null> {
+export async function resolveJoinTarget(input: string): Promise<JoinTarget | null> {
   const trimmed = input.trim();
   if (!trimmed) return null;
 
-  const pathMatch = trimmed.match(/\/tournaments\/([a-zA-Z0-9_-]+)/);
-  const candidate = pathMatch ? pathMatch[1] : trimmed;
+  const pathMatch = trimmed.match(/\/(tournaments|events)\/([a-zA-Z0-9_-]+)/);
+  const candidate = pathMatch ? pathMatch[2] : trimmed;
   if (!/^[a-zA-Z0-9_-]+$/.test(candidate)) return null;
 
-  const byCode = await prisma.tournament.findUnique({
+  const byTournamentCode = await prisma.tournament.findUnique({
     where: { joinCode: candidate.toUpperCase() },
     select: { id: true },
   });
-  if (byCode) return byCode.id;
+  if (byTournamentCode) return { type: "tournament", id: byTournamentCode.id };
 
-  const byId = await prisma.tournament.findUnique({
+  const byEventCode = await prisma.event.findUnique({
+    where: { joinCode: candidate.toUpperCase() },
+    select: { id: true },
+  });
+  if (byEventCode) return { type: "event", id: byEventCode.id };
+
+  if (pathMatch?.[1] === "events") {
+    const event = await prisma.event.findUnique({ where: { id: candidate }, select: { id: true } });
+    if (event) return { type: "event", id: event.id };
+  }
+
+  const byTournamentId = await prisma.tournament.findUnique({
     where: { id: candidate },
     select: { id: true },
   });
-  return byId?.id ?? null;
+  return byTournamentId ? { type: "tournament", id: byTournamentId.id } : null;
 }
 
 /**
@@ -347,6 +369,7 @@ export async function getMyTournaments(userId: string) {
     include: {
       _count: { select: { matches: true, players: true } },
       matches: { select: { status: true } },
+      event: { select: { id: true, name: true } },
     },
   });
 }
@@ -356,8 +379,14 @@ export async function getTournament(id: string) {
   return prisma.tournament.findUnique({
     where: { id },
     include: {
-      players: true,
+      players: {
+        include: {
+          profile: { select: { company: true } },
+          partnerProfile: { select: { company: true } },
+        },
+      },
       matches: { orderBy: [{ round: "asc" }, { matchOrder: "asc" }] },
+      event: { select: { id: true, name: true } },
     },
   });
 }

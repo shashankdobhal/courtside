@@ -24,6 +24,7 @@ export function EditPlayerProfileDialog({
   bio,
   playingStyle,
   hometown,
+  company,
   open,
   onOpenChange,
 }: {
@@ -31,6 +32,7 @@ export function EditPlayerProfileDialog({
   bio: string | null;
   playingStyle: string | null;
   hometown: string | null;
+  company: string | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
@@ -45,15 +47,25 @@ export function EditPlayerProfileDialog({
     formState: { errors },
   } = useForm<EditPlayerProfileInput>({
     resolver: zodResolver(editPlayerProfileSchema),
-    defaultValues: { bio: bio ?? "", playingStyle: playingStyle ?? "", hometown: hometown ?? "" },
+    defaultValues: {
+      bio: bio ?? "",
+      playingStyle: playingStyle ?? "",
+      hometown: hometown ?? "",
+      company: company ?? "",
+    },
   });
 
   useEffect(() => {
     if (open) {
-      reset({ bio: bio ?? "", playingStyle: playingStyle ?? "", hometown: hometown ?? "" });
+      reset({
+        bio: bio ?? "",
+        playingStyle: playingStyle ?? "",
+        hometown: hometown ?? "",
+        company: company ?? "",
+      });
       setServerError(null);
     }
-  }, [open, bio, playingStyle, hometown, reset]);
+  }, [open, bio, playingStyle, hometown, company, reset]);
 
   const onSubmit = (data: EditPlayerProfileInput) => {
     setServerError(null);
@@ -119,6 +131,19 @@ export function EditPlayerProfileDialog({
             />
             {errors.hometown && (
               <p className="text-sm text-destructive">{errors.hometown.message}</p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="profile-company">Company</Label>
+            <Input
+              id="profile-company"
+              placeholder="e.g. Acme Corp"
+              className="h-11 text-base"
+              {...register("company")}
+            />
+            {errors.company && (
+              <p className="text-sm text-destructive">{errors.company.message}</p>
             )}
           </div>
 

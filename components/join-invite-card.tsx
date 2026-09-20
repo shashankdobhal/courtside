@@ -16,13 +16,13 @@ export function JoinInviteCard() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     startTransition(async () => {
-      const tournamentId = await resolveJoinTarget(value);
-      if (!tournamentId) {
+      const target = await resolveJoinTarget(value);
+      if (!target) {
         setError("We couldn't find a game with that code or link.");
         return;
       }
       setError(null);
-      router.push(`/tournaments/${tournamentId}/players`);
+      router.push(target.type === "event" ? `/events/${target.id}` : `/tournaments/${target.id}/players`);
     });
   };
 

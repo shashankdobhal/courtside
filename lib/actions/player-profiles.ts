@@ -80,6 +80,7 @@ export async function updatePlayerProfileDetails(profileId: string, input: EditP
       bio: parsed.bio?.trim() || null,
       playingStyle: parsed.playingStyle?.trim() || null,
       hometown: parsed.hometown?.trim() || null,
+      company: parsed.company?.trim() || null,
     },
   });
 
@@ -187,6 +188,7 @@ export async function getPlayerProfileStats(profileId: string) {
       bio: profile.bio,
       playingStyle: profile.playingStyle,
       hometown: profile.hometown,
+      company: profile.company,
     },
     stats,
     tournamentsWon,

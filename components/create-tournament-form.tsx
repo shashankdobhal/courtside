@@ -124,7 +124,7 @@ function OptionRow<T extends string>({
   );
 }
 
-export function CreateTournamentForm() {
+export function CreateTournamentForm({ eventId }: { eventId?: string }) {
   const [isPending, startTransition] = useTransition();
   const [serverError, setServerError] = useState<string | null>(null);
 
@@ -152,7 +152,7 @@ export function CreateTournamentForm() {
     setServerError(null);
     startTransition(async () => {
       try {
-        await createTournament(data);
+        await createTournament({ ...data, eventId });
       } catch (err) {
         if (err instanceof Error && err.message === "NEXT_REDIRECT") throw err;
         setServerError("Something went wrong. Please try again.");

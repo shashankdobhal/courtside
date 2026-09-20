@@ -16,6 +16,11 @@ export const createTournamentSchema = z.object({
 });
 export type CreateTournamentInput = z.infer<typeof createTournamentSchema>;
 
+export const createEventSchema = z.object({
+  name: z.string().trim().min(1, "Event name is required").max(80),
+});
+export type CreateEventInput = z.infer<typeof createEventSchema>;
+
 export const playerNameSchema = z.string().trim().min(1, "Name is required").max(40);
 
 export const MIN_PLAYERS_ROUND_ROBIN = 2;
@@ -128,6 +133,7 @@ export const editPlayerProfileSchema = z.object({
     .optional()
     .or(z.literal("")),
   hometown: z.string().trim().max(60, "Must be 60 characters or fewer").optional().or(z.literal("")),
+  company: z.string().trim().max(60, "Must be 60 characters or fewer").optional().or(z.literal("")),
 });
 export type EditPlayerProfileInput = z.infer<typeof editPlayerProfileSchema>;
 
