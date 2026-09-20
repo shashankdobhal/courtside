@@ -10,7 +10,7 @@ import { PersonalStatsTile } from "@/components/personal-stats-tile";
 import { GamificationPanel } from "@/components/gamification-panel";
 import { GameHistoryList } from "@/components/game-history-list";
 import { EmptyState } from "@/components/empty-state";
-import { timeGreeting } from "@/utils/format";
+import { Greeting } from "@/components/greeting";
 import { TournamentStatus } from "@/types";
 import { auth } from "@/auth";
 
@@ -64,9 +64,13 @@ export default async function HomePage() {
       <div className="space-y-10 sm:space-y-14">
         <div>
           <h1 className="font-heading text-[28px] font-bold tracking-tight sm:text-[32px]">
-            {hasAnyGames
-              ? `${timeGreeting()}, ${firstName ?? "there"} 👋`
-              : `Welcome to CourtSide, ${firstName ?? "there"} 👋`}
+            {hasAnyGames ? (
+              <>
+                <Greeting />, {firstName ?? "there"} 👋
+              </>
+            ) : (
+              `Welcome to CourtSide, ${firstName ?? "there"} 👋`
+            )}
           </h1>
           <p className="mt-1.5 text-sm text-muted-foreground sm:text-base">
             {hasAnyGames
