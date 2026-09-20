@@ -95,14 +95,48 @@ export const KARMA_BREAKDOWN = {
   perStreakDay: POINTS_PER_STREAK_DAY,
 };
 
-/** Named tiers karma climbs through, giving every point total somewhere to go next. */
+/**
+ * Named tiers karma climbs through, giving every point total somewhere to
+ * go next — hunter-rank styled (E through S), each with its own escalating
+ * accent color for a bit of "power level" flavor as you climb.
+ */
 export const KARMA_LEVELS = [
-  { name: "Rookie", minKarma: 0 },
-  { name: "Rising Star", minKarma: 50 },
-  { name: "Court Regular", minKarma: 150 },
-  { name: "Smash Master", minKarma: 300 },
-  { name: "Court Legend", minKarma: 500 },
-  { name: "Badminton Icon", minKarma: 800 },
+  {
+    name: "E-Rank Hunter",
+    letter: "E",
+    minKarma: 0,
+    badgeClass: "bg-slate-500/10 text-slate-600 dark:text-slate-400",
+  },
+  {
+    name: "D-Rank Hunter",
+    letter: "D",
+    minKarma: 50,
+    badgeClass: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+  },
+  {
+    name: "C-Rank Hunter",
+    letter: "C",
+    minKarma: 150,
+    badgeClass: "bg-sky-500/10 text-sky-600 dark:text-sky-400",
+  },
+  {
+    name: "B-Rank Hunter",
+    letter: "B",
+    minKarma: 300,
+    badgeClass: "bg-violet-500/10 text-violet-600 dark:text-violet-400",
+  },
+  {
+    name: "A-Rank Hunter",
+    letter: "A",
+    minKarma: 500,
+    badgeClass: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
+  },
+  {
+    name: "S-Rank Hunter",
+    letter: "S",
+    minKarma: 800,
+    badgeClass: "bg-rose-500/10 text-rose-600 dark:text-rose-400",
+  },
 ] as const;
 
 export interface KarmaProgress {
