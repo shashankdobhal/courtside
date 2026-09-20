@@ -9,6 +9,13 @@ export function displayName(player: { name: string; alias?: string | null }): st
   return player.alias?.trim() || player.name;
 }
 
+export function timeGreeting(date: Date = new Date()): string {
+  const hour = date.getHours();
+  if (hour < 12) return "Good morning";
+  if (hour < 18) return "Good afternoon";
+  return "Good evening";
+}
+
 export const tournamentTypeLabel: Record<TournamentType, string> = {
   [TournamentType.ROUND_ROBIN]: "Everyone Plays Everyone",
   [TournamentType.ROUND_ROBIN_KNOCKOUT]: "Round Robin + Knockout",
