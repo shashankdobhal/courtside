@@ -74,11 +74,11 @@ describe("calculateKarmaPoints", () => {
 });
 
 describe("calculateKarmaLevel", () => {
-  it("starts everyone at Rookie with a clear next target", () => {
+  it("starts everyone at E-Rank Hunter with a clear next target", () => {
     expect(calculateKarmaLevel(0)).toEqual({
-      level: "Rookie",
+      level: "E-Rank Hunter",
       levelIndex: 0,
-      nextLevel: "Rising Star",
+      nextLevel: "D-Rank Hunter",
       karmaToNextLevel: 50,
       progressToNextLevel: 0,
     });
@@ -86,22 +86,22 @@ describe("calculateKarmaLevel", () => {
 
   it("reports partial progress toward the next level", () => {
     const result = calculateKarmaLevel(25);
-    expect(result.level).toBe("Rookie");
-    expect(result.nextLevel).toBe("Rising Star");
+    expect(result.level).toBe("E-Rank Hunter");
+    expect(result.nextLevel).toBe("D-Rank Hunter");
     expect(result.karmaToNextLevel).toBe(25);
     expect(result.progressToNextLevel).toBeCloseTo(0.5);
   });
 
   it("advances to the next named tier exactly at its threshold", () => {
     const result = calculateKarmaLevel(150);
-    expect(result.level).toBe("Court Regular");
+    expect(result.level).toBe("C-Rank Hunter");
     expect(result.levelIndex).toBe(2);
   });
 
   it("caps out at the top tier with no further target", () => {
     const result = calculateKarmaLevel(5000);
     expect(result).toEqual({
-      level: "Badminton Icon",
+      level: "S-Rank Hunter",
       levelIndex: 5,
       nextLevel: null,
       karmaToNextLevel: null,

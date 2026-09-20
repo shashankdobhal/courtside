@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { PlayerAvatar } from "@/components/player-avatar";
 import { JoinInviteCard } from "@/components/join-invite-card";
 import { signInWithGoogle } from "@/lib/actions/auth";
+import { KARMA_LEVELS } from "@/lib/algorithms/gamification";
 import { Swords, BarChart3, Trophy, ChevronDown, Flame, Sparkles, Star } from "lucide-react";
 
 const loopSteps = [
@@ -14,7 +15,8 @@ const loopSteps = [
 
 const tournamentSteps = ["Players", "Fixtures", "Scores", "Champion"];
 const doublesSteps = ["Pair teams", "Play", "Log score", "Play again"];
-const karmaLevels = ["Rookie", "Rising Star", "Court Regular", "Smash Master", "Court Legend"];
+// Every tier but the top — a glimpse of the climb, not the whole ladder.
+const karmaLevels = KARMA_LEVELS.slice(0, -1).map((tier) => tier.name);
 
 const testimonials = [
   {
@@ -121,7 +123,7 @@ export function LandingPage() {
             <PlayerAvatar name="Jordan Lee" size="md" className="size-14 text-lg" />
             <div>
               <p className="text-lg font-semibold">Jordan Lee</p>
-              <p className="text-sm text-muted-foreground">🏸 Court Regular</p>
+              <p className="text-sm text-muted-foreground">🏸 {KARMA_LEVELS[2].name}</p>
             </div>
           </div>
           <div className="grid grid-cols-3 gap-2 text-center">

@@ -1,6 +1,7 @@
 import { Flame, Sparkles } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { calculateKarmaLevel } from "@/lib/algorithms/gamification";
+import { RankBadge } from "@/components/rank-badge";
 import type { PlayerGamificationStats } from "@/lib/actions/gamification";
 
 export function GamificationPanel({ stats }: { stats: PlayerGamificationStats | null }) {
@@ -34,7 +35,7 @@ export function GamificationPanel({ stats }: { stats: PlayerGamificationStats | 
         </span>
       </div>
 
-      <p className="font-heading mt-3 text-sm font-bold tracking-tight uppercase">{level.level}</p>
+      <RankBadge levelIndex={level.levelIndex} className="mt-3" />
       <Progress value={level.progressToNextLevel * 100} className="mt-2 h-1.5" />
       <p className="mt-1.5 text-xs text-muted-foreground">
         {level.nextLevel ? `${level.karmaToNextLevel} karma to ${level.nextLevel}` : "Top tier reached!"}

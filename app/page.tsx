@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Flame } from "lucide-react";
 import { getMyTournaments } from "@/lib/actions/tournaments";
 import { getPlayerGamificationStats } from "@/lib/actions/gamification";
 import { getMyProfileStats } from "@/lib/actions/player-profiles";
@@ -11,6 +12,7 @@ import { GamificationPanel } from "@/components/gamification-panel";
 import { GameHistoryList } from "@/components/game-history-list";
 import { EmptyState } from "@/components/empty-state";
 import { Greeting } from "@/components/greeting";
+import { RankBadge } from "@/components/rank-badge";
 import { TournamentStatus } from "@/types";
 import { auth } from "@/auth";
 import { getViewerTimeZone } from "@/lib/timezone";
@@ -79,6 +81,17 @@ export default async function HomePage() {
               ? "Here's what's happening on CourtSide."
               : "Your badminton games will live here. Start by joining a game or creating one."}
           </p>
+          {gamificationStats && gamificationStats.gamesPlayed > 0 && (
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              {gamificationStats.streak.current > 0 && (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/10 py-1 pr-2.5 pl-2 text-xs font-semibold text-amber-600 dark:text-amber-400">
+                  <Flame className="size-3.5" />
+                  {gamificationStats.streak.current} day streak
+                </span>
+              )}
+              <RankBadge levelIndex={gamificationStats.karmaLevel.levelIndex} />
+            </div>
+          )}
         </div>
 
         <PrimaryGameActions joinFirst={!hasAnyGames} />
