@@ -32,7 +32,7 @@ export default async function PlayerProfilePage({
   const { profile, stats, tournamentsWon, currentStreak, tournaments } = data;
   const winPct = stats.played > 0 ? Math.round((stats.won / stats.played) * 100) : 0;
   const isOwnProfile = !!session?.user?.id && profile.userId === session.user.id;
-  const bioLine = [profile.playingStyle, profile.hometown].filter(Boolean).join(" · ");
+  const bioLine = [profile.playingStyle, profile.hometown, profile.company].filter(Boolean).join(" · ");
 
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-8 sm:py-12">
@@ -51,6 +51,7 @@ export default async function PlayerProfilePage({
               bio={profile.bio}
               playingStyle={profile.playingStyle}
               hometown={profile.hometown}
+              company={profile.company}
               seasonOptIn={profile.seasonOptIn}
             />
           )}

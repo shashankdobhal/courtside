@@ -16,6 +16,8 @@ export interface PlayersListPlayer {
   alias: string | null;
   profileId: string | null;
   withdrawn: boolean;
+  profile?: { company: string | null } | null;
+  partnerProfile?: { company: string | null } | null;
 }
 
 export function PlayersList({
@@ -32,7 +34,12 @@ export function PlayersList({
 
   return (
     <div className="space-y-2">
-      {players.map((player) => (
+      {players.map((player) => {
+        const companyLine = Array.from(
+          new Set([player.profile?.company, player.partnerProfile?.company].filter(Boolean))
+        ).join(" · ");
+
+        return (
         <Card
           key={player.id}
           className={cn(
@@ -63,6 +70,9 @@ export function PlayersList({
               {player.alias && (
                 <p className="truncate text-xs text-muted-foreground">{player.name}</p>
               )}
+              {companyLine && (
+                <p className="truncate text-xs text-muted-foreground">{companyLine}</p>
+              )}
             </div>
           </div>
           {isOwner && !player.withdrawn && (
@@ -74,7 +84,8 @@ export function PlayersList({
             />
           )}
         </Card>
-      ))}
+        );
+      })}
 
       {editingPlayer && (
         <EditPlayerDialog

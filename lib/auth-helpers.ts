@@ -40,6 +40,25 @@ export async function requireTournamentOwner(tournamentId: string) {
   return { session, tournament };
 }
 
+/**
+ * Throws unless the signed-in user owns the given event. Same shape as
+ * requireTournamentOwner, for the event-level actions (creating categories
+ * under it, deleting it).
+ */
+export async function requireEventOwner(eventId: string) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("You need to sign in first");
+  assertNotRateLimited(session.user.id);
+
+  const event = await prisma.event.findUnique({ where: { id: eventId } });
+  if (!event) throw new Error("Event not found");
+  if (event.ownerId !== session.user.id) {
+    throw new Error("You don't own this event");
+  }
+
+  return { session, event };
+}
+
 export async function requireSignedIn() {
   const session = await auth();
   if (!session?.user?.id) throw new Error("You need to sign in first");
