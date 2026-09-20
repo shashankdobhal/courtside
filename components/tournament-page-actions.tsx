@@ -21,21 +21,25 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { EditTournamentDialog } from "@/components/edit-tournament-dialog";
+import { EditYoutubeDialog } from "@/components/edit-youtube-dialog";
 import { regenerateFixtures } from "@/lib/actions/fixtures";
-import { MoreVertical, Pencil, RefreshCw, Loader2 } from "lucide-react";
+import { MoreVertical, Pencil, RefreshCw, Loader2, Radio } from "lucide-react";
 
 export function TournamentPageActions({
   tournamentId,
   name,
   canRegenerate,
+  youtubeUrl,
 }: {
   tournamentId: string;
   name: string;
   canRegenerate: boolean;
+  youtubeUrl: string | null;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [editOpen, setEditOpen] = useState(false);
+  const [youtubeOpen, setYoutubeOpen] = useState(false);
   const [confirmRegenerate, setConfirmRegenerate] = useState(false);
 
   const handleRegenerate = () => {
@@ -71,6 +75,10 @@ export function TournamentPageActions({
             <Pencil className="size-3.5" />
             Rename
           </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setYoutubeOpen(true)}>
+            <Radio className="size-3.5" />
+            {youtubeUrl ? "Edit Livestream Link" : "Add Livestream Link"}
+          </DropdownMenuItem>
           {canRegenerate && (
             <DropdownMenuItem onClick={() => setConfirmRegenerate(true)}>
               <RefreshCw className="size-3.5" />
@@ -85,6 +93,13 @@ export function TournamentPageActions({
         name={name}
         open={editOpen}
         onOpenChange={setEditOpen}
+      />
+
+      <EditYoutubeDialog
+        tournamentId={tournamentId}
+        youtubeUrl={youtubeUrl}
+        open={youtubeOpen}
+        onOpenChange={setYoutubeOpen}
       />
 
       <AlertDialog

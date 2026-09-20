@@ -13,16 +13,17 @@ datasource db {
 }
 
 model Tournament {
-  id        String   @id @default(cuid())
-  name      String
-  type      String // TournamentType: ROUND_ROBIN | ROUND_ROBIN_KNOCKOUT -- meaningless for DOUBLES, which has no generated fixtures
-  format    String   @default("SINGLES") // TournamentFormat: SINGLES | DOUBLES
-  status    String   @default("PENDING") // TournamentStatus: PENDING | ACTIVE | COMPLETED
-  legs      Int      @default(1) // how many times each pair plays in the league stage (1-3)
-  joinCode  String   @unique // short human-friendly code for self-join, alternative to sharing the full link
-  ownerId   String? // null for tournaments created before accounts existed, until claimed
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         String   @id @default(cuid())
+  name       String
+  type       String // TournamentType: ROUND_ROBIN | ROUND_ROBIN_KNOCKOUT -- meaningless for DOUBLES, which has no generated fixtures
+  format     String   @default("SINGLES") // TournamentFormat: SINGLES | DOUBLES
+  status     String   @default("PENDING") // TournamentStatus: PENDING | ACTIVE | COMPLETED
+  legs       Int      @default(1) // how many times each pair plays in the league stage (1-3)
+  joinCode   String   @unique // short human-friendly code for self-join, alternative to sharing the full link
+  youtubeUrl String? // organizer-pasted YouTube video/live link, shown as an embed and on the public /live hub
+  ownerId    String? // null for tournaments created before accounts existed, until claimed
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   owner   User?    @relation(fields: [ownerId], references: [id], onDelete: SetNull)
   players Player[]

@@ -8,6 +8,7 @@ import {
   createTournamentSchema,
   editTournamentSchema,
   newPlayersSchema,
+  youtubeUrlSchema,
   MIN_PLAYERS_ROUND_ROBIN,
   MIN_PLAYERS_KNOCKOUT,
 } from "@/lib/validations";
@@ -16,6 +17,7 @@ import { generateRoundRobinFixtures } from "@/lib/algorithms/fixtures";
 import { resolveOrCreatePlayerProfile } from "@/lib/actions/player-profiles";
 import { requireSignedIn, requireTournamentOwner } from "@/lib/auth-helpers";
 import { generateJoinCode } from "@/lib/join-code";
+import { extractYoutubeVideoId } from "@/lib/youtube";
 
 const MAX_JOIN_CODE_ATTEMPTS = 5;
 
@@ -171,6 +173,23 @@ export async function updateTournament(tournamentId: string, input: { name: stri
   revalidatePath(`/tournaments/${tournamentId}`);
 }
 
+export async function setTournamentYoutubeUrl(tournamentId: string, youtubeUrl: string) {
+  await requireTournamentOwner(tournamentId);
+  const parsed = youtubeUrlSchema.parse({ youtubeUrl });
+  const trimmed = parsed.youtubeUrl?.trim() || null;
+  if (trimmed && !extractYoutubeVideoId(trimmed)) {
+    throw new Error("Enter a valid YouTube video or live stream link");
+  }
+
+  await prisma.tournament.update({
+    where: { id: tournamentId },
+    data: { youtubeUrl: trimmed },
+  });
+
+  revalidatePath(`/tournaments/${tournamentId}`);
+  revalidatePath("/live");
+}
+
 export async function discontinueTournament(tournamentId: string) {
   const { tournament } = await requireTournamentOwner(tournamentId);
   if (
@@ -193,6 +212,28 @@ export async function deleteTournament(tournamentId: string) {
   await requireTournamentOwner(tournamentId);
   await prisma.tournament.delete({ where: { id: tournamentId } });
   revalidatePath("/");
+}
+
+/**
+ * Every tournament whose organizer has attached a YouTube link, for the
+ * public /live hub. Surfaced deliberately — an organizer opts in by pasting
+ * a link — so this isn't filtered by ownership like getMyTournaments is.
+ */
+export async function getLivestreamTournaments() {
+  const tournaments = await prisma.tournament.findMany({
+    where: { youtubeUrl: { not: null } },
+    orderBy: { updatedAt: "desc" },
+    select: {
+      id: true,
+      name: true,
+      format: true,
+      status: true,
+      youtubeUrl: true,
+      updatedAt: true,
+    },
+  });
+
+  return tournaments.map((t) => ({ ...t, youtubeUrl: t.youtubeUrl as string }));
 }
 
 /**
