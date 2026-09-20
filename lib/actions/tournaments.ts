@@ -21,8 +21,31 @@ import { usesIndividualRoster } from "@/lib/tournament-mode";
 import { requireSignedIn, requireTournamentOwner, requireEventOwner } from "@/lib/auth-helpers";
 import { generateJoinCode } from "@/lib/join-code";
 import { extractYoutubeVideoId } from "@/lib/youtube";
+import { sendPushToUser, getUserIdsForPlayerIds } from "@/lib/push";
 
 const MAX_JOIN_CODE_ATTEMPTS = 5;
+
+/**
+ * Best-effort only — a notification failure must never break the fixture
+ * generation it's reporting on, so every error here is swallowed after
+ * logging.
+ */
+async function notifyFixturesReady(tournamentId: string, tournamentName: string, playerIds: string[]) {
+  try {
+    const userIds = await getUserIdsForPlayerIds(playerIds);
+    await Promise.all(
+      userIds.map((userId) =>
+        sendPushToUser(userId, {
+          title: "Fixtures are ready!",
+          body: tournamentName,
+          url: `/tournaments/${tournamentId}`,
+        })
+      )
+    );
+  } catch (err) {
+    console.error("Failed to send fixtures-ready notifications", err);
+  }
+}
 
 export async function createTournament(input: {
   name: string;
@@ -184,6 +207,8 @@ export async function generateFixturesAndActivate(tournamentId: string) {
     }),
   ]);
 
+  await notifyFixturesReady(tournamentId, tournament.name, players.map((p) => p.id));
+
   revalidatePath("/");
   redirect(`/tournaments/${tournamentId}`);
 }
@@ -258,6 +283,8 @@ export async function generateKnockoutBracket(tournamentId: string, slots: (stri
       data: { status: TournamentStatus.ACTIVE },
     }),
   ]);
+
+  await notifyFixturesReady(tournamentId, tournament.name, players.map((p) => p.id));
 
   revalidatePath("/");
   redirect(`/tournaments/${tournamentId}`);

@@ -4,6 +4,7 @@ import { auth } from "@/auth";
 import { signInWithGoogle } from "@/lib/actions/auth";
 import { UserMenu } from "@/components/user-menu";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { PushNotificationToggle } from "@/components/push-notification-toggle";
 import { Button } from "@/components/ui/button";
 
 export async function SiteHeader() {
@@ -36,6 +37,7 @@ export async function SiteHeader() {
                 <BarChart3 className="size-4" />
                 Leaderboard
               </Link>
+              <PushNotificationToggle />
               <ThemeToggle />
               <UserMenu name={session.user.name ?? null} image={session.user.image ?? null} />
             </>

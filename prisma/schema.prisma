@@ -65,11 +65,31 @@ model User {
   emailVerified DateTime?
   image         String?
 
-  accounts         Account[]
-  sessions         Session[]
-  ownedTournaments Tournament[]
-  ownedEvents      Event[]
-  playerProfile    PlayerProfile?
+  accounts          Account[]
+  sessions          Session[]
+  ownedTournaments  Tournament[]
+  ownedEvents       Event[]
+  playerProfile     PlayerProfile?
+  pushSubscriptions PushSubscription[]
+}
+
+/**
+ * One browser/device's Web Push subscription for a signed-in user — a
+ * user can have several (phone, laptop, ...), each notified independently.
+ * endpoint doubles as the natural per-device identity: re-subscribing the
+ * same device upserts the same row rather than duplicating it.
+ */
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model Account {
