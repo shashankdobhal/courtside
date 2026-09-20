@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "art.courtside.twa",
+      "sha256_cert_fingerprints": [
+        "51:40:D0:4E:B0:A4:B2:56:F4:7A:EC:DD:FE:6C:3E:DA:83:DC:6F:2D:53:9B:9D:FA:99:89:2C:B8:CF:94:15:7F"
+      ]
+    }
+  }
+]
