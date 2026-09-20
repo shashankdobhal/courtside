@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { PlayerAvatar } from "@/components/player-avatar";
 import { JoinInviteCard } from "@/components/join-invite-card";
 import { signInWithGoogle } from "@/lib/actions/auth";
-import { Swords, BarChart3, Trophy, ChevronDown, Flame, Sparkles } from "lucide-react";
+import { Swords, BarChart3, Trophy, ChevronDown, Flame, Sparkles, Star } from "lucide-react";
 
 const loopSteps = [
   { icon: Swords, title: "PLAY", description: "Join tournaments and casual doubles sessions." },
@@ -15,6 +15,27 @@ const loopSteps = [
 const tournamentSteps = ["Players", "Fixtures", "Scores", "Champion"];
 const doublesSteps = ["Pair teams", "Play", "Log score", "Play again"];
 const karmaLevels = ["Rookie", "Rising Star", "Court Regular", "Smash Master", "Court Legend"];
+
+const testimonials = [
+  {
+    name: "Rohan Singh",
+    location: "Haryana",
+    quote:
+      "Running our weekend tournaments used to mean a messy spreadsheet. Now I just share the link and CourtSide handles fixtures and scores.",
+  },
+  {
+    name: "Vishal Chaudhary",
+    location: "Haridwar",
+    quote:
+      "Everyone can check the bracket and live scores on their own phone instead of asking me what's next. Makes organizing so much easier.",
+  },
+  {
+    name: "Trehan Gangwar",
+    location: "Bangalore",
+    quote:
+      "I like that my match history actually sticks around. It's fun watching my win rate and karma go up every week.",
+  },
+];
 
 function Stepper({ steps }: { steps: string[] }) {
   return (
@@ -215,6 +236,37 @@ export function LandingPage() {
             </div>
             <p className="font-heading text-xl font-bold">1,240</p>
           </div>
+        </div>
+      </div>
+
+      {/* Testimonials */}
+      <div className="mx-auto w-full max-w-3xl px-5 py-14 sm:px-8 sm:py-20">
+        <div className="mx-auto max-w-lg text-center">
+          <h2 className="font-heading text-[30px] font-bold tracking-tight sm:text-[40px]">
+            Loved by players like you.
+          </h2>
+          <p className="mt-3 text-base text-muted-foreground sm:text-lg">
+            Real people, real courts, real games organized with CourtSide.
+          </p>
+        </div>
+        <div className="mx-auto mt-10 grid max-w-4xl gap-4 sm:grid-cols-3">
+          {testimonials.map((t) => (
+            <Card key={t.name} className="gap-4 p-6">
+              <div className="flex gap-0.5 text-amber-500">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Star key={i} className="size-3.5 fill-current" />
+                ))}
+              </div>
+              <p className="flex-1 text-sm text-muted-foreground">&ldquo;{t.quote}&rdquo;</p>
+              <div className="flex items-center gap-2.5">
+                <PlayerAvatar name={t.name} size="md" />
+                <div>
+                  <p className="text-sm font-semibold">{t.name}</p>
+                  <p className="text-xs text-muted-foreground">{t.location}</p>
+                </div>
+              </div>
+            </Card>
+          ))}
         </div>
       </div>
 
