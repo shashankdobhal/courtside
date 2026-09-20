@@ -1,4 +1,3 @@
-import { format, subDays } from "date-fns";
 import { prisma } from "@/lib/prisma";
 import { MatchStatus } from "@/types";
 import {
@@ -25,16 +24,26 @@ const EMPTY_STREAK: PlayStreak = {
   last7Days: [false, false, false, false, false, false, false],
 };
 
-function last7DayLabels(now: Date): string[] {
-  return Array.from({ length: 7 }, (_, i) => format(subDays(now, 6 - i), "EEEEE"));
+function last7DayLabels(now: Date, timeZone: string): string[] {
+  const formatter = new Intl.DateTimeFormat("en-US", { timeZone, weekday: "narrow" });
+  return Array.from({ length: 7 }, (_, i) =>
+    formatter.format(new Date(now.getTime() - (6 - i) * 24 * 60 * 60 * 1000))
+  );
 }
 
 /**
  * Activity-based gamification stats for the signed-in user's own profile —
  * counts singles and doubles matches alike, since this is about engagement,
  * not competitive ranking (unlike the singles-only leaderboard/profile stats).
+ *
+ * `timeZone` is the viewer's own IANA timezone (see lib/timezone.ts) — the
+ * streak and "played today" are calendar-day concepts that must match the
+ * viewer's own clock, not the server's (which always runs in UTC).
  */
-export async function getPlayerGamificationStats(userId: string): Promise<PlayerGamificationStats | null> {
+export async function getPlayerGamificationStats(
+  userId: string,
+  timeZone: string
+): Promise<PlayerGamificationStats | null> {
   const profile = await prisma.playerProfile.findUnique({ where: { userId } });
   if (!profile) return null;
 
@@ -51,7 +60,7 @@ export async function getPlayerGamificationStats(userId: string): Promise<Player
       karma: 0,
       karmaLevel: calculateKarmaLevel(0),
       streak: EMPTY_STREAK,
-      last7Labels: last7DayLabels(new Date()),
+      last7Labels: last7DayLabels(new Date(), timeZone),
     };
   }
 
@@ -69,9 +78,16 @@ export async function getPlayerGamificationStats(userId: string): Promise<Player
   const gamesPlayed = matches.length;
   const wins = matches.filter((m) => m.winnerId && playerIds.includes(m.winnerId)).length;
   const completedDates = matches.map((m) => m.completedAt).filter((d): d is Date => d !== null);
-  const streak = calculatePlayStreak(completedDates);
+  const streak = calculatePlayStreak(completedDates, new Date(), timeZone);
   const karma = calculateKarmaPoints({ matchesPlayed: gamesPlayed, wins, currentStreak: streak.current });
   const karmaLevel = calculateKarmaLevel(karma);
 
-  return { gamesPlayed, wins, karma, karmaLevel, streak, last7Labels: last7DayLabels(new Date()) };
+  return {
+    gamesPlayed,
+    wins,
+    karma,
+    karmaLevel,
+    streak,
+    last7Labels: last7DayLabels(new Date(), timeZone),
+  };
 }
