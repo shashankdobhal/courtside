@@ -124,9 +124,10 @@
   body {
     @apply bg-background text-foreground;
     background-image: radial-gradient(
-      ellipse 90% 55% at 50% -10%,
-      color-mix(in oklch, var(--primary) 14%, transparent),
-      transparent 70%
+      ellipse 120% 70% at 50% -15%,
+      color-mix(in oklch, var(--primary) 22%, transparent),
+      color-mix(in oklch, var(--primary) 8%, transparent) 45%,
+      transparent 85%
     );
     background-repeat: no-repeat;
     background-attachment: fixed;
