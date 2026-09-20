@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { TournamentType, TournamentFormat } from "@/types";
+import { extractYoutubeVideoId } from "@/lib/youtube";
 
 export const createTournamentSchema = z.object({
   name: z.string().trim().min(1, "Tournament name is required").max(80),
@@ -62,6 +63,19 @@ export const editTournamentSchema = z.object({
   name: z.string().trim().min(1, "Tournament name is required").max(80),
 });
 export type EditTournamentInput = z.infer<typeof editTournamentSchema>;
+
+export const youtubeUrlSchema = z.object({
+  youtubeUrl: z
+    .string()
+    .trim()
+    .max(300)
+    .optional()
+    .or(z.literal(""))
+    .refine((value) => !value || extractYoutubeVideoId(value) !== null, {
+      message: "Enter a valid YouTube video or live stream link",
+    }),
+});
+export type YoutubeUrlInput = z.infer<typeof youtubeUrlSchema>;
 
 export const editPlayerSchema = z.object({
   name: playerNameSchema,

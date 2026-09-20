@@ -11,6 +11,7 @@ import { StandingsTable } from "@/components/standings-table";
 import { FixturesList } from "@/components/fixtures-list";
 import { PlayersList } from "@/components/players-list";
 import { TournamentPageActions } from "@/components/tournament-page-actions";
+import { YoutubeEmbed } from "@/components/youtube-embed";
 import { AddDoublesMatchDialog } from "@/components/add-doubles-match-dialog";
 import { CompleteDoublesSessionButton } from "@/components/complete-doubles-session-button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -133,6 +134,7 @@ export default async function TournamentPage({
                 tournamentId={tournament.id}
                 name={tournament.name}
                 canRegenerate={canRegenerate}
+                youtubeUrl={tournament.youtubeUrl}
               />
             )}
           </div>
@@ -141,6 +143,12 @@ export default async function TournamentPage({
           <TournamentProgress completed={completedCount} total={tournament.matches.length} />
         )}
       </div>
+
+      {tournament.youtubeUrl && (
+        <div className="mb-6">
+          <YoutubeEmbed url={tournament.youtubeUrl} title={tournament.name} />
+        </div>
+      )}
 
       {tournament.status === TournamentStatus.CANCELLED && (
         <Badge variant="outline" className="mb-6 gap-1.5 text-muted-foreground">

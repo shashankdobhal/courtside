@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Trophy, BarChart3 } from "lucide-react";
+import { Trophy, BarChart3, Radio } from "lucide-react";
 import { auth } from "@/auth";
 import { signInWithGoogle } from "@/lib/actions/auth";
 import { UserMenu } from "@/components/user-menu";
@@ -22,6 +22,13 @@ export async function SiteHeader() {
           {session?.user ? (
             <>
               <Link
+                href="/live"
+                className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+              >
+                <Radio className="size-4" />
+                Live
+              </Link>
+              <Link
                 href="/leaderboard"
                 className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
               >
@@ -32,6 +39,13 @@ export async function SiteHeader() {
             </>
           ) : (
             <>
+              <Link
+                href="/live"
+                className="hidden items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground sm:flex"
+              >
+                <Radio className="size-4" />
+                Live
+              </Link>
               <Link
                 href="/#join"
                 className="hidden text-sm font-medium text-muted-foreground transition-colors hover:text-foreground sm:block"
