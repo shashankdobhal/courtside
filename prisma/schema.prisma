@@ -118,6 +118,7 @@ model PlayerProfile {
   playingStyle String?
   hometown     String?
   company      String? // e.g. employer/team name, shown on the roster for corporate tournaments
+  upiId        String? // UPI VPA (e.g. name@bank), used to build "Pay" links on the expense settle-up list
 
   user             User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
   players          Player[]

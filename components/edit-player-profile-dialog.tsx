@@ -25,6 +25,7 @@ export function EditPlayerProfileDialog({
   playingStyle,
   hometown,
   company,
+  upiId,
   open,
   onOpenChange,
 }: {
@@ -33,6 +34,7 @@ export function EditPlayerProfileDialog({
   playingStyle: string | null;
   hometown: string | null;
   company: string | null;
+  upiId: string | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
@@ -52,6 +54,7 @@ export function EditPlayerProfileDialog({
       playingStyle: playingStyle ?? "",
       hometown: hometown ?? "",
       company: company ?? "",
+      upiId: upiId ?? "",
     },
   });
 
@@ -62,10 +65,11 @@ export function EditPlayerProfileDialog({
         playingStyle: playingStyle ?? "",
         hometown: hometown ?? "",
         company: company ?? "",
+        upiId: upiId ?? "",
       });
       setServerError(null);
     }
-  }, [open, bio, playingStyle, hometown, company, reset]);
+  }, [open, bio, playingStyle, hometown, company, upiId, reset]);
 
   const onSubmit = (data: EditPlayerProfileInput) => {
     setServerError(null);
@@ -144,6 +148,23 @@ export function EditPlayerProfileDialog({
             />
             {errors.company && (
               <p className="text-sm text-destructive">{errors.company.message}</p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="profile-upi-id">UPI ID</Label>
+            <Input
+              id="profile-upi-id"
+              placeholder="e.g. name@okhdfcbank"
+              className="h-11 text-base"
+              {...register("upiId")}
+            />
+            {errors.upiId ? (
+              <p className="text-sm text-destructive">{errors.upiId.message}</p>
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                Lets others pay you straight from the expense settle-up list.
+              </p>
             )}
           </div>
 

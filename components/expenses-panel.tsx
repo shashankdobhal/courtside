@@ -22,7 +22,8 @@ import { ShareExpenseImageButton } from "@/components/share-expense-image-button
 import { displayName } from "@/utils/format";
 import { deleteExpense } from "@/lib/actions/expenses";
 import type { ExpenseSettlement } from "@/lib/algorithms/expenses";
-import { Receipt, Trash2, Loader2, ArrowRight } from "lucide-react";
+import { buildUpiPayLink } from "@/lib/upi";
+import { Receipt, Trash2, Loader2, ArrowRight, Wallet, Copy } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export interface ExpensesPanelExpense {
@@ -55,6 +56,16 @@ export function ExpensesPanel({
 
   const nameById = new Map(roster.map((p) => [p.id, displayName(p)]));
   const nameFor = (playerId: string) => nameById.get(playerId) ?? "Unknown";
+  const upiIdById = new Map(roster.map((p) => [p.id, p.upiId ?? null]));
+
+  const handleCopyUpiId = async (upiId: string) => {
+    try {
+      await navigator.clipboard.writeText(upiId);
+      toast.success("UPI ID copied");
+    } catch {
+      toast.error("Couldn't copy the UPI ID");
+    }
+  };
   // A withdrawn player can still show up in past expenses (their name
   // resolves fine via nameById above); they're just not offered again for
   // a *new* one, same as the Players tab hides them from new fixtures.
@@ -140,14 +151,44 @@ export function ExpensesPanel({
           <p className="text-sm text-muted-foreground">Everyone&apos;s settled up! 🎉</p>
         ) : (
           <Card className="divide-y p-0">
-            {settlement.transactions.map((t, i) => (
-              <div key={i} className="flex items-center gap-2 px-4 py-3 text-sm">
-                <span className="min-w-0 flex-1 truncate font-medium">{nameFor(t.fromPlayerId)}</span>
-                <ArrowRight className="size-3.5 shrink-0 text-muted-foreground" />
-                <span className="min-w-0 flex-1 truncate font-medium">{nameFor(t.toPlayerId)}</span>
-                <span className="shrink-0 font-semibold tabular-nums">₹{t.amount}</span>
-              </div>
-            ))}
+            {settlement.transactions.map((t, i) => {
+              const toUpiId = upiIdById.get(t.toPlayerId);
+              const payLink = toUpiId
+                ? buildUpiPayLink({
+                    vpa: toUpiId,
+                    payeeName: nameFor(t.toPlayerId),
+                    amount: t.amount,
+                    note: `${tournamentName} settle up`,
+                  })
+                : null;
+              return (
+                <div key={i} className="flex flex-wrap items-center gap-2 px-4 py-3 text-sm">
+                  <span className="min-w-0 flex-1 truncate font-medium">{nameFor(t.fromPlayerId)}</span>
+                  <ArrowRight className="size-3.5 shrink-0 text-muted-foreground" />
+                  <span className="min-w-0 flex-1 truncate font-medium">{nameFor(t.toPlayerId)}</span>
+                  <span className="shrink-0 font-semibold tabular-nums">₹{t.amount}</span>
+                  {toUpiId && payLink && (
+                    <>
+                      <Button asChild size="sm" variant="secondary" className="h-7 shrink-0 px-2 text-xs">
+                        <a href={payLink}>
+                          <Wallet className="size-3" />
+                          Pay
+                        </a>
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="size-7 shrink-0 text-muted-foreground"
+                        aria-label={`Copy ${nameFor(t.toPlayerId)}'s UPI ID`}
+                        onClick={() => handleCopyUpiId(toUpiId)}
+                      >
+                        <Copy className="size-3.5" />
+                      </Button>
+                    </>
+                  )}
+                </div>
+              );
+            })}
           </Card>
         )}
       </div>

@@ -134,6 +134,13 @@ export const editPlayerProfileSchema = z.object({
     .or(z.literal("")),
   hometown: z.string().trim().max(60, "Must be 60 characters or fewer").optional().or(z.literal("")),
   company: z.string().trim().max(60, "Must be 60 characters or fewer").optional().or(z.literal("")),
+  upiId: z
+    .string()
+    .trim()
+    .max(80, "Must be 80 characters or fewer")
+    .regex(/^[\w.+-]{2,}@[a-zA-Z]{2,}$/, "Enter a valid UPI ID, like name@bank")
+    .optional()
+    .or(z.literal("")),
 });
 export type EditPlayerProfileInput = z.infer<typeof editPlayerProfileSchema>;
 

@@ -12,6 +12,7 @@ export function ProfileEditor({
   playingStyle,
   hometown,
   company,
+  upiId,
   seasonOptIn,
 }: {
   profileId: string;
@@ -19,6 +20,7 @@ export function ProfileEditor({
   playingStyle: string | null;
   hometown: string | null;
   company: string | null;
+  upiId: string | null;
   seasonOptIn: boolean;
 }) {
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -36,6 +38,7 @@ export function ProfileEditor({
         playingStyle={playingStyle}
         hometown={hometown}
         company={company}
+        upiId={upiId}
         open={dialogOpen}
         onOpenChange={setDialogOpen}
       />

@@ -381,7 +381,7 @@ export async function getTournament(id: string) {
     include: {
       players: {
         include: {
-          profile: { select: { company: true } },
+          profile: { select: { company: true, upiId: true } },
           partnerProfile: { select: { company: true } },
         },
       },
