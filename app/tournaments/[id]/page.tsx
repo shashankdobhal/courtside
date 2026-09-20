@@ -132,6 +132,16 @@ export default async function TournamentPage({
     .filter((p) => !p.withdrawn)
     .map((p) => ({ id: p.id, name: displayName(p) }));
   const visibleRosterPlayers = isDoublesSession ? rosterPlayers : tournament.players;
+  // A fixed-team doubles row has two members, so there's no single UPI ID
+  // a "Pay" link could point at — only an individually-rostered player
+  // (singles, or anyone in a doubles session) gets one.
+  const expenseRoster = visibleRosterPlayers.map((p) => ({
+    id: p.id,
+    name: p.name,
+    alias: p.alias,
+    withdrawn: p.withdrawn,
+    upiId: p.partnerProfileId ? null : (p.profile?.upiId ?? null),
+  }));
 
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-8 sm:py-12">
@@ -246,7 +256,7 @@ export default async function TournamentPage({
           <ExpensesPanel
             tournamentId={tournament.id}
             tournamentName={tournament.name}
-            roster={visibleRosterPlayers}
+            roster={expenseRoster}
             expenses={expenses}
             settlement={settlement}
             isOwner={isOwner}

@@ -52,6 +52,7 @@ export default async function PlayerProfilePage({
               playingStyle={profile.playingStyle}
               hometown={profile.hometown}
               company={profile.company}
+              upiId={profile.upiId}
               seasonOptIn={profile.seasonOptIn}
             />
           )}

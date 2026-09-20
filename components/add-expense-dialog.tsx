@@ -34,6 +34,8 @@ export interface ExpenseRosterPlayer {
   name: string;
   alias: string | null;
   withdrawn: boolean;
+  /** Only present on the roster passed for settle-up "Pay" links — past expenses' own paidBy/participant rows don't carry it. */
+  upiId?: string | null;
 }
 
 export function AddExpenseDialog({
