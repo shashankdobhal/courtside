@@ -18,9 +18,12 @@ interface BracketPlayer {
 export function BracketBuilder({
   tournamentId,
   players,
+  entityLabel = "player",
 }: {
   tournamentId: string;
   players: BracketPlayer[];
+  /** "player" or "team" — doubles brackets place teams, not individuals. */
+  entityLabel?: string;
 }) {
   const [isPending, startTransition] = useTransition();
   const bracketSize = bracketSizeFor(players.length);
@@ -118,9 +121,9 @@ export function BracketBuilder({
         <div>
           <h2 className="text-sm font-medium">Build the bracket</h2>
           <p className="text-xs text-muted-foreground">
-            {bracketSize}-player bracket
-            {byeCount > 0 ? ` · ${byeCount} bye${byeCount === 1 ? "" : "s"}` : ""}. Tap a player,
-            then tap a slot to place them.
+            {bracketSize}-{entityLabel} bracket
+            {byeCount > 0 ? ` · ${byeCount} bye${byeCount === 1 ? "" : "s"}` : ""}. Tap a{" "}
+            {entityLabel}, then tap a slot to place them.
           </p>
         </div>
         <div className="flex shrink-0 gap-2">
@@ -194,8 +197,8 @@ export function BracketBuilder({
 
       {hasDoubleByePair && (
         <p className="text-sm text-destructive">
-          Two empty slots can&apos;t be paired together — move a bye so each match has at least one
-          player.
+          Two empty slots can&apos;t be paired together — move a bye so each match has at least one{" "}
+          {entityLabel}.
         </p>
       )}
 
@@ -210,7 +213,7 @@ export function BracketBuilder({
       </Button>
       {!canGenerate && !hasDoubleByePair && (
         <p className="text-center text-sm text-muted-foreground">
-          Place every player in a bracket slot to generate the bracket.
+          Place every {entityLabel} in a bracket slot to generate the bracket.
         </p>
       )}
     </div>

@@ -15,7 +15,7 @@ datasource db {
 model Tournament {
   id               String   @id @default(cuid())
   name             String
-  type             String // TournamentType: ROUND_ROBIN | ROUND_ROBIN_KNOCKOUT -- meaningless for DOUBLES, which has no generated fixtures
+  type             String // TournamentType: ROUND_ROBIN | ROUND_ROBIN_KNOCKOUT | KNOCKOUT | SESSION -- SESSION is doubles-only (ad-hoc, no generated fixtures); singles is always one of the other three
   format           String   @default("SINGLES") // TournamentFormat: SINGLES | DOUBLES
   status           String   @default("PENDING") // TournamentStatus: PENDING | ACTIVE | COMPLETED
   legs             Int      @default(1) // how many times each pair plays in the league stage (1-3)

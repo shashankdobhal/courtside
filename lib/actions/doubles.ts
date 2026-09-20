@@ -8,7 +8,7 @@ import {
   requireTournamentOwner,
   requireDoublesMatchParticipantOrOwner,
 } from "@/lib/auth-helpers";
-import { MatchStatus, Round, TournamentFormat, TournamentStatus } from "@/types";
+import { MatchStatus, Round, TournamentFormat, TournamentStatus, TournamentType } from "@/types";
 
 /**
  * Forms a doubles team: one Player row standing in for two real people.
@@ -64,6 +64,9 @@ export async function activateDoublesSession(tournamentId: string) {
   if (tournament.format !== TournamentFormat.DOUBLES) {
     throw new Error("This tournament isn't set up for doubles");
   }
+  if (tournament.type !== TournamentType.SESSION) {
+    throw new Error("Use the bracket/fixtures setup to start a tournament-style doubles event");
+  }
   if (tournament.status !== TournamentStatus.PENDING) {
     throw new Error("This session has already started");
   }
@@ -93,6 +96,9 @@ export async function addDoublesMatch(tournamentId: string, team1Id: string, tea
   const { tournament } = await requireDoublesMatchParticipantOrOwner(tournamentId, team1Id, team2Id);
   if (tournament.format !== TournamentFormat.DOUBLES) {
     throw new Error("This tournament isn't set up for doubles");
+  }
+  if (tournament.type !== TournamentType.SESSION) {
+    throw new Error("This tournament uses generated fixtures — matches can't be added ad hoc");
   }
   if (tournament.status !== TournamentStatus.ACTIVE) {
     throw new Error("The session isn't active");
@@ -130,6 +136,9 @@ export async function completeDoublesSession(tournamentId: string) {
   const { tournament } = await requireTournamentOwner(tournamentId);
   if (tournament.format !== TournamentFormat.DOUBLES) {
     throw new Error("This tournament isn't set up for doubles");
+  }
+  if (tournament.type !== TournamentType.SESSION) {
+    throw new Error("A tournament-style doubles event completes on its own once fixtures finish");
   }
   if (tournament.status !== TournamentStatus.ACTIVE) {
     throw new Error("This session isn't active");

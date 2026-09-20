@@ -43,11 +43,34 @@ export default async function PlayersPage({
   }
 
   const isDoubles = tournament.format === TournamentFormat.DOUBLES;
+  const isSession = tournament.type === TournamentType.SESSION;
   const isKnockout = tournament.type === TournamentType.KNOCKOUT;
-  const minPlayers =
+  const minRoster =
     tournament.type === TournamentType.ROUND_ROBIN_KNOCKOUT || isKnockout
       ? MIN_PLAYERS_KNOCKOUT
       : MIN_PLAYERS_ROUND_ROBIN;
+  const entityLabel = isDoubles ? "team" : "player";
+
+  const nextStep = isKnockout ? (
+    tournament.players.length >= minRoster ? (
+      <BracketBuilder
+        tournamentId={tournament.id}
+        players={tournament.players}
+        entityLabel={entityLabel}
+      />
+    ) : (
+      <p className="text-center text-sm text-muted-foreground">
+        At least {minRoster} {entityLabel}s are required to build the bracket.
+      </p>
+    )
+  ) : (
+    <GenerateFixturesButton
+      tournamentId={tournament.id}
+      canGenerate={tournament.players.length >= minRoster}
+      minPlayers={minRoster}
+      entityLabel={entityLabel}
+    />
+  );
 
   return (
     <main className="mx-auto w-full max-w-lg flex-1 px-4 py-10 sm:py-14">
@@ -55,9 +78,13 @@ export default async function PlayersPage({
         <h1 className="font-heading text-2xl font-bold tracking-tight">{tournament.name}</h1>
         <p className="text-sm text-muted-foreground">
           {isDoubles
-            ? isOwner
-              ? "Form teams, then activate the session whenever you're ready."
-              : "Waiting for the organizer to form teams and start the session."
+            ? isSession
+              ? isOwner
+                ? "Form teams, then activate the session whenever you're ready."
+                : "Waiting for the organizer to form teams and start the session."
+              : isOwner
+                ? "Form teams, then generate fixtures whenever you're ready."
+                : "Waiting for the organizer to form teams and start the tournament."
             : isOwner
               ? "Add players, or share this page so others can join themselves."
               : "Join this tournament, or wait for the organizer to generate fixtures."}
@@ -79,36 +106,26 @@ export default async function PlayersPage({
             {/* No join code here: doubles has no self-join flow yet, only organizer-formed teams. */}
             <ShareActions title={tournament.name} />
             <DoublesTeamForm tournamentId={tournament.id} />
-            <ActivateDoublesSessionButton
-              tournamentId={tournament.id}
-              canActivate={tournament.players.length >= MIN_DOUBLES_TEAMS}
-              minTeams={MIN_DOUBLES_TEAMS}
-            />
+            {isSession ? (
+              <ActivateDoublesSessionButton
+                tournamentId={tournament.id}
+                canActivate={tournament.players.length >= MIN_DOUBLES_TEAMS}
+                minTeams={MIN_DOUBLES_TEAMS}
+              />
+            ) : (
+              nextStep
+            )}
           </div>
         ) : (
           <p className="text-center text-sm text-muted-foreground">
-            The organizer is setting up teams for this session.
+            The organizer is setting up teams for this {isSession ? "session" : "tournament"}.
           </p>
         )
       ) : isOwner ? (
         <div className="space-y-8">
           <ShareActions title={tournament.name} joinCode={tournament.joinCode} />
           <PlayerEntryForm tournamentId={tournament.id} />
-          {isKnockout ? (
-            tournament.players.length >= minPlayers ? (
-              <BracketBuilder tournamentId={tournament.id} players={tournament.players} />
-            ) : (
-              <p className="text-center text-sm text-muted-foreground">
-                At least {minPlayers} players are required to build the bracket.
-              </p>
-            )
-          ) : (
-            <GenerateFixturesButton
-              tournamentId={tournament.id}
-              canGenerate={tournament.players.length >= minPlayers}
-              minPlayers={minPlayers}
-            />
-          )}
+          {nextStep}
         </div>
       ) : session?.user ? (
         hasJoined ? (

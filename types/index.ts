@@ -2,6 +2,9 @@ export const TournamentType = {
   ROUND_ROBIN: "ROUND_ROBIN",
   ROUND_ROBIN_KNOCKOUT: "ROUND_ROBIN_KNOCKOUT",
   KNOCKOUT: "KNOCKOUT",
+  // Doubles-only: no generated fixtures — teams log matches ad hoc, whoever's
+  // next, and the organizer ends the session manually. Singles never uses this.
+  SESSION: "SESSION",
 } as const;
 export type TournamentType = (typeof TournamentType)[keyof typeof TournamentType];
 

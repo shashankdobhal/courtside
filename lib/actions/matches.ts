@@ -7,7 +7,7 @@ import { calculateStandings } from "@/lib/algorithms/standings";
 import { generateKnockoutFixtures } from "@/lib/algorithms/fixtures";
 import { KNOCKOUT_ROUND_SEQUENCE, knockoutRoundsFromFirst, nextKnockoutRound } from "@/lib/algorithms/bracket";
 import { requireMatchParticipantOrOwner } from "@/lib/auth-helpers";
-import { MatchStatus, Round, TournamentFormat, TournamentStatus, TournamentType } from "@/types";
+import { MatchStatus, Round, TournamentStatus, TournamentType } from "@/types";
 
 async function finishMatchUpdate(tournamentId: string) {
   await progressTournament(tournamentId);
@@ -23,10 +23,12 @@ export async function progressTournament(tournamentId: string) {
     include: { players: true, matches: true },
   });
   if (!tournament) return;
-  // Doubles is open-ended, casual play — matches are logged on the fly with
-  // no fixed fixture list, so there's no "all matches done" moment to
-  // auto-complete on. The organizer ends the session explicitly instead.
-  if (tournament.format === TournamentFormat.DOUBLES) return;
+  // A casual session (doubles-only) is open-ended play — matches are logged
+  // on the fly with no fixed fixture list, so there's no "all matches done"
+  // moment to auto-complete on. The organizer ends it explicitly instead.
+  // A tournament-style doubles event (round robin/knockout) has real
+  // generated fixtures, so it progresses exactly like singles below.
+  if (tournament.type === TournamentType.SESSION) return;
 
   const leagueMatches = tournament.matches.filter((m) => m.round === Round.LEAGUE);
   const leagueDone =

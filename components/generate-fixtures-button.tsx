@@ -10,10 +10,13 @@ export function GenerateFixturesButton({
   tournamentId,
   canGenerate,
   minPlayers,
+  entityLabel = "player",
 }: {
   tournamentId: string;
   canGenerate: boolean;
   minPlayers: number;
+  /** "player" or "team" — doubles fixtures are generated from teams, not individuals. */
+  entityLabel?: string;
 }) {
   const [isPending, startTransition] = useTransition();
 
@@ -43,7 +46,8 @@ export function GenerateFixturesButton({
       </Button>
       {!canGenerate && (
         <p className="text-center text-sm text-muted-foreground">
-          At least {minPlayers} players are required to generate fixtures.
+          At least {minPlayers} {entityLabel}
+          {minPlayers === 1 ? "" : "s"} are required to generate fixtures.
         </p>
       )}
     </div>

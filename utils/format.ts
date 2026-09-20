@@ -20,6 +20,7 @@ export const tournamentTypeLabel: Record<TournamentType, string> = {
   [TournamentType.ROUND_ROBIN]: "Everyone Plays Everyone",
   [TournamentType.ROUND_ROBIN_KNOCKOUT]: "Round Robin + Knockout",
   [TournamentType.KNOCKOUT]: "Knockout Bracket",
+  [TournamentType.SESSION]: "Casual Session",
 };
 
 export const tournamentStatusLabel: Record<TournamentStatus, string> = {
