@@ -50,7 +50,7 @@ export function CreateEventForm() {
         />
         {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
         <p className="text-sm text-muted-foreground">
-          You&apos;ll add each category — Singles, Doubles, Mixed Doubles — right after.
+          You&apos;ll add each category, like Singles, Doubles, and Mixed Doubles, right after.
         </p>
       </div>
 

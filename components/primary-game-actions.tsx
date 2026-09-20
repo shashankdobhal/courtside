@@ -2,10 +2,11 @@ import Link from "next/link";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { JoinGameDialog } from "@/components/join-game-dialog";
+import { EventTeaserLink } from "@/components/event-teaser-link";
 
 export function PrimaryGameActions({ joinFirst = false }: { joinFirst?: boolean }) {
   const createButton = (
-    <Button asChild size="lg" className="h-12 flex-1 text-base sm:flex-none sm:px-6">
+    <Button asChild size="lg" className="h-12 w-full text-base sm:w-auto sm:px-6">
       <Link href="/tournaments/new">
         <Plus className="size-5" />
         Create Game
@@ -15,7 +16,7 @@ export function PrimaryGameActions({ joinFirst = false }: { joinFirst?: boolean 
   const joinButton = <JoinGameDialog />;
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
       <div className="flex flex-col gap-2 sm:flex-row">
         {joinFirst ? (
           <>
@@ -29,12 +30,7 @@ export function PrimaryGameActions({ joinFirst = false }: { joinFirst?: boolean 
           </>
         )}
       </div>
-      <Link
-        href="/events/new"
-        className="block text-center text-sm text-muted-foreground underline-offset-2 hover:text-foreground hover:underline sm:text-left"
-      >
-        Running Singles, Doubles, and more at once? Create an event instead →
-      </Link>
+      <EventTeaserLink />
     </div>
   );
 }

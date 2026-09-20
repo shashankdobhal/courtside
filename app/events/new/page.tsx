@@ -24,8 +24,8 @@ export default async function NewEventPage() {
     <main className="mx-auto w-full max-w-lg flex-1 px-4 py-10 sm:py-14">
       <h1 className="font-heading mb-2 text-2xl font-bold tracking-tight">Create Event</h1>
       <p className="mb-8 text-sm text-muted-foreground">
-        For a tournament that runs several categories at once — Men&apos;s Singles, Doubles, Mixed
-        Doubles — under one shared invite.
+        For a tournament that runs several categories at once, like Men&apos;s Singles, Doubles, and
+        Mixed Doubles, all under one shared invite.
       </p>
       <CreateEventForm />
     </main>

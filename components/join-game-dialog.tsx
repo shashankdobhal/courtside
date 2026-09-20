@@ -48,7 +48,7 @@ export function JoinGameDialog() {
       }}
     >
       <DialogTrigger asChild>
-        <Button variant="outline" size="lg" className="h-12 flex-1 text-base sm:flex-none sm:px-7">
+        <Button variant="outline" size="lg" className="h-12 w-full text-base sm:w-auto sm:px-7">
           Join Game
         </Button>
       </DialogTrigger>

@@ -1,8 +1,8 @@
-import Link from "next/link";
 import { auth } from "@/auth";
 import { signInWithGoogleTo } from "@/lib/actions/auth";
 import { getEvent } from "@/lib/actions/events";
 import { CreateTournamentForm } from "@/components/create-tournament-form";
+import { EventTeaserLink } from "@/components/event-teaser-link";
 import { Button } from "@/components/ui/button";
 
 export default async function NewTournamentPage({
@@ -37,13 +37,9 @@ export default async function NewTournamentPage({
           Adding a category to <span className="font-medium text-foreground">{event.name}</span>.
         </p>
       ) : (
-        <p className="mb-8 text-sm text-muted-foreground">
-          Running Singles, Doubles, and more at once?{" "}
-          <Link href="/events/new" className="font-medium text-foreground underline-offset-2 hover:underline">
-            Create an event instead
-          </Link>
-          .
-        </p>
+        <div className="mb-8">
+          <EventTeaserLink />
+        </div>
       )}
       <CreateTournamentForm eventId={event?.id} />
     </main>
