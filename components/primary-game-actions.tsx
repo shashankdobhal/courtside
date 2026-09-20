@@ -15,18 +15,26 @@ export function PrimaryGameActions({ joinFirst = false }: { joinFirst?: boolean 
   const joinButton = <JoinGameDialog />;
 
   return (
-    <div className="flex flex-col gap-2 sm:flex-row">
-      {joinFirst ? (
-        <>
-          {joinButton}
-          {createButton}
-        </>
-      ) : (
-        <>
-          {createButton}
-          {joinButton}
-        </>
-      )}
+    <div className="space-y-2">
+      <div className="flex flex-col gap-2 sm:flex-row">
+        {joinFirst ? (
+          <>
+            {joinButton}
+            {createButton}
+          </>
+        ) : (
+          <>
+            {createButton}
+            {joinButton}
+          </>
+        )}
+      </div>
+      <Link
+        href="/events/new"
+        className="block text-center text-sm text-muted-foreground underline-offset-2 hover:text-foreground hover:underline sm:text-left"
+      >
+        Running Singles, Doubles, and more at once? Create an event instead →
+      </Link>
     </div>
   );
 }

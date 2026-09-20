@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { auth } from "@/auth";
 import { signInWithGoogleTo } from "@/lib/actions/auth";
 import { getEvent } from "@/lib/actions/events";
@@ -31,9 +32,17 @@ export default async function NewTournamentPage({
       <h1 className={`font-heading text-2xl font-bold tracking-tight ${event ? "mb-2" : "mb-8"}`}>
         Create Tournament
       </h1>
-      {event && (
+      {event ? (
         <p className="mb-8 text-sm text-muted-foreground">
           Adding a category to <span className="font-medium text-foreground">{event.name}</span>.
+        </p>
+      ) : (
+        <p className="mb-8 text-sm text-muted-foreground">
+          Running Singles, Doubles, and more at once?{" "}
+          <Link href="/events/new" className="font-medium text-foreground underline-offset-2 hover:underline">
+            Create an event instead
+          </Link>
+          .
         </p>
       )}
       <CreateTournamentForm eventId={event?.id} />
