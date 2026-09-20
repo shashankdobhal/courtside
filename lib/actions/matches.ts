@@ -7,7 +7,55 @@ import { calculateStandings } from "@/lib/algorithms/standings";
 import { generateKnockoutFixtures } from "@/lib/algorithms/fixtures";
 import { KNOCKOUT_ROUND_SEQUENCE, knockoutRoundsFromFirst, nextKnockoutRound } from "@/lib/algorithms/bracket";
 import { requireMatchParticipantOrOwner } from "@/lib/auth-helpers";
+import { sendPushToUser, getUserIdsForPlayerIds } from "@/lib/push";
+import { displayName } from "@/utils/format";
 import { MatchStatus, Round, TournamentStatus, TournamentType } from "@/types";
+
+type RosterPlayer = { id: string; name: string; alias: string | null };
+
+/**
+ * Notifies both players in a newly created match that they're up next —
+ * only meaningful the moment a knockout round advances, since that's when
+ * this pairing first becomes known (round robin's fixtures are all
+ * generated upfront and covered by the "fixtures are ready" notification
+ * instead). Best-effort: never allowed to break bracket progression.
+ */
+async function notifyUpNext(
+  tournamentId: string,
+  tournamentName: string,
+  fixtures: { player1Id: string; player2Id: string | null }[],
+  playersById: Map<string, RosterPlayer>
+) {
+  try {
+    const pairs = fixtures.flatMap((f) => {
+      if (!f.player2Id) return [];
+      const p1 = playersById.get(f.player1Id);
+      const p2 = playersById.get(f.player2Id);
+      if (!p1 || !p2) return [];
+      return [
+        [p1, p2] as const,
+        [p2, p1] as const,
+      ];
+    });
+
+    await Promise.all(
+      pairs.map(async ([player, opponent]) => {
+        const userIds = await getUserIdsForPlayerIds([player.id]);
+        await Promise.all(
+          userIds.map((userId) =>
+            sendPushToUser(userId, {
+              title: "You're up next!",
+              body: `${tournamentName} vs ${displayName(opponent)}`,
+              url: `/tournaments/${tournamentId}`,
+            })
+          )
+        );
+      })
+    );
+  } catch (err) {
+    console.error("Failed to send you're-up-next notifications", err);
+  }
+}
 
 async function finishMatchUpdate(tournamentId: string) {
   await progressTournament(tournamentId);
@@ -30,6 +78,7 @@ export async function progressTournament(tournamentId: string) {
   // generated fixtures, so it progresses exactly like singles below.
   if (tournament.type === TournamentType.SESSION) return;
 
+  const playersById = new Map(tournament.players.map((p) => [p.id, p]));
   const leagueMatches = tournament.matches.filter((m) => m.round === Round.LEAGUE);
   const leagueDone =
     leagueMatches.length > 0 &&
@@ -63,6 +112,7 @@ export async function progressTournament(tournamentId: string) {
         await prisma.match.createMany({
           data: newFixtures.map((f) => ({ ...f, tournamentId })),
         });
+        await notifyUpNext(tournamentId, tournament.name, newFixtures, playersById);
       }
       break;
     }
@@ -90,6 +140,7 @@ export async function progressTournament(tournamentId: string) {
       await prisma.match.createMany({
         data: newFixtures.map((f) => ({ ...f, tournamentId })),
       });
+      await notifyUpNext(tournamentId, tournament.name, newFixtures, playersById);
     }
   }
 
