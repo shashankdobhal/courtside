@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getTournament } from "@/lib/actions/tournaments";
+import { getTournamentExpenses } from "@/lib/actions/expenses";
 import { prisma } from "@/lib/prisma";
 import { cn } from "@/lib/utils";
 import {
@@ -20,6 +21,7 @@ import { YoutubeEmbed } from "@/components/youtube-embed";
 import { AddLivestreamPrompt } from "@/components/add-livestream-prompt";
 import { AddSessionMatchDialog } from "@/components/add-session-match-dialog";
 import { CompleteSessionButton } from "@/components/complete-session-button";
+import { ExpensesPanel } from "@/components/expenses-panel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -41,7 +43,11 @@ export default async function TournamentPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const [tournament, session] = await Promise.all([getTournament(id), auth()]);
+  const [tournament, session, { expenses, settlement }] = await Promise.all([
+    getTournament(id),
+    auth(),
+    getTournamentExpenses(id),
+  ]);
   const isOwner = !!session?.user?.id && tournament?.ownerId === session.user.id;
 
   if (!tournament) notFound();
@@ -206,10 +212,11 @@ export default async function TournamentPage({
       )}
 
       <Tabs defaultValue="fixtures">
-        <TabsList className={cn("mb-4 grid w-full", showStandings ? "grid-cols-3" : "grid-cols-2")}>
+        <TabsList className={cn("mb-4 grid w-full", showStandings ? "grid-cols-4" : "grid-cols-3")}>
           <TabsTrigger value="fixtures">Fixtures</TabsTrigger>
           {showStandings && <TabsTrigger value="standings">Standings</TabsTrigger>}
           <TabsTrigger value="players">{isDoubles && !isSession ? "Teams" : "Players"}</TabsTrigger>
+          <TabsTrigger value="expenses">Expenses</TabsTrigger>
         </TabsList>
         <TabsContent value="fixtures">
           <FixturesList
@@ -233,6 +240,16 @@ export default async function TournamentPage({
             // individual is still excluded from *new* matches, just not
             // retroactively voided out of ones already logged).
             canWithdraw={tournament.status === TournamentStatus.ACTIVE && !isDoublesSession}
+          />
+        </TabsContent>
+        <TabsContent value="expenses">
+          <ExpensesPanel
+            tournamentId={tournament.id}
+            tournamentName={tournament.name}
+            roster={visibleRosterPlayers}
+            expenses={expenses}
+            settlement={settlement}
+            isOwner={isOwner}
           />
         </TabsContent>
       </Tabs>

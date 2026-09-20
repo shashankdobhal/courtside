@@ -183,3 +183,38 @@ export const bestOfThreeScoreEntrySchema = z
   });
 export type BestOfThreeScoreEntryInput = z.infer<typeof bestOfThreeScoreEntrySchema>;
 export type GameScoreInput = z.infer<typeof gameScoreSchema>;
+
+/**
+ * shareAmount is always the participant's exact rupee portion — computed
+ * client-side for an equal split, typed by hand for a custom one — so
+ * this validates the same way regardless of splitMode: the shares must
+ * add up to the total, and (for a custom split) nobody's share is zero.
+ */
+export const expenseSchema = z
+  .object({
+    description: z.string().trim().min(1, "Description is required").max(80),
+    amount: z.number().int().min(1, "Amount must be at least ₹1").max(10_000_000),
+    paidByPlayerId: z.string().min(1, "Choose who paid"),
+    splitMode: z.enum(["EQUAL", "CUSTOM"]),
+    participants: z
+      .array(z.object({ playerId: z.string(), shareAmount: z.number().int().min(0) }))
+      .min(1, "Select at least one participant"),
+  })
+  .superRefine((data, ctx) => {
+    const sum = data.participants.reduce((total, p) => total + p.shareAmount, 0);
+    if (sum !== data.amount) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Shares must add up to the total amount",
+        path: ["participants"],
+      });
+    }
+    if (data.splitMode === "CUSTOM" && data.participants.some((p) => p.shareAmount <= 0)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Each participant's share must be greater than ₹0",
+        path: ["participants"],
+      });
+    }
+  });
+export type ExpenseInput = z.infer<typeof expenseSchema>;
