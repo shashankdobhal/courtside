@@ -41,7 +41,10 @@ export default async function PlayerProfilePage({
           <div className="flex items-center gap-3">
             <PlayerAvatar name={profile.name} size="md" className="size-12 text-lg" />
             <div>
-              <h1 className="font-heading text-2xl font-bold tracking-tight">{profile.name}</h1>
+              <div className="flex flex-wrap items-center gap-2">
+                <h1 className="font-heading text-2xl font-bold tracking-tight">{profile.name}</h1>
+                {profile.isCoach && <Badge variant="secondary">Coach</Badge>}
+              </div>
               {bioLine && <p className="text-sm text-muted-foreground">{bioLine}</p>}
             </div>
           </div>
@@ -53,10 +56,36 @@ export default async function PlayerProfilePage({
               hometown={profile.hometown}
               company={profile.company}
               upiId={profile.upiId}
+              isCoach={profile.isCoach}
+              coachYearsExperience={profile.coachYearsExperience}
+              coachSkills={profile.coachSkills}
+              coachAvailability={profile.coachAvailability}
               seasonOptIn={profile.seasonOptIn}
             />
           )}
         </div>
+
+        {profile.isCoach && (
+          <div className="mt-4 space-y-1 border-t pt-4 text-sm">
+            {profile.coachYearsExperience != null && (
+              <p>
+                <span className="text-muted-foreground">Experience:</span>{" "}
+                {profile.coachYearsExperience} year{profile.coachYearsExperience === 1 ? "" : "s"}
+              </p>
+            )}
+            {profile.coachSkills && (
+              <p>
+                <span className="text-muted-foreground">Skills:</span> {profile.coachSkills}
+              </p>
+            )}
+            {profile.coachAvailability && (
+              <p>
+                <span className="text-muted-foreground">Availability:</span>{" "}
+                {profile.coachAvailability}
+              </p>
+            )}
+          </div>
+        )}
       </div>
 
       {profile.bio && <p className="mb-6 text-sm text-foreground">{profile.bio}</p>}

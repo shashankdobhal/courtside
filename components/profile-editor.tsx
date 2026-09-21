@@ -13,6 +13,10 @@ export function ProfileEditor({
   hometown,
   company,
   upiId,
+  isCoach,
+  coachYearsExperience,
+  coachSkills,
+  coachAvailability,
   seasonOptIn,
 }: {
   profileId: string;
@@ -21,6 +25,10 @@ export function ProfileEditor({
   hometown: string | null;
   company: string | null;
   upiId: string | null;
+  isCoach: boolean;
+  coachYearsExperience: number | null;
+  coachSkills: string | null;
+  coachAvailability: string | null;
   seasonOptIn: boolean;
 }) {
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -39,6 +47,10 @@ export function ProfileEditor({
         hometown={hometown}
         company={company}
         upiId={upiId}
+        isCoach={isCoach}
+        coachYearsExperience={coachYearsExperience}
+        coachSkills={coachSkills}
+        coachAvailability={coachAvailability}
         open={dialogOpen}
         onOpenChange={setDialogOpen}
       />

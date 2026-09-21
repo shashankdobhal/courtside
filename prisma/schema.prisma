@@ -140,6 +140,11 @@ model PlayerProfile {
   company      String? // e.g. employer/team name, shown on the roster for corporate tournaments
   upiId        String? // UPI VPA (e.g. name@bank), used to build "Pay" links on the expense settle-up list
 
+  isCoach              Boolean @default(false) // opts this profile into the /coaches directory
+  coachYearsExperience Int?
+  coachSkills          String? // free text, e.g. "Footwork, doubles strategy, juniors"
+  coachAvailability    String? // free text, e.g. "Weekday evenings, weekend mornings"
+
   user             User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
   players          Player[]
   partneredPlayers Player[] @relation("PlayerPartnerProfile")
