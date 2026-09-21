@@ -36,7 +36,7 @@ export default async function PlayerProfilePage({
 
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-8 sm:py-12">
-      <div className="relative mb-6 overflow-hidden rounded-3xl border bg-gradient-to-b from-primary/10 via-primary/5 to-transparent p-5 sm:p-6">
+      <div className="relative mb-6 overflow-hidden rounded-2xl border bg-gradient-to-b from-primary/10 via-primary/5 to-transparent p-5 sm:p-6">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="flex items-center gap-3">
             <PlayerAvatar name={profile.name} size="md" className="size-12 text-lg" />
@@ -82,8 +82,8 @@ export default async function PlayerProfilePage({
       </div>
 
       {currentStreak > 0 && (
-        <Badge variant="secondary" className="mb-8 gap-1.5">
-          <Flame className="size-3.5 text-orange-500" />
+        <Badge variant="secondary" className="mb-8 gap-2">
+          <Flame className="size-3.5 text-amber-500" />
           {currentStreak} tournament{currentStreak === 1 ? "" : "s"} won in a row
         </Badge>
       )}
