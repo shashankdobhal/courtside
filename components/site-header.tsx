@@ -4,6 +4,7 @@ import { auth } from "@/auth";
 import { signInWithGoogle } from "@/lib/actions/auth";
 import { isSuperAdminEmail } from "@/lib/admin";
 import { UserMenu } from "@/components/user-menu";
+import { MobileMenu } from "@/components/mobile-menu";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { PushNotificationToggle } from "@/components/push-notification-toggle";
 import { Button } from "@/components/ui/button";
@@ -100,6 +101,7 @@ export async function SiteHeader() {
                 Join a Game
               </Link>
               <ThemeToggle />
+              <MobileMenu />
               <form action={signInWithGoogle}>
                 <Button type="submit" size="sm" variant="outline">
                   Sign in
