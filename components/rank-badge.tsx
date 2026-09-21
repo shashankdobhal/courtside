@@ -14,7 +14,7 @@ export function RankBadge({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full py-1 pr-2.5 pl-1 text-xs font-semibold",
+        "inline-flex items-center gap-2 rounded-full py-1 pr-3 pl-1 text-xs font-semibold",
         tier.badgeClass,
         className
       )}

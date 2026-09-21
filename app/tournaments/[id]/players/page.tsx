@@ -102,7 +102,7 @@ export default async function PlayersPage({
 
   return (
     <main className="mx-auto w-full max-w-lg flex-1 px-4 py-10 sm:py-14">
-      <div className="relative mb-8 overflow-hidden rounded-3xl border bg-gradient-to-b from-primary/10 via-primary/5 to-transparent p-5 sm:p-6">
+      <div className="relative mb-8 overflow-hidden rounded-2xl border bg-gradient-to-b from-primary/10 via-primary/5 to-transparent p-5 sm:p-6">
         {tournament.event && (
           <Link
             href={`/events/${tournament.event.id}`}

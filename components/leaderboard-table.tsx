@@ -37,8 +37,8 @@ function TrendIndicator({ trend }: { trend: Trend | undefined }) {
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-0.5 text-xs font-medium tabular-nums",
-        isUp ? "text-emerald-600 dark:text-emerald-400" : "text-destructive"
+        "inline-flex items-center gap-1 text-xs font-medium tabular-nums",
+        isUp ? "text-primary" : "text-destructive"
       )}
     >
       <Icon className="size-3.5" />

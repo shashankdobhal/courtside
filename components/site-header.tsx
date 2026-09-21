@@ -25,14 +25,14 @@ export async function SiteHeader() {
             <>
               <Link
                 href="/live"
-                className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+                className="hidden items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground sm:flex"
               >
                 <Radio className="size-4" />
                 Live
               </Link>
               <Link
                 href="/leaderboard"
-                className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+                className="hidden items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground sm:flex"
               >
                 <BarChart3 className="size-4" />
                 Leaderboard
@@ -45,7 +45,7 @@ export async function SiteHeader() {
             <>
               <Link
                 href="/live"
-                className="hidden items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground sm:flex"
+                className="hidden items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground sm:flex"
               >
                 <Radio className="size-4" />
                 Live

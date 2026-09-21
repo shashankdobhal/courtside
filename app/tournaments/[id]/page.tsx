@@ -145,7 +145,7 @@ export default async function TournamentPage({
 
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-8 sm:py-12">
-      <div className="relative mb-6 space-y-4 overflow-hidden rounded-3xl border bg-gradient-to-b from-primary/10 via-primary/5 to-transparent p-5 sm:p-6">
+      <div className="relative mb-6 space-y-4 overflow-hidden rounded-2xl border bg-gradient-to-b from-primary/10 via-primary/5 to-transparent p-5 sm:p-6">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="space-y-1">
             {tournament.event && (
@@ -199,7 +199,7 @@ export default async function TournamentPage({
       )}
 
       {tournament.status === TournamentStatus.CANCELLED && (
-        <Badge variant="outline" className="mb-6 gap-1.5 text-muted-foreground">
+        <Badge variant="outline" className="mb-6 gap-2 text-muted-foreground">
           <Ban className="size-3.5" />
           This tournament was discontinued
         </Badge>

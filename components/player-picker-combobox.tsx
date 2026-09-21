@@ -65,7 +65,7 @@ export function PlayerPickerCombobox({
           type="button"
           autoFocus={autoFocus}
           className={cn(
-            "flex h-11 w-full items-center justify-between rounded-lg border border-input bg-transparent px-2.5 text-left text-base transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50",
+            "flex h-11 w-full items-center justify-between rounded-lg border border-input bg-transparent px-3 text-left text-base transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50",
             !value.name && "text-muted-foreground",
             className
           )}

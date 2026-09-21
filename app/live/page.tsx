@@ -64,7 +64,7 @@ export default async function LivePage() {
                   >
                     <div className="min-w-0">
                       <p className="truncate font-medium">{t.name}</p>
-                      <p className="mt-0.5 text-sm text-muted-foreground">
+                      <p className="mt-1 text-sm text-muted-foreground">
                         {formatDate(t.updatedAt)} · {gameFormatLabel(t.format)}
                       </p>
                     </div>

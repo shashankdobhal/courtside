@@ -209,7 +209,7 @@ export function LandingPage() {
         <div className="mx-auto mt-10 flex max-w-xl flex-wrap items-center justify-center gap-x-2 gap-y-3">
           {karmaLevels.map((level, i) => (
             <div key={level} className="flex items-center gap-2">
-              <span className="rounded-full border bg-background px-3 py-1.5 text-sm font-medium">
+              <span className="rounded-full border bg-background px-3 py-2 text-sm font-medium">
                 {level}
               </span>
               {i < karmaLevels.length - 1 && (
@@ -220,8 +220,8 @@ export function LandingPage() {
         </div>
 
         <div className="mx-auto mt-8 flex max-w-xs items-center justify-center gap-8">
-          <div className="flex flex-col items-center gap-1.5">
-            <div className="flex items-center gap-1.5">
+          <div className="flex flex-col items-center gap-2">
+            <div className="flex items-center gap-2">
               <Flame className="size-4 text-amber-500" />
               <span className="text-sm font-semibold">7 day streak</span>
             </div>
@@ -231,8 +231,8 @@ export function LandingPage() {
               ))}
             </div>
           </div>
-          <div className="flex flex-col items-center gap-1.5">
-            <div className="flex items-center gap-1.5">
+          <div className="flex flex-col items-center gap-2">
+            <div className="flex items-center gap-2">
               <Sparkles className="size-4 text-violet-500" />
               <span className="text-sm font-semibold">Karma</span>
             </div>
@@ -254,13 +254,13 @@ export function LandingPage() {
         <div className="mx-auto mt-10 grid max-w-4xl gap-4 sm:grid-cols-3">
           {testimonials.map((t) => (
             <Card key={t.name} className="gap-4 p-6">
-              <div className="flex gap-0.5 text-amber-500">
+              <div className="flex gap-1 text-amber-500">
                 {Array.from({ length: 5 }).map((_, i) => (
                   <Star key={i} className="size-3.5 fill-current" />
                 ))}
               </div>
               <p className="flex-1 text-sm text-muted-foreground">&ldquo;{t.quote}&rdquo;</p>
-              <div className="flex items-center gap-2.5">
+              <div className="flex items-center gap-3">
                 <PlayerAvatar name={t.name} size="md" />
                 <div>
                   <p className="text-sm font-semibold">{t.name}</p>

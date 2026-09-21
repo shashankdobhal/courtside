@@ -139,7 +139,7 @@ export function BracketBuilder({
       </div>
 
       {unplaced.length > 0 && (
-        <div className="space-y-1.5">
+        <div className="space-y-2">
           <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
             Unplaced ({unplaced.length})
           </p>
@@ -150,7 +150,7 @@ export function BracketBuilder({
                 type="button"
                 onClick={() => setSelectedPlayerId(p.id === selectedPlayerId ? null : p.id)}
                 className={cn(
-                  "rounded-full border px-3 py-1.5 text-sm transition-colors",
+                  "rounded-full border px-3 py-2 text-sm transition-colors",
                   selectedPlayerId === p.id
                     ? "border-primary bg-primary/10 font-medium text-primary"
                     : "border-border hover:bg-accent"

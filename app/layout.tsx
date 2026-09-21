@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono, Space_Grotesk } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
@@ -7,6 +7,7 @@ import { SiteHeader } from "@/components/site-header";
 import { TimezoneSync } from "@/components/timezone-sync";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ServiceWorkerRegister } from "@/components/service-worker-register";
+import { BottomNav } from "@/components/bottom-nav";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -16,12 +17,6 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
-});
-
-const spaceGrotesk = Space_Grotesk({
-  variable: "--font-space-grotesk",
-  subsets: ["latin"],
-  weight: ["500", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -35,6 +30,7 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: "#047857",
+  viewportFit: "cover",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -42,15 +38,16 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable} ${spaceGrotesk.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-background">
+      <body className="min-h-full flex flex-col bg-background pb-[calc(4rem+env(safe-area-inset-bottom))] sm:pb-0">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <TimezoneSync />
           <ServiceWorkerRegister />
           <TooltipProvider delayDuration={200}>
             <SiteHeader />
             {children}
+            <BottomNav />
             <Toaster position="top-center" richColors />
           </TooltipProvider>
         </ThemeProvider>

@@ -105,7 +105,7 @@ export function EditYoutubeDialog({
           <div className="flex items-center justify-between gap-3 rounded-lg border p-3">
             <div>
               <Label htmlFor="youtube-public">List on public Live page</Label>
-              <p className="mt-0.5 text-xs text-muted-foreground">
+              <p className="mt-1 text-xs text-muted-foreground">
                 Lets anyone browsing courtside.art/live find this stream, even signed out.
                 Otherwise the stream is only visible to people with this tournament&apos;s link.
               </p>

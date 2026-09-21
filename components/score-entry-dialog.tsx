@@ -207,7 +207,7 @@ export function ScoreEntryDialog({
               <p className="text-sm font-medium">Game {step}</p>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="game-score1" className="items-center gap-1.5 truncate">
+                  <Label htmlFor="game-score1" className="items-center gap-2 truncate">
                     <PlayerAvatar name={player1Name} />
                     {player1Name}
                   </Label>
@@ -223,7 +223,7 @@ export function ScoreEntryDialog({
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="game-score2" className="items-center gap-1.5 truncate">
+                  <Label htmlFor="game-score2" className="items-center gap-2 truncate">
                     <PlayerAvatar name={player2Name} />
                     {player2Name}
                   </Label>
@@ -254,7 +254,7 @@ export function ScoreEntryDialog({
           <form onSubmit={singleForm.handleSubmit(onSubmitSingle)} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="score1" className="items-center gap-1.5 truncate">
+                <Label htmlFor="score1" className="items-center gap-2 truncate">
                   <PlayerAvatar name={player1Name} />
                   {player1Name}
                 </Label>
@@ -273,7 +273,7 @@ export function ScoreEntryDialog({
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="score2" className="items-center gap-1.5 truncate">
+                <Label htmlFor="score2" className="items-center gap-2 truncate">
                   <PlayerAvatar name={player2Name} />
                   {player2Name}
                 </Label>

@@ -129,7 +129,7 @@ export function ExpensesPanel({
                 <span
                   className={cn(
                     "shrink-0 text-sm font-semibold tabular-nums",
-                    b.balance > 0 && "text-emerald-600 dark:text-emerald-400",
+                    b.balance > 0 && "text-primary",
                     b.balance < 0 && "text-destructive"
                   )}
                 >
@@ -207,7 +207,7 @@ export function ExpensesPanel({
                     {e.splitMode === "CUSTOM" ? "Custom" : "Equal"}
                   </Badge>
                 </div>
-                <p className="mt-0.5 text-sm text-muted-foreground">
+                <p className="mt-1 text-sm text-muted-foreground">
                   Paid by {displayName(e.paidBy)} · split {e.participants.length}{" "}
                   {e.participants.length === 1 ? "way" : "ways"}
                 </p>
