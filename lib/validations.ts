@@ -141,6 +141,20 @@ export const editPlayerProfileSchema = z.object({
     .regex(/^[\w.+-]{2,}@[a-zA-Z]{2,}$/, "Enter a valid UPI ID, like name@bank")
     .optional()
     .or(z.literal("")),
+  isCoach: z.boolean(),
+  coachYearsExperience: z.number().int().min(0).max(60).optional(),
+  coachSkills: z
+    .string()
+    .trim()
+    .max(140, "Must be 140 characters or fewer")
+    .optional()
+    .or(z.literal("")),
+  coachAvailability: z
+    .string()
+    .trim()
+    .max(140, "Must be 140 characters or fewer")
+    .optional()
+    .or(z.literal("")),
 });
 export type EditPlayerProfileInput = z.infer<typeof editPlayerProfileSchema>;
 

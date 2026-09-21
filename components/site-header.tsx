@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Trophy, BarChart3, Radio } from "lucide-react";
+import { Trophy, BarChart3, Radio, GraduationCap } from "lucide-react";
 import { auth } from "@/auth";
 import { signInWithGoogle } from "@/lib/actions/auth";
 import { UserMenu } from "@/components/user-menu";
@@ -37,6 +37,13 @@ export async function SiteHeader() {
                 <BarChart3 className="size-4" />
                 Leaderboard
               </Link>
+              <Link
+                href="/coaches"
+                className="hidden items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground sm:flex"
+              >
+                <GraduationCap className="size-4" />
+                Coaches
+              </Link>
               <PushNotificationToggle />
               <ThemeToggle />
               <UserMenu name={session.user.name ?? null} image={session.user.image ?? null} />
@@ -49,6 +56,13 @@ export async function SiteHeader() {
               >
                 <Radio className="size-4" />
                 Live
+              </Link>
+              <Link
+                href="/coaches"
+                className="hidden items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground sm:flex"
+              >
+                <GraduationCap className="size-4" />
+                Coaches
               </Link>
               <Link
                 href="/#join"

@@ -82,10 +82,27 @@ export async function updatePlayerProfileDetails(profileId: string, input: EditP
       hometown: parsed.hometown?.trim() || null,
       company: parsed.company?.trim() || null,
       upiId: parsed.upiId?.trim() || null,
+      isCoach: parsed.isCoach,
+      coachYearsExperience: parsed.isCoach ? (parsed.coachYearsExperience ?? null) : null,
+      coachSkills: parsed.isCoach ? parsed.coachSkills?.trim() || null : null,
+      coachAvailability: parsed.isCoach ? parsed.coachAvailability?.trim() || null : null,
     },
   });
 
   revalidatePath(`/players/${profileId}`);
+  revalidatePath("/coaches");
+}
+
+/**
+ * Every profile that has opted into the coach directory, newest details
+ * first isn't meaningful here (no timeline), so alphabetical by name —
+ * public, same visibility model as /live and the leaderboard.
+ */
+export async function getCoachDirectory() {
+  return prisma.playerProfile.findMany({
+    where: { isCoach: true },
+    orderBy: { name: "asc" },
+  });
 }
 
 /**
@@ -191,6 +208,10 @@ export async function getPlayerProfileStats(profileId: string) {
       hometown: profile.hometown,
       company: profile.company,
       upiId: profile.upiId,
+      isCoach: profile.isCoach,
+      coachYearsExperience: profile.coachYearsExperience,
+      coachSkills: profile.coachSkills,
+      coachAvailability: profile.coachAvailability,
     },
     stats,
     tournamentsWon,
