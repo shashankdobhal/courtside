@@ -6,6 +6,7 @@ import { getPublicLivestreams } from "@/lib/actions/livestreams";
 import { getNewsFeed } from "@/lib/actions/news";
 import { getCoachDirectory } from "@/lib/actions/player-profiles";
 import { PlayerAvatar } from "@/components/player-avatar";
+import { YoutubeEmbed } from "@/components/youtube-embed";
 import { EmptyState } from "@/components/empty-state";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -13,6 +14,7 @@ import { gameFormatLabel } from "@/lib/tournament-display";
 import { TournamentStatus } from "@/types";
 
 const SNIPPET_SIZE = 3;
+const PAST_STREAM_SNIPPET_SIZE = 5;
 
 export default async function ExplorePage() {
   const [tournaments, streams, newsItems, coaches] = await Promise.all([
@@ -22,29 +24,31 @@ export default async function ExplorePage() {
     getCoachDirectory(),
   ]);
 
-  const liveItems = [
+  const allLiveItems = [
     ...tournaments.map((t) => ({
       id: t.id,
       title: t.name,
-      subtitle: gameFormatLabel(t.format),
+      subtitle: gameFormatLabel(t.format) as string | undefined,
+      youtubeUrl: t.youtubeUrl,
       isLive: t.status === TournamentStatus.ACTIVE,
       updatedAt: t.updatedAt,
       href: `/tournaments/${t.id}`,
+      isStandaloneStream: false,
     })),
     ...streams.map((s) => ({
       id: s.id,
       title: s.title,
       subtitle: undefined as string | undefined,
+      youtubeUrl: s.youtubeUrl,
       isLive: s.isLive,
       updatedAt: s.updatedAt,
       href: s.youtubeUrl,
+      isStandaloneStream: true,
     })),
-  ]
-    .sort((a, b) => {
-      if (a.isLive !== b.isLive) return a.isLive ? -1 : 1;
-      return b.updatedAt.getTime() - a.updatedAt.getTime();
-    })
-    .slice(0, SNIPPET_SIZE);
+  ].sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
+
+  const liveNow = allLiveItems.filter((i) => i.isLive);
+  const pastStreams = allLiveItems.filter((i) => !i.isLive).slice(0, PAST_STREAM_SNIPPET_SIZE);
 
   const newsSnippet = newsItems.slice(0, SNIPPET_SIZE);
   const coachSnippet = coaches.slice(0, SNIPPET_SIZE);
@@ -77,8 +81,8 @@ export default async function ExplorePage() {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="live" className="space-y-3">
-          {liveItems.length === 0 ? (
+        <TabsContent value="live" className="space-y-6">
+          {liveNow.length === 0 && pastStreams.length === 0 ? (
             <EmptyState
               icon={Radio}
               title="No streams yet"
@@ -86,23 +90,59 @@ export default async function ExplorePage() {
             />
           ) : (
             <>
-              {liveItems.map((item) => (
-                <Link key={item.id} href={item.href}>
-                  <Card className="flex-row items-center justify-between gap-3 p-4 transition-colors hover:bg-muted/50">
-                    <div className="min-w-0">
-                      <p className="truncate font-medium">{item.title}</p>
-                      <p className="mt-0.5 text-xs text-muted-foreground">
-                        {item.isLive ? (
-                          <span className="font-medium text-primary">Live now</span>
-                        ) : (
-                          formatDistanceToNow(item.updatedAt, { addSuffix: true })
+              {liveNow.length > 0 && (
+                <div className="space-y-4">
+                  {liveNow.map((item) => (
+                    <div key={item.id} className="space-y-2">
+                      <YoutubeEmbed url={item.youtubeUrl} title={item.title} />
+                      <div className="flex items-center justify-between gap-2">
+                        <Link
+                          href={item.href}
+                          target={item.isStandaloneStream ? "_blank" : undefined}
+                          rel={item.isStandaloneStream ? "noopener noreferrer" : undefined}
+                          className="min-w-0 truncate font-medium hover:underline"
+                        >
+                          {item.title}
+                        </Link>
+                        {item.subtitle && (
+                          <span className="shrink-0 text-sm text-muted-foreground">
+                            {item.subtitle}
+                          </span>
                         )}
-                        {item.subtitle ? ` · ${item.subtitle}` : ""}
-                      </p>
+                      </div>
                     </div>
-                  </Card>
-                </Link>
-              ))}
+                  ))}
+                </div>
+              )}
+
+              {pastStreams.length > 0 && (
+                <div className="space-y-2">
+                  <h3 className="text-xs font-bold tracking-[0.08em] text-muted-foreground uppercase">
+                    Past Streams
+                  </h3>
+                  <div className="divide-y rounded-2xl border bg-background">
+                    {pastStreams.map((item) => (
+                      <Link
+                        key={item.id}
+                        href={item.href}
+                        target={item.isStandaloneStream ? "_blank" : undefined}
+                        rel={item.isStandaloneStream ? "noopener noreferrer" : undefined}
+                        className="flex items-center justify-between gap-2 p-4 transition-colors hover:text-primary"
+                      >
+                        <div className="min-w-0">
+                          <p className="truncate font-medium">{item.title}</p>
+                          <p className="mt-0.5 text-xs text-muted-foreground">
+                            {formatDistanceToNow(item.updatedAt, { addSuffix: true })}
+                            {item.subtitle ? ` · ${item.subtitle}` : ""}
+                          </p>
+                        </div>
+                        <span className="shrink-0 text-sm text-muted-foreground">Watch →</span>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <ExploreMoreLink href="/live" />
             </>
           )}
