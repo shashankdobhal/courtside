@@ -20,6 +20,10 @@ import { submitScore, submitBestOfThreeScore } from "@/lib/actions/matches";
 import { PlayerAvatar } from "@/components/player-avatar";
 import { Loader2, Pencil } from "lucide-react";
 
+function pickRandom<T>(items: T[]): T {
+  return items[Math.floor(Math.random() * items.length)];
+}
+
 function decidedWinner(games: GameScoreInput[]): 1 | 2 | null {
   const player1Wins = games.filter((g) => g.score1 > g.score2).length;
   const player2Wins = games.filter((g) => g.score2 > g.score1).length;
@@ -58,16 +62,18 @@ export function ScoreEntryDialog({
   const [bestOfThree, setBestOfThree] = useState(initialIsBestOfThree);
   const [step, setStep] = useState(1);
   const [games, setGames] = useState<GameScoreInput[]>(initialGames);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioPoolRef = useRef<HTMLAudioElement[] | null>(null);
 
   const playScoreSound = () => {
     // A plain Audio object (not a JSX <audio> element) keeps playing to
-    // completion even after this dialog closes and unmounts.
-    if (!audioRef.current) {
-      audioRef.current = new Audio("/sounds/score.mp3");
+    // completion even after this dialog closes and unmounts. Two clips,
+    // picked at random each time, keep the sound from feeling repetitive.
+    if (!audioPoolRef.current) {
+      audioPoolRef.current = [new Audio("/sounds/score.mp3"), new Audio("/sounds/score-alt.mp3")];
     }
-    audioRef.current.currentTime = 0;
-    audioRef.current.play().catch((err) => console.error("score sound blocked:", err));
+    const audio = pickRandom(audioPoolRef.current);
+    audio.currentTime = 0;
+    audio.play().catch((err) => console.error("score sound blocked:", err));
   };
 
   const singleForm = useForm<ScoreEntryInput>({ resolver: zodResolver(scoreEntrySchema) });
