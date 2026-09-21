@@ -27,12 +27,12 @@ export default async function CoachesPage({
   const [allCoaches, followedIds] = await Promise.all([
     getCoachDirectory(),
     viewerProfile
-      ? prisma.coachFollow
+      ? prisma.follow
           .findMany({
             where: { followerProfileId: viewerProfile.id },
-            select: { coachProfileId: true },
+            select: { followedProfileId: true },
           })
-          .then((rows) => new Set(rows.map((r) => r.coachProfileId)))
+          .then((rows) => new Set(rows.map((r) => r.followedProfileId)))
       : Promise.resolve(new Set<string>()),
   ]);
 

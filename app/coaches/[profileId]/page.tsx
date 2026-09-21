@@ -5,9 +5,10 @@ import { prisma } from "@/lib/prisma";
 import { PlayerAvatar } from "@/components/player-avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { FollowCoachButton } from "@/components/follow-coach-button";
+import { FollowButton } from "@/components/follow-button";
 import { RequestCoachingDialog } from "@/components/request-coaching-dialog";
 import { signInWithGoogleTo } from "@/lib/actions/auth";
+import { getFollowState } from "@/lib/actions/follows";
 
 export default async function CoachProfilePage({
   params,
@@ -31,21 +32,7 @@ export default async function CoachProfilePage({
     ? await prisma.playerProfile.findUnique({ where: { userId: session.user.id } })
     : null;
 
-  const [followerCount, isFollowing] = await Promise.all([
-    prisma.coachFollow.count({ where: { coachProfileId: profile.id } }),
-    viewerProfile
-      ? prisma.coachFollow
-          .findUnique({
-            where: {
-              coachProfileId_followerProfileId: {
-                coachProfileId: profile.id,
-                followerProfileId: viewerProfile.id,
-              },
-            },
-          })
-          .then((row) => !!row)
-      : Promise.resolve(false),
-  ]);
+  const { followerCount, isFollowing } = await getFollowState(profile.id, viewerProfile?.id ?? null);
 
   return (
     <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-8 sm:py-12">
@@ -102,7 +89,7 @@ export default async function CoachProfilePage({
       ) : (
         <div className="flex gap-3">
           {session?.user?.id ? (
-            <FollowCoachButton coachProfileId={profile.id} initiallyFollowing={isFollowing} />
+            <FollowButton profileId={profile.id} initiallyFollowing={isFollowing} />
           ) : (
             <form action={signInWithGoogleTo.bind(null, `/coaches/${profile.id}`)}>
               <Button type="submit" variant="outline" size="lg" className="h-11">

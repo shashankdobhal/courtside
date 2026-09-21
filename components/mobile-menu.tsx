@@ -7,7 +7,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { GraduationCap, Newspaper, Menu } from "lucide-react";
+import { GraduationCap, Newspaper, BookOpen, Menu } from "lucide-react";
 
 /**
  * Signed-out mobile visitors have no account avatar to carry the dropdown
@@ -38,6 +38,12 @@ export function MobileMenu() {
           <Link href="/news">
             <Newspaper className="size-3.5" />
             News
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link href="/learn">
+            <BookOpen className="size-3.5" />
+            Learn
           </Link>
         </DropdownMenuItem>
       </DropdownMenuContent>

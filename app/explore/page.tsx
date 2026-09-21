@@ -1,12 +1,14 @@
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
-import { Compass, Radio, Newspaper, GraduationCap, ArrowRight } from "lucide-react";
+import { Compass, Radio, Newspaper, GraduationCap, BookOpen, ArrowRight } from "lucide-react";
 import { getLivestreamTournaments } from "@/lib/actions/tournaments";
 import { getPublicLivestreams } from "@/lib/actions/livestreams";
 import { getNewsFeed } from "@/lib/actions/news";
 import { getCoachDirectory } from "@/lib/actions/player-profiles";
+import { getLearnFeed } from "@/lib/actions/learn";
 import { PlayerAvatar } from "@/components/player-avatar";
 import { YoutubeEmbed } from "@/components/youtube-embed";
+import { LearnPostCard } from "@/components/learn-post-card";
 import { EmptyState } from "@/components/empty-state";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -15,11 +17,12 @@ import { gameFormatLabel } from "@/lib/tournament-display";
 import { TournamentStatus } from "@/types";
 
 export default async function ExplorePage() {
-  const [tournaments, streams, newsItems, coaches] = await Promise.all([
+  const [tournaments, streams, newsItems, coaches, learnPosts] = await Promise.all([
     getLivestreamTournaments(),
     getPublicLivestreams(),
     getNewsFeed(),
     getCoachDirectory(),
+    getLearnFeed(),
   ]);
 
   const allLiveItems = [
@@ -100,6 +103,8 @@ export default async function ExplorePage() {
     </Link>
   ));
 
+  const learnNodes = learnPosts.map((post) => <LearnPostCard key={post.id} post={post} />);
+
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-8 sm:py-12">
       <div className="mb-6">
@@ -113,7 +118,7 @@ export default async function ExplorePage() {
       </div>
 
       <Tabs defaultValue="live">
-        <TabsList className="mb-4 grid w-full grid-cols-3">
+        <TabsList className="mb-4 grid w-full grid-cols-4">
           <TabsTrigger value="live">
             <Radio className="size-3.5" />
             Live
@@ -125,6 +130,10 @@ export default async function ExplorePage() {
           <TabsTrigger value="coaches">
             <GraduationCap className="size-3.5" />
             Coaches
+          </TabsTrigger>
+          <TabsTrigger value="learn">
+            <BookOpen className="size-3.5" />
+            Learn
           </TabsTrigger>
         </TabsList>
 
@@ -202,6 +211,21 @@ export default async function ExplorePage() {
             <>
               <LazyList items={coachNodes} pageSize={8} className="space-y-3" />
               <ExploreMoreLink href="/coaches" />
+            </>
+          )}
+        </TabsContent>
+
+        <TabsContent value="learn" className="space-y-3">
+          {learnNodes.length === 0 ? (
+            <EmptyState
+              icon={BookOpen}
+              title="No Learn posts yet"
+              description="When a player shares a tip or video, it'll show up here."
+            />
+          ) : (
+            <>
+              <LazyList items={learnNodes} pageSize={6} className="space-y-3" />
+              <ExploreMoreLink href="/learn" />
             </>
           )}
         </TabsContent>

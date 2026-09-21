@@ -170,31 +170,51 @@ model PlayerProfile {
   players          Player[]
   partneredPlayers Player[] @relation("PlayerPartnerProfile")
 
-  coachFollowers           CoachFollow[]     @relation("CoachFollowers")
-  coachFollowing           CoachFollow[]     @relation("CoachFollowing")
+  followers                Follow[]          @relation("ProfileFollowers")
+  following                Follow[]          @relation("ProfileFollowing")
   coachingRequestsReceived CoachingRequest[] @relation("CoachingRequestsReceived")
   coachingRequestsSent     CoachingRequest[] @relation("CoachingRequestsSent")
+  learnPosts               LearnPost[]
 
   @@index([name])
 }
 
 /**
- * A player following a coach — lightweight, no notification of its own
- * (unlike CoachingRequest below). Lets a coach see who's interested without
- * either side sharing contact details yet.
+ * One signed-in player following another — originally coach-only, now open
+ * to any profile. Lightweight, no notification of its own (unlike
+ * CoachingRequest below).
  */
-model CoachFollow {
+model Follow {
   id                String   @id @default(cuid())
-  coachProfileId    String
+  followedProfileId String
   followerProfileId String
   createdAt         DateTime @default(now())
 
-  coachProfile    PlayerProfile @relation("CoachFollowers", fields: [coachProfileId], references: [id], onDelete: Cascade)
-  followerProfile PlayerProfile @relation("CoachFollowing", fields: [followerProfileId], references: [id], onDelete: Cascade)
+  followedProfile PlayerProfile @relation("ProfileFollowers", fields: [followedProfileId], references: [id], onDelete: Cascade)
+  followerProfile PlayerProfile @relation("ProfileFollowing", fields: [followerProfileId], references: [id], onDelete: Cascade)
 
-  @@unique([coachProfileId, followerProfileId])
-  @@index([coachProfileId])
+  @@unique([followedProfileId, followerProfileId])
+  @@index([followedProfileId])
   @@index([followerProfileId])
+}
+
+/**
+ * A short public post a player adds to their own profile — a text note
+ * and/or a YouTube/Facebook video link, shown with their name in the
+ * Explore "Learn" tab. Not tournament content; purely player-authored.
+ */
+model LearnPost {
+  id              String   @id @default(cuid())
+  title           String
+  body            String? // text note
+  videoUrl        String? // YouTube or Facebook video link
+  authorProfileId String
+  createdAt       DateTime @default(now())
+
+  author PlayerProfile @relation(fields: [authorProfileId], references: [id], onDelete: Cascade)
+
+  @@index([authorProfileId])
+  @@index([createdAt])
 }
 
 /**

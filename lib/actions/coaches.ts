@@ -1,6 +1,5 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 import { requireSignedIn } from "@/lib/auth-helpers";
@@ -13,38 +12,6 @@ async function requireCoachProfile(coachProfileId: string) {
   const coach = await prisma.playerProfile.findUnique({ where: { id: coachProfileId } });
   if (!coach || !coach.isCoach) throw new Error("Coach not found");
   return coach;
-}
-
-export async function followCoach(coachProfileId: string) {
-  const session = await requireSignedIn();
-  const coach = await requireCoachProfile(coachProfileId);
-  const follower = await resolveOrCreateUserPlayerProfile(
-    session.user.id,
-    session.user.name ?? "Player"
-  );
-  if (follower.id === coach.id) throw new Error("You can't follow yourself");
-
-  await prisma.coachFollow.upsert({
-    where: {
-      coachProfileId_followerProfileId: { coachProfileId, followerProfileId: follower.id },
-    },
-    update: {},
-    create: { coachProfileId, followerProfileId: follower.id },
-  });
-
-  revalidatePath(`/coaches/${coachProfileId}`);
-}
-
-export async function unfollowCoach(coachProfileId: string) {
-  const session = await requireSignedIn();
-  const follower = await prisma.playerProfile.findUnique({ where: { userId: session.user.id } });
-  if (!follower) return;
-
-  await prisma.coachFollow.deleteMany({
-    where: { coachProfileId, followerProfileId: follower.id },
-  });
-
-  revalidatePath(`/coaches/${coachProfileId}`);
 }
 
 const ANON_REQUEST_LIMIT = 5;
@@ -124,8 +91,8 @@ export async function getCoachInbox(coachProfileId: string) {
       orderBy: { createdAt: "desc" },
       take: 50,
     }),
-    prisma.coachFollow.findMany({
-      where: { coachProfileId },
+    prisma.follow.findMany({
+      where: { followedProfileId: coachProfileId },
       orderBy: { createdAt: "desc" },
       include: { followerProfile: { select: { id: true, name: true } } },
     }),
