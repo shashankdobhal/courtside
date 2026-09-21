@@ -114,8 +114,8 @@ export async function getCoachDirectory() {
 }
 
 /**
- * A player must opt in for their matches to be counted on the leaderboard.
- * Only they can toggle it for their own identity.
+ * A player is counted on the leaderboard by default — this lets them opt
+ * out (or back in) for their own identity.
  */
 export async function setSeasonOptIn(profileId: string, optedIn: boolean) {
   await requireOwnProfile(profileId);

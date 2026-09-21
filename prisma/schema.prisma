@@ -155,7 +155,7 @@ model PlayerProfile {
   name         String
   createdAt    DateTime @default(now())
   userId       String?  @unique // links this identity to the Google account that self-joined with it
-  seasonOptIn  Boolean  @default(false) // must opt in to be counted on the leaderboard
+  seasonOptIn  Boolean  @default(true) // counted on the leaderboard by default — a player can opt out from their own profile
   bio          String?
   playingStyle String?
   hometown     String?
