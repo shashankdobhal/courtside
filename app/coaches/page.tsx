@@ -29,7 +29,7 @@ export default async function CoachesPage() {
       ) : (
         <div className="grid gap-3 sm:grid-cols-2">
           {coaches.map((coach) => (
-            <Link key={coach.id} href={`/players/${coach.id}`}>
+            <Link key={coach.id} href={`/coaches/${coach.id}`}>
               <Card className="h-full gap-3 p-4 transition-colors hover:bg-muted/50">
                 <div className="flex items-center gap-3">
                   <PlayerAvatar name={coach.name} size="md" />

@@ -159,6 +159,24 @@ export const editPlayerProfileSchema = z.object({
 });
 export type EditPlayerProfileInput = z.infer<typeof editPlayerProfileSchema>;
 
+export const phoneSchema = z
+  .string()
+  .trim()
+  .min(7, "Enter a valid phone number")
+  .max(20, "Enter a valid phone number")
+  .regex(/^[+\d][\d\s().-]{6,19}$/, "Enter a valid phone number");
+
+/**
+ * name is only required when the requester is signed out — a signed-in
+ * request already has a name from the account, so the dialog omits the
+ * field entirely and this stays optional to match.
+ */
+export const requestCoachingSchema = z.object({
+  name: z.string().trim().max(40).optional(),
+  phone: phoneSchema,
+});
+export type RequestCoachingInput = z.infer<typeof requestCoachingSchema>;
+
 export const scoreEntrySchema = z
   .object({
     score1: z.number({ error: "Required" }).int().min(0).max(99),
