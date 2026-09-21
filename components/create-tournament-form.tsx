@@ -12,6 +12,8 @@ import { TournamentType, TournamentFormat } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { SkillLevelChecklist } from "@/components/skill-level-checklist";
+import { ModeInfoPopover } from "@/components/mode-info-popover";
 import {
   Users,
   Swords,
@@ -144,6 +146,7 @@ export function CreateTournamentForm({ eventId }: { eventId?: string }) {
       legs: 1,
       venue: "",
       scheduledAt: "",
+      skillLevels: [],
       playerLimit: undefined,
     },
   });
@@ -151,6 +154,7 @@ export function CreateTournamentForm({ eventId }: { eventId?: string }) {
   const selectedFormat = watch("format");
   const selectedType = watch("type");
   const selectedLegs = watch("legs");
+  const selectedSkillLevels = watch("skillLevels") ?? [];
 
   const onSubmit = (data: CreateTournamentInput) => {
     setServerError(null);
@@ -228,6 +232,18 @@ export function CreateTournamentForm({ eventId }: { eventId?: string }) {
             Once the roster is full, new joiners go on a waiting list instead.
           </p>
         )}
+      </div>
+
+      <div className="space-y-2">
+        <div className="flex items-center gap-1.5">
+          <Label>Level (optional)</Label>
+          <ModeInfoPopover />
+        </div>
+        <SkillLevelChecklist
+          value={selectedSkillLevels}
+          onChange={(next) => setValue("skillLevels", next, { shouldValidate: true })}
+          idPrefix="create-level"
+        />
       </div>
 
       <div className="space-y-2">

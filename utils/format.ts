@@ -5,9 +5,9 @@ export function formatDate(date: Date | string): string {
   return format(new Date(date), "MMM d, yyyy");
 }
 
-/** "21Sep2026" — the compact date form used in the invite share message. */
+/** "21 Sep 2026" — the date form used in the invite share message. */
 export function formatInviteDate(date: Date | string): string {
-  return format(new Date(date), "d") + format(new Date(date), "MMM") + format(new Date(date), "yyyy");
+  return format(new Date(date), "d MMM yyyy");
 }
 
 /** "9:30pm" — the compact time form used in the invite share message. */

@@ -4,17 +4,22 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Share2, Link2, Printer } from "lucide-react";
 import { formatInviteDate, formatInviteTime } from "@/utils/format";
+import { skillLevelLabel, inviteModeLabel } from "@/lib/tournament-display";
 
 export function ShareActions({
   title,
   joinCode,
   venue,
   scheduledAt,
+  skillLevels,
+  format,
 }: {
   title: string;
   joinCode?: string;
   venue?: string | null;
   scheduledAt?: Date | null;
+  skillLevels?: string[];
+  format?: string;
 }) {
   /**
    * The templated invite text only makes sense when there's a joinCode —
@@ -25,10 +30,15 @@ export function ShareActions({
   const buildMessage = (url: string) => {
     if (!joinCode) return url;
 
-    const lines = [`You are invited for a game/tournament :`];
-    if (scheduledAt) lines.push(`Date : ${formatInviteDate(scheduledAt)}`);
+    const lines = [`You are invited for a game/tournament :`, ""];
+    // Date always shows — today's date stands in until the organizer sets one.
+    lines.push(`Date : ${formatInviteDate(scheduledAt ?? new Date())}`);
     if (venue) lines.push(`Venue : ${venue}`);
     if (scheduledAt) lines.push(`Time : ${formatInviteTime(scheduledAt)}`);
+    if (skillLevels && skillLevels.length > 0) {
+      lines.push(`Level : ${skillLevels.map((l) => skillLevelLabel[l] ?? l).join("/")}`);
+    }
+    if (format) lines.push(`Mode : ${inviteModeLabel(format)}`);
     lines.push("", `Use below link to join the game : ${url}`);
     return lines.join("\n");
   };

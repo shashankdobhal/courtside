@@ -151,6 +151,8 @@ export default async function PlayersPage({
                 joinCode={tournament.joinCode}
                 venue={tournament.venue}
                 scheduledAt={tournament.scheduledAt}
+                skillLevels={tournament.skillLevels}
+                format={tournament.format}
               />
               <PlayerEntryForm tournamentId={tournament.id} />
             </>

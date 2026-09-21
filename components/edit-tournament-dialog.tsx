@@ -18,6 +18,9 @@ import { Label } from "@/components/ui/label";
 import { editTournamentSchema, MAX_PLAYERS, type EditTournamentInput } from "@/lib/validations";
 import { updateTournament } from "@/lib/actions/tournaments";
 import { toIsoOrEmpty, toDatetimeLocalValue } from "@/utils/format";
+import { SkillLevelChecklist } from "@/components/skill-level-checklist";
+import { ModeInfoPopover } from "@/components/mode-info-popover";
+import type { SkillLevel } from "@/types";
 import { Loader2 } from "lucide-react";
 
 export function EditTournamentDialog({
@@ -25,6 +28,7 @@ export function EditTournamentDialog({
   name,
   venue,
   scheduledAt,
+  skillLevels,
   playerLimit,
   open,
   onOpenChange,
@@ -33,6 +37,7 @@ export function EditTournamentDialog({
   name: string;
   venue: string | null;
   scheduledAt: Date | null;
+  skillLevels: string[];
   playerLimit: number | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -45,6 +50,7 @@ export function EditTournamentDialog({
     name,
     venue: venue ?? "",
     scheduledAt: toDatetimeLocalValue(scheduledAt),
+    skillLevels: skillLevels as SkillLevel[],
     playerLimit: playerLimit ?? undefined,
   };
 
@@ -52,11 +58,15 @@ export function EditTournamentDialog({
     register,
     handleSubmit,
     reset,
+    watch,
+    setValue,
     formState: { errors },
   } = useForm<EditTournamentInput>({
     resolver: zodResolver(editTournamentSchema),
     defaultValues,
   });
+
+  const selectedSkillLevels = watch("skillLevels") ?? [];
 
   useEffect(() => {
     if (open) {
@@ -64,7 +74,7 @@ export function EditTournamentDialog({
       setServerError(null);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, name, venue, scheduledAt, playerLimit, reset]);
+  }, [open, name, venue, scheduledAt, skillLevels, playerLimit, reset]);
 
   const onSubmit = (data: EditTournamentInput) => {
     setServerError(null);
@@ -126,6 +136,18 @@ export function EditTournamentDialog({
             {errors.scheduledAt && (
               <p className="text-sm text-destructive">{errors.scheduledAt.message}</p>
             )}
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex items-center gap-1.5">
+              <Label>Level</Label>
+              <ModeInfoPopover />
+            </div>
+            <SkillLevelChecklist
+              value={selectedSkillLevels}
+              onChange={(next) => setValue("skillLevels", next, { shouldValidate: true })}
+              idPrefix="edit-level"
+            />
           </div>
 
           <div className="space-y-2">

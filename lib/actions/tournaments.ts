@@ -54,6 +54,7 @@ export async function createTournament(input: {
   legs: number;
   venue?: string;
   scheduledAt?: string;
+  skillLevels?: string[];
   playerLimit?: number;
   eventId?: string;
 }) {
@@ -73,6 +74,7 @@ export async function createTournament(input: {
     eventId: input.eventId,
     venue: parsed.venue?.trim() || null,
     scheduledAt: parsed.scheduledAt ? new Date(parsed.scheduledAt) : null,
+    skillLevels: parsed.skillLevels ?? [],
     playerLimit: parsed.playerLimit ?? null,
   };
 
@@ -304,7 +306,13 @@ export async function generateKnockoutBracket(tournamentId: string, slots: (stri
 
 export async function updateTournament(
   tournamentId: string,
-  input: { name: string; venue?: string; scheduledAt?: string; playerLimit?: number }
+  input: {
+    name: string;
+    venue?: string;
+    scheduledAt?: string;
+    skillLevels?: string[];
+    playerLimit?: number;
+  }
 ) {
   const { tournament: before } = await requireTournamentOwner(tournamentId);
   const parsed = editTournamentSchema.parse(input);
@@ -316,6 +324,7 @@ export async function updateTournament(
       name: parsed.name,
       venue: parsed.venue?.trim() || null,
       scheduledAt: parsed.scheduledAt ? new Date(parsed.scheduledAt) : null,
+      skillLevels: parsed.skillLevels ?? [],
       playerLimit: newLimit,
     },
   });
