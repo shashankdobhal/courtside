@@ -127,13 +127,13 @@ export default async function ExplorePage() {
             <Newspaper className="size-3.5" />
             News
           </TabsTrigger>
-          <TabsTrigger value="coaches">
-            <GraduationCap className="size-3.5" />
-            Coaches
-          </TabsTrigger>
           <TabsTrigger value="learn">
             <BookOpen className="size-3.5" />
             Learn
+          </TabsTrigger>
+          <TabsTrigger value="coaches">
+            <GraduationCap className="size-3.5" />
+            Coaches
           </TabsTrigger>
         </TabsList>
 
@@ -200,21 +200,6 @@ export default async function ExplorePage() {
           )}
         </TabsContent>
 
-        <TabsContent value="coaches" className="space-y-3">
-          {coachNodes.length === 0 ? (
-            <EmptyState
-              icon={GraduationCap}
-              title="No coaches on CourtSide yet"
-              description="Nobody has listed themselves as a coach so far."
-            />
-          ) : (
-            <>
-              <LazyList items={coachNodes} pageSize={8} className="space-y-3" />
-              <ExploreMoreLink href="/coaches" />
-            </>
-          )}
-        </TabsContent>
-
         <TabsContent value="learn" className="space-y-3">
           {learnNodes.length === 0 ? (
             <EmptyState
@@ -226,6 +211,21 @@ export default async function ExplorePage() {
             <>
               <LazyList items={learnNodes} pageSize={6} className="space-y-3" />
               <ExploreMoreLink href="/learn" />
+            </>
+          )}
+        </TabsContent>
+
+        <TabsContent value="coaches" className="space-y-3">
+          {coachNodes.length === 0 ? (
+            <EmptyState
+              icon={GraduationCap}
+              title="No coaches on CourtSide yet"
+              description="Nobody has listed themselves as a coach so far."
+            />
+          ) : (
+            <>
+              <LazyList items={coachNodes} pageSize={8} className="space-y-3" />
+              <ExploreMoreLink href="/coaches" />
             </>
           )}
         </TabsContent>

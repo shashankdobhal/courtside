@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Trophy, BarChart3, Radio, GraduationCap, Newspaper, BookOpen, ShieldCheck } from "lucide-react";
+import { Trophy, BarChart3, Compass, ShieldCheck } from "lucide-react";
 import { auth } from "@/auth";
 import { signInWithGoogle } from "@/lib/actions/auth";
 import { isSuperAdminEmail } from "@/lib/admin";
@@ -27,13 +27,6 @@ export async function SiteHeader() {
           {session?.user ? (
             <>
               <Link
-                href="/live"
-                className="hidden items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground sm:flex"
-              >
-                <Radio className="size-4" />
-                Live
-              </Link>
-              <Link
                 href="/leaderboard"
                 className="hidden items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground sm:flex"
               >
@@ -41,25 +34,11 @@ export async function SiteHeader() {
                 Leaderboard
               </Link>
               <Link
-                href="/coaches"
+                href="/explore"
                 className="hidden items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground sm:flex"
               >
-                <GraduationCap className="size-4" />
-                Coaches
-              </Link>
-              <Link
-                href="/news"
-                className="hidden items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground sm:flex"
-              >
-                <Newspaper className="size-4" />
-                News
-              </Link>
-              <Link
-                href="/learn"
-                className="hidden items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground sm:flex"
-              >
-                <BookOpen className="size-4" />
-                Learn
+                <Compass className="size-4" />
+                Explore
               </Link>
               {isAdmin && (
                 <Link
@@ -81,32 +60,11 @@ export async function SiteHeader() {
           ) : (
             <>
               <Link
-                href="/live"
+                href="/explore"
                 className="hidden items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground sm:flex"
               >
-                <Radio className="size-4" />
-                Live
-              </Link>
-              <Link
-                href="/coaches"
-                className="hidden items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground sm:flex"
-              >
-                <GraduationCap className="size-4" />
-                Coaches
-              </Link>
-              <Link
-                href="/news"
-                className="hidden items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground sm:flex"
-              >
-                <Newspaper className="size-4" />
-                News
-              </Link>
-              <Link
-                href="/learn"
-                className="hidden items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground sm:flex"
-              >
-                <BookOpen className="size-4" />
-                Learn
+                <Compass className="size-4" />
+                Explore
               </Link>
               <Link
                 href="/#join"
