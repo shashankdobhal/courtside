@@ -23,8 +23,8 @@ export default async function CoachesPage() {
       {coaches.length === 0 ? (
         <EmptyState
           icon={GraduationCap}
-          title="No coaches listed yet"
-          description="Coaches can list themselves from their profile page."
+          title="No coaches on CourtSide yet"
+          description="Nobody has listed themselves as a coach so far. Do you coach? Add your skills and availability from your own profile page to be the first."
         />
       ) : (
         <div className="grid gap-3 sm:grid-cols-2">

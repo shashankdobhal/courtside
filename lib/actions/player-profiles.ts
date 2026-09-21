@@ -77,6 +77,7 @@ export async function updatePlayerProfileDetails(profileId: string, input: EditP
   await prisma.playerProfile.update({
     where: { id: profileId },
     data: {
+      name: parsed.name,
       bio: parsed.bio?.trim() || null,
       playingStyle: parsed.playingStyle?.trim() || null,
       hometown: parsed.hometown?.trim() || null,
