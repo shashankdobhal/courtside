@@ -10,11 +10,9 @@ import { YoutubeEmbed } from "@/components/youtube-embed";
 import { EmptyState } from "@/components/empty-state";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { LazyList } from "@/components/lazy-list";
 import { gameFormatLabel } from "@/lib/tournament-display";
 import { TournamentStatus } from "@/types";
-
-const SNIPPET_SIZE = 3;
-const PAST_STREAM_SNIPPET_SIZE = 5;
 
 export default async function ExplorePage() {
   const [tournaments, streams, newsItems, coaches] = await Promise.all([
@@ -48,10 +46,59 @@ export default async function ExplorePage() {
   ].sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
 
   const liveNow = allLiveItems.filter((i) => i.isLive);
-  const pastStreams = allLiveItems.filter((i) => !i.isLive).slice(0, PAST_STREAM_SNIPPET_SIZE);
+  const pastStreams = allLiveItems.filter((i) => !i.isLive);
 
-  const newsSnippet = newsItems.slice(0, SNIPPET_SIZE);
-  const coachSnippet = coaches.slice(0, SNIPPET_SIZE);
+  const pastStreamNodes = pastStreams.map((item) => (
+    <Link
+      key={item.id}
+      href={item.href}
+      target={item.isStandaloneStream ? "_blank" : undefined}
+      rel={item.isStandaloneStream ? "noopener noreferrer" : undefined}
+      className="block"
+    >
+      <Card className="flex-row items-center justify-between gap-2 p-4 transition-colors hover:bg-muted/50">
+        <div className="min-w-0">
+          <p className="truncate font-medium">{item.title}</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            {formatDistanceToNow(item.updatedAt, { addSuffix: true })}
+            {item.subtitle ? ` · ${item.subtitle}` : ""}
+          </p>
+        </div>
+        <span className="shrink-0 text-sm text-muted-foreground">Watch →</span>
+      </Card>
+    </Link>
+  ));
+
+  const newsNodes = newsItems.map((item) => (
+    <a key={item.id} href={item.url} target="_blank" rel="noopener noreferrer" className="block">
+      <Card className="flex-row items-center gap-3 p-4 transition-colors hover:bg-muted/50">
+        {item.imageUrl && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={item.imageUrl} alt="" className="size-14 shrink-0 rounded-lg object-cover" />
+        )}
+        <div className="min-w-0 flex-1">
+          <p className="text-xs text-muted-foreground">
+            {item.sourceName} · {formatDistanceToNow(item.publishedAt, { addSuffix: true })}
+          </p>
+          <p className="mt-0.5 line-clamp-2 font-medium">{item.title}</p>
+        </div>
+      </Card>
+    </a>
+  ));
+
+  const coachNodes = coaches.map((coach) => (
+    <Link key={coach.id} href={`/coaches/${coach.id}`} className="block">
+      <Card className="flex-row items-center gap-3 p-4 transition-colors hover:bg-muted/50">
+        <PlayerAvatar name={coach.name} size="md" />
+        <div className="min-w-0 flex-1">
+          <p className="truncate font-medium">{coach.name}</p>
+          {coach.coachSkills && (
+            <p className="truncate text-xs text-muted-foreground">{coach.coachSkills}</p>
+          )}
+        </div>
+      </Card>
+    </Link>
+  ));
 
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-8 sm:py-12">
@@ -115,31 +162,12 @@ export default async function ExplorePage() {
                 </div>
               )}
 
-              {pastStreams.length > 0 && (
+              {pastStreamNodes.length > 0 && (
                 <div className="space-y-2">
                   <h3 className="text-xs font-bold tracking-[0.08em] text-muted-foreground uppercase">
                     Past Streams
                   </h3>
-                  <div className="divide-y rounded-2xl border bg-background">
-                    {pastStreams.map((item) => (
-                      <Link
-                        key={item.id}
-                        href={item.href}
-                        target={item.isStandaloneStream ? "_blank" : undefined}
-                        rel={item.isStandaloneStream ? "noopener noreferrer" : undefined}
-                        className="flex items-center justify-between gap-2 p-4 transition-colors hover:text-primary"
-                      >
-                        <div className="min-w-0">
-                          <p className="truncate font-medium">{item.title}</p>
-                          <p className="mt-0.5 text-xs text-muted-foreground">
-                            {formatDistanceToNow(item.updatedAt, { addSuffix: true })}
-                            {item.subtitle ? ` · ${item.subtitle}` : ""}
-                          </p>
-                        </div>
-                        <span className="shrink-0 text-sm text-muted-foreground">Watch →</span>
-                      </Link>
-                    ))}
-                  </div>
+                  <LazyList items={pastStreamNodes} pageSize={6} className="space-y-3" />
                 </div>
               )}
 
@@ -149,7 +177,7 @@ export default async function ExplorePage() {
         </TabsContent>
 
         <TabsContent value="news" className="space-y-3">
-          {newsSnippet.length === 0 ? (
+          {newsNodes.length === 0 ? (
             <EmptyState
               icon={Newspaper}
               title="No news yet"
@@ -157,34 +185,14 @@ export default async function ExplorePage() {
             />
           ) : (
             <>
-              {newsSnippet.map((item) => (
-                <a key={item.id} href={item.url} target="_blank" rel="noopener noreferrer">
-                  <Card className="flex-row items-center gap-3 p-4 transition-colors hover:bg-muted/50">
-                    {item.imageUrl && (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={item.imageUrl}
-                        alt=""
-                        className="size-14 shrink-0 rounded-lg object-cover"
-                      />
-                    )}
-                    <div className="min-w-0 flex-1">
-                      <p className="text-xs text-muted-foreground">
-                        {item.sourceName} ·{" "}
-                        {formatDistanceToNow(item.publishedAt, { addSuffix: true })}
-                      </p>
-                      <p className="mt-0.5 line-clamp-2 font-medium">{item.title}</p>
-                    </div>
-                  </Card>
-                </a>
-              ))}
+              <LazyList items={newsNodes} pageSize={6} className="space-y-3" />
               <ExploreMoreLink href="/news" />
             </>
           )}
         </TabsContent>
 
         <TabsContent value="coaches" className="space-y-3">
-          {coachSnippet.length === 0 ? (
+          {coachNodes.length === 0 ? (
             <EmptyState
               icon={GraduationCap}
               title="No coaches on CourtSide yet"
@@ -192,21 +200,7 @@ export default async function ExplorePage() {
             />
           ) : (
             <>
-              {coachSnippet.map((coach) => (
-                <Link key={coach.id} href={`/coaches/${coach.id}`}>
-                  <Card className="flex-row items-center gap-3 p-4 transition-colors hover:bg-muted/50">
-                    <PlayerAvatar name={coach.name} size="md" />
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate font-medium">{coach.name}</p>
-                      {coach.coachSkills && (
-                        <p className="truncate text-xs text-muted-foreground">
-                          {coach.coachSkills}
-                        </p>
-                      )}
-                    </div>
-                  </Card>
-                </Link>
-              ))}
+              <LazyList items={coachNodes} pageSize={8} className="space-y-3" />
               <ExploreMoreLink href="/coaches" />
             </>
           )}
