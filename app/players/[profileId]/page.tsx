@@ -3,12 +3,21 @@ import { notFound } from "next/navigation";
 import { formatDistanceToNow } from "date-fns";
 import { getPlayerProfileStats } from "@/lib/actions/player-profiles";
 import { getCoachInbox } from "@/lib/actions/coaches";
+import { getFollowState } from "@/lib/actions/follows";
+import { getProfileLearnPosts } from "@/lib/actions/learn";
+import { prisma } from "@/lib/prisma";
 import { PlayerAvatar } from "@/components/player-avatar";
 import { EmptyState } from "@/components/empty-state";
 import { ProfileEditor } from "@/components/profile-editor";
 import { StatTile } from "@/components/stat-tile";
+import { FollowButton } from "@/components/follow-button";
+import { AddLearnPostDialog } from "@/components/add-learn-post-dialog";
+import { DeleteLearnPostButton } from "@/components/delete-learn-post-button";
+import { LearnPostCard } from "@/components/learn-post-card";
+import { signInWithGoogleTo } from "@/lib/actions/auth";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { tournamentStatusLabel } from "@/utils/format";
 import { TournamentStatus } from "@/types";
 import { Trophy, Flame } from "lucide-react";
@@ -36,6 +45,17 @@ export default async function PlayerProfilePage({
   const isOwnProfile = !!session?.user?.id && profile.userId === session.user.id;
   const bioLine = [profile.playingStyle, profile.hometown, profile.company].filter(Boolean).join(" · ");
   const inbox = isOwnProfile && profile.isCoach ? await getCoachInbox(profile.id) : null;
+
+  const viewerProfile =
+    session?.user?.id && !isOwnProfile
+      ? await prisma.playerProfile.findUnique({ where: { userId: session.user.id } })
+      : null;
+  const [{ followerCount, isFollowing }, learnPosts] = await Promise.all([
+    isOwnProfile
+      ? getFollowState(profile.id, null)
+      : getFollowState(profile.id, viewerProfile?.id ?? null),
+    getProfileLearnPosts(profile.id),
+  ]);
 
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-8 sm:py-12">
@@ -100,9 +120,27 @@ export default async function PlayerProfilePage({
             )}
           </div>
         )}
+
+        <p className="mt-3 text-xs text-muted-foreground">
+          {followerCount} follower{followerCount === 1 ? "" : "s"}
+        </p>
       </div>
 
       {profile.bio && <p className="mb-6 text-sm text-foreground">{profile.bio}</p>}
+
+      {!isOwnProfile && (
+        <div className="mb-6">
+          {session?.user?.id ? (
+            <FollowButton profileId={profile.id} initiallyFollowing={isFollowing} />
+          ) : (
+            <form action={signInWithGoogleTo.bind(null, `/players/${profile.id}`)}>
+              <Button type="submit" variant="outline" size="lg" className="h-11">
+                Sign in to follow
+              </Button>
+            </form>
+          )}
+        </div>
+      )}
 
       {inbox && (
         <div className="mb-8 space-y-6">
@@ -205,6 +243,37 @@ export default async function PlayerProfilePage({
           ))}
         </div>
       )}
+
+      <div className="mt-8">
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <h2 className="text-lg font-semibold tracking-tight">Learn</h2>
+          {isOwnProfile && <AddLearnPostDialog profileId={profile.id} />}
+        </div>
+        {learnPosts.length === 0 ? (
+          <EmptyState
+            title="No Learn posts yet"
+            description={
+              isOwnProfile
+                ? "Share a tip, drill, or video for other players."
+                : "This player hasn't posted anything to Learn yet."
+            }
+          />
+        ) : (
+          <div className="space-y-3">
+            {learnPosts.map((post) => (
+              <LearnPostCard
+                key={post.id}
+                post={post}
+                action={
+                  isOwnProfile ? (
+                    <DeleteLearnPostButton postId={post.id} title={post.title} />
+                  ) : undefined
+                }
+              />
+            ))}
+          </div>
+        )}
+      </div>
     </main>
   );
 }

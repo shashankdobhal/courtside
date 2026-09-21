@@ -58,7 +58,7 @@ export async function getMyProfileStats(userId: string) {
   return getPlayerProfileStats(profile.id);
 }
 
-async function requireOwnProfile(profileId: string) {
+export async function requireOwnProfile(profileId: string) {
   const session = await requireSignedIn();
   const profile = await prisma.playerProfile.findUnique({ where: { id: profileId } });
   if (!profile) throw new Error("Profile not found");
@@ -104,12 +104,12 @@ export async function getCoachDirectory() {
   const coaches = await prisma.playerProfile.findMany({
     where: { isCoach: true },
     orderBy: { name: "asc" },
-    include: { _count: { select: { coachFollowers: true } } },
+    include: { _count: { select: { followers: true } } },
   });
 
   return coaches.map(({ _count, ...coach }) => ({
     ...coach,
-    followerCount: _count.coachFollowers,
+    followerCount: _count.followers,
   }));
 }
 

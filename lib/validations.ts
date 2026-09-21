@@ -221,6 +221,39 @@ export const requestCoachingSchema = z.object({
 });
 export type RequestCoachingInput = z.infer<typeof requestCoachingSchema>;
 
+const SUPPORTED_VIDEO_HOSTS = ["youtube.com", "youtu.be", "facebook.com", "fb.watch"];
+
+function isSupportedVideoUrl(value: string) {
+  try {
+    const host = new URL(value).hostname.replace(/^(www|m)\./, "");
+    return SUPPORTED_VIDEO_HOSTS.includes(host);
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * A player's own Learn post: a title plus a text note and/or a video link.
+ * At least one of the two content fields must be filled in — a bare title
+ * isn't a post.
+ */
+export const learnPostSchema = z
+  .object({
+    title: z.string().trim().min(1, "Title is required").max(100),
+    body: z.string().trim().max(2000, "Must be 2000 characters or fewer").optional().or(z.literal("")),
+    videoUrl: z
+      .string()
+      .trim()
+      .refine((v) => !v || isSupportedVideoUrl(v), "Enter a YouTube or Facebook video link")
+      .optional()
+      .or(z.literal("")),
+  })
+  .refine((data) => !!data.body?.trim() || !!data.videoUrl?.trim(), {
+    message: "Add a note or a video link",
+    path: ["body"],
+  });
+export type LearnPostInput = z.infer<typeof learnPostSchema>;
+
 export const scoreEntrySchema = z
   .object({
     score1: z.number({ error: "Required" }).int().min(0).max(99),

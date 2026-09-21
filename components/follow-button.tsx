@@ -4,14 +4,14 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { followCoach, unfollowCoach } from "@/lib/actions/coaches";
+import { followProfile, unfollowProfile } from "@/lib/actions/follows";
 import { Loader2 } from "lucide-react";
 
-export function FollowCoachButton({
-  coachProfileId,
+export function FollowButton({
+  profileId,
   initiallyFollowing,
 }: {
-  coachProfileId: string;
+  profileId: string;
   initiallyFollowing: boolean;
 }) {
   const router = useRouter();
@@ -24,9 +24,9 @@ export function FollowCoachButton({
     startTransition(async () => {
       try {
         if (next) {
-          await followCoach(coachProfileId);
+          await followProfile(profileId);
         } else {
-          await unfollowCoach(coachProfileId);
+          await unfollowProfile(profileId);
         }
         router.refresh();
       } catch (err) {

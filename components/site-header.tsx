@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Trophy, BarChart3, Radio, GraduationCap, Newspaper, ShieldCheck } from "lucide-react";
+import { Trophy, BarChart3, Radio, GraduationCap, Newspaper, BookOpen, ShieldCheck } from "lucide-react";
 import { auth } from "@/auth";
 import { signInWithGoogle } from "@/lib/actions/auth";
 import { isSuperAdminEmail } from "@/lib/admin";
@@ -54,6 +54,13 @@ export async function SiteHeader() {
                 <Newspaper className="size-4" />
                 News
               </Link>
+              <Link
+                href="/learn"
+                className="hidden items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground sm:flex"
+              >
+                <BookOpen className="size-4" />
+                Learn
+              </Link>
               {isAdmin && (
                 <Link
                   href="/admin"
@@ -93,6 +100,13 @@ export async function SiteHeader() {
               >
                 <Newspaper className="size-4" />
                 News
+              </Link>
+              <Link
+                href="/learn"
+                className="hidden items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground sm:flex"
+              >
+                <BookOpen className="size-4" />
+                Learn
               </Link>
               <Link
                 href="/#join"
