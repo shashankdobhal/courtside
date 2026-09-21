@@ -14,6 +14,16 @@ export const TournamentFormat = {
 } as const;
 export type TournamentFormat = (typeof TournamentFormat)[keyof typeof TournamentFormat];
 
+// Shown on the invite share message as "Level" — purely descriptive, never
+// factored into matchmaking or fixtures.
+export const SkillLevel = {
+  BEGINNER: "BEGINNER",
+  INTERMEDIATE: "INTERMEDIATE",
+  ADVANCED: "ADVANCED",
+  PROFESSIONAL: "PROFESSIONAL",
+} as const;
+export type SkillLevel = (typeof SkillLevel)[keyof typeof SkillLevel];
+
 export const TournamentStatus = {
   PENDING: "PENDING",
   ACTIVE: "ACTIVE",

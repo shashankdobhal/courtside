@@ -30,6 +30,7 @@ export function TournamentPageActions({
   name,
   venue,
   scheduledAt,
+  skillLevels,
   playerLimit,
   canRegenerate,
   youtubeUrl,
@@ -39,6 +40,7 @@ export function TournamentPageActions({
   name: string;
   venue: string | null;
   scheduledAt: Date | null;
+  skillLevels: string[];
   playerLimit: number | null;
   canRegenerate: boolean;
   youtubeUrl: string | null;
@@ -101,6 +103,7 @@ export function TournamentPageActions({
         name={name}
         venue={venue}
         scheduledAt={scheduledAt}
+        skillLevels={skillLevels}
         playerLimit={playerLimit}
         open={editOpen}
         onOpenChange={setEditOpen}

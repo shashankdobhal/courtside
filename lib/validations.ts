@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { TournamentType, TournamentFormat } from "@/types";
+import { TournamentType, TournamentFormat, SkillLevel } from "@/types";
 import { extractYoutubeVideoId } from "@/lib/youtube";
 
 export const MAX_PLAYERS = 32;
@@ -13,6 +13,19 @@ export const venueSchema = z
 
 /** Optional cap on confirmed roster size — overflow joins land on the waiting list. */
 export const playerLimitSchema = z.number().int().min(2).max(MAX_PLAYERS).optional();
+
+/** Which skill levels this game suits — shown on the invite share message as "Level". */
+export const skillLevelsSchema = z
+  .array(
+    z.enum([
+      SkillLevel.BEGINNER,
+      SkillLevel.INTERMEDIATE,
+      SkillLevel.ADVANCED,
+      SkillLevel.PROFESSIONAL,
+    ])
+  )
+  .max(4)
+  .optional();
 
 /**
  * Always a string at this boundary — a datetime-local input's raw value on
@@ -41,6 +54,7 @@ export const createTournamentSchema = z.object({
   legs: z.number().int().min(1).max(3),
   venue: venueSchema,
   scheduledAt: scheduledAtSchema,
+  skillLevels: skillLevelsSchema,
   playerLimit: playerLimitSchema,
 });
 export type CreateTournamentInput = z.infer<typeof createTournamentSchema>;
@@ -131,6 +145,7 @@ export const editTournamentSchema = z.object({
   name: z.string().trim().min(1, "Tournament name is required").max(80),
   venue: venueSchema,
   scheduledAt: scheduledAtSchema,
+  skillLevels: skillLevelsSchema,
   playerLimit: playerLimitSchema,
 });
 export type EditTournamentInput = z.infer<typeof editTournamentSchema>;
