@@ -59,7 +59,7 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
                     {tournamentStatusLabel[tournament.status as TournamentStatus] ?? tournament.status}
                   </Badge>
                 </div>
-                <p className="mt-0.5 text-sm text-muted-foreground">
+                <p className="mt-1 text-sm text-muted-foreground">
                   {gameFormatLabel(tournament.format)} · {tournament._count.players} players
                 </p>
               </div>

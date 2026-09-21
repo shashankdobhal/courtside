@@ -31,7 +31,7 @@ export function UserMenu({ name, image }: { name: string | null; image: string |
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         {name && (
-          <div className="max-w-40 truncate px-2 py-1.5 text-sm font-medium">{name}</div>
+          <div className="max-w-40 truncate px-2 py-2 text-sm font-medium">{name}</div>
         )}
         <DropdownMenuItem asChild>
           <Link href="/profile">

@@ -25,11 +25,11 @@ export function GamificationPanel({ stats }: { stats: PlayerGamificationStats | 
   return (
     <div className="rounded-2xl border bg-background p-5">
       <div className="flex items-center gap-4 text-sm font-medium">
-        <span className="flex items-center gap-1.5">
+        <span className="flex items-center gap-2">
           <Flame className="size-4 text-amber-500" />
           {streak} day streak
         </span>
-        <span className="flex items-center gap-1.5">
+        <span className="flex items-center gap-2">
           <Sparkles className="size-4 text-violet-500" />
           {karma} karma
         </span>
@@ -37,7 +37,7 @@ export function GamificationPanel({ stats }: { stats: PlayerGamificationStats | 
 
       <RankBadge levelIndex={level.levelIndex} className="mt-3" />
       <Progress value={level.progressToNextLevel * 100} className="mt-2 h-1.5" />
-      <p className="mt-1.5 text-xs text-muted-foreground">
+      <p className="mt-2 text-xs text-muted-foreground">
         {level.nextLevel ? `${level.karmaToNextLevel} karma to ${level.nextLevel}` : "Top tier reached!"}
       </p>
     </div>

@@ -106,7 +106,7 @@ export default async function HomePage() {
               `Welcome to CourtSide, ${firstName ?? "there"} 👋`
             )}
           </h1>
-          <p className="mt-1.5 text-sm text-muted-foreground sm:text-base">
+          <p className="mt-2 text-sm text-muted-foreground sm:text-base">
             {hasAnyGames
               ? "Here's what's happening on CourtSide."
               : "Your badminton games will live here. Start by joining a game or creating one."}
@@ -114,7 +114,7 @@ export default async function HomePage() {
           {gamificationStats && gamificationStats.gamesPlayed > 0 && (
             <div className="mt-3 flex flex-wrap items-center gap-2">
               {gamificationStats.streak.current > 0 && (
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/10 py-1 pr-2.5 pl-2 text-xs font-semibold text-amber-600 dark:text-amber-400">
+                <span className="inline-flex items-center gap-2 rounded-full bg-amber-500/10 py-1 pr-3 pl-2 text-xs font-semibold text-amber-600 dark:text-amber-400">
                   <Flame className="size-3.5" />
                   {gamificationStats.streak.current} day streak
                 </span>

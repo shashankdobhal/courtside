@@ -18,7 +18,7 @@ function TbdPlayer({ align = "left" }: { align?: "left" | "right" }) {
   return (
     <div
       className={cn(
-        "flex min-w-0 flex-1 items-center gap-1.5",
+        "flex min-w-0 flex-1 items-center gap-2",
         align === "right" && "flex-row-reverse text-right"
       )}
     >

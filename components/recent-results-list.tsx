@@ -13,18 +13,18 @@ export type RecentResult = {
 
 export function RecentResultsList({ results }: { results: RecentResult[] }) {
   return (
-    <div className="space-y-2.5">
+    <div className="space-y-3">
       {results.map((result) => (
         <div
           key={result.id}
           className="flex items-center justify-between gap-3 rounded-2xl border bg-background p-4"
         >
           <div className="min-w-0">
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-2">
               {result.isChampion && <Trophy className="size-4 shrink-0 text-amber-500" />}
               <h3 className="truncate font-semibold">{result.name}</h3>
             </div>
-            <p className="mt-0.5 flex items-center gap-1.5 text-sm text-muted-foreground">
+            <p className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
               <Badge variant={result.isChampion ? "default" : "secondary"} className="h-4.5">
                 {result.isChampion ? "Champion" : "Completed"}
               </Badge>

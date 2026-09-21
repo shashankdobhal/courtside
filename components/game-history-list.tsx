@@ -23,7 +23,7 @@ export function GameHistoryList({ games }: { games: GameHistoryEntry[] }) {
         >
           <div className="min-w-0">
             <p className="truncate font-medium">{game.name}</p>
-            <p className="mt-0.5 text-sm text-muted-foreground">
+            <p className="mt-1 text-sm text-muted-foreground">
               {formatDate(game.createdAt)} · {gameFormatLabel(game.format)}
             </p>
           </div>

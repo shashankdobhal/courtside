@@ -107,7 +107,7 @@ export function AddSessionMatchDialog({
         </DialogHeader>
         <div className="space-y-4">
           {unplaced.length > 0 && (
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <p className="text-xs text-muted-foreground">
                 Tap a player, then tap Side A or Side B to place them.
               </p>
@@ -118,7 +118,7 @@ export function AddSessionMatchDialog({
                     type="button"
                     onClick={() => setSelectedId(p.id === selectedId ? null : p.id)}
                     className={cn(
-                      "rounded-full border px-3 py-1.5 text-sm transition-colors",
+                      "rounded-full border px-3 py-2 text-sm transition-colors",
                       selectedId === p.id
                         ? "border-primary bg-primary/10 font-medium text-primary"
                         : "border-border hover:bg-accent"
@@ -136,7 +136,7 @@ export function AddSessionMatchDialog({
               const ids = side === "A" ? sideA : sideB;
               const isFull = ids.length >= sideSize;
               return (
-                <div key={side} className="space-y-1.5">
+                <div key={side} className="space-y-2">
                   <button
                     type="button"
                     onClick={() => placeSelected(side)}
@@ -156,7 +156,7 @@ export function AddSessionMatchDialog({
                   {ids.map((id) => (
                     <div
                       key={id}
-                      className="flex items-center justify-between gap-1 rounded-lg border bg-background px-2.5 py-1.5"
+                      className="flex items-center justify-between gap-1 rounded-lg border bg-background px-3 py-2"
                     >
                       <span className="truncate text-sm font-medium">{nameFor(id)}</span>
                       <button

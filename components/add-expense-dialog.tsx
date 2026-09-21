@@ -226,9 +226,9 @@ export function AddExpenseDialog({
             </div>
           </div>
 
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             <Label>Split among</Label>
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               {roster.map((p) => {
                 const isIncluded = included.has(p.id);
                 const index = includedRoster.findIndex((r) => r.id === p.id);
@@ -236,7 +236,7 @@ export function AddExpenseDialog({
                   <div
                     key={p.id}
                     className={cn(
-                      "flex items-center gap-3 rounded-lg border p-2.5",
+                      "flex items-center gap-3 rounded-lg border p-3",
                       !isIncluded && "opacity-50"
                     )}
                   >

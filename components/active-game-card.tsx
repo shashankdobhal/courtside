@@ -37,7 +37,7 @@ export function ActiveGameCard({
   return (
     <div className="rounded-2xl border bg-background p-5 shadow-sm">
       <div className="flex items-start justify-between gap-2">
-        <div className="flex items-center gap-1.5 text-xs font-semibold tracking-wide">
+        <div className="flex items-center gap-2 text-xs font-semibold tracking-wide">
           <span
             className={cn(
               "size-1.5 rounded-full",
@@ -57,7 +57,7 @@ export function ActiveGameCard({
       </div>
 
       <h3 className="font-heading mt-3 text-xl font-bold tracking-tight">{tournament.name}</h3>
-      <p className="mt-0.5 text-sm text-muted-foreground">
+      <p className="mt-1 text-sm text-muted-foreground">
         {gameFormatLabel(tournament.format)} · {tournament._count.players} players
       </p>
 
