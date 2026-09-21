@@ -2,6 +2,7 @@ import "server-only";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { rateLimit } from "@/lib/rate-limit";
+import { isSuperAdminEmail } from "@/lib/admin";
 
 const MUTATION_LIMIT = 30;
 const MUTATION_WINDOW_MS = 60_000;
@@ -63,6 +64,19 @@ export async function requireSignedIn() {
   const session = await auth();
   if (!session?.user?.id) throw new Error("You need to sign in first");
   assertNotRateLimited(session.user.id);
+  return session;
+}
+
+/**
+ * Throws unless the signed-in user is the one CourtSide super admin.
+ * Every admin action funnels through this, mirroring how ownership checks
+ * are the single source of truth for tournament/event mutations.
+ */
+export async function requireSuperAdmin() {
+  const session = await requireSignedIn();
+  if (!isSuperAdminEmail(session.user.email)) {
+    throw new Error("You don't have admin access");
+  }
   return session;
 }
 

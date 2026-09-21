@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { Trophy, BarChart3, Radio, GraduationCap, Newspaper } from "lucide-react";
+import { Trophy, BarChart3, Radio, GraduationCap, Newspaper, ShieldCheck } from "lucide-react";
 import { auth } from "@/auth";
 import { signInWithGoogle } from "@/lib/actions/auth";
+import { isSuperAdminEmail } from "@/lib/admin";
 import { UserMenu } from "@/components/user-menu";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { PushNotificationToggle } from "@/components/push-notification-toggle";
@@ -9,6 +10,7 @@ import { Button } from "@/components/ui/button";
 
 export async function SiteHeader() {
   const session = await auth();
+  const isAdmin = isSuperAdminEmail(session?.user?.email);
 
   return (
     <header className="sticky top-0 z-10 border-b bg-background/80 backdrop-blur-sm print:hidden">
@@ -51,9 +53,22 @@ export async function SiteHeader() {
                 <Newspaper className="size-4" />
                 News
               </Link>
+              {isAdmin && (
+                <Link
+                  href="/admin"
+                  className="hidden items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground sm:flex"
+                >
+                  <ShieldCheck className="size-4" />
+                  Admin
+                </Link>
+              )}
               <PushNotificationToggle />
               <ThemeToggle />
-              <UserMenu name={session.user.name ?? null} image={session.user.image ?? null} />
+              <UserMenu
+                name={session.user.name ?? null}
+                image={session.user.image ?? null}
+                isAdmin={isAdmin}
+              />
             </>
           ) : (
             <>

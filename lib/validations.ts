@@ -104,6 +104,19 @@ export const editTournamentSchema = z.object({
 });
 export type EditTournamentInput = z.infer<typeof editTournamentSchema>;
 
+export const addLivestreamSchema = z.object({
+  title: z.string().trim().min(1, "Title is required").max(80),
+  youtubeUrl: z
+    .string()
+    .trim()
+    .min(1, "YouTube link is required")
+    .max(300)
+    .refine((value) => extractYoutubeVideoId(value) !== null, {
+      message: "Enter a valid YouTube video or live stream link",
+    }),
+});
+export type AddLivestreamInput = z.infer<typeof addLivestreamSchema>;
+
 export const youtubeUrlSchema = z.object({
   youtubeUrl: z
     .string()
