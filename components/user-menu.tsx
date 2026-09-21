@@ -8,7 +8,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { signOutAction } from "@/lib/actions/auth";
-import { LogOut, User, GraduationCap } from "lucide-react";
+import { LogOut, User, GraduationCap, Newspaper } from "lucide-react";
 
 export function UserMenu({ name, image }: { name: string | null; image: string | null }) {
   const initial = (name?.trim().charAt(0) || "?").toUpperCase();
@@ -43,6 +43,12 @@ export function UserMenu({ name, image }: { name: string | null; image: string |
           <Link href="/coaches">
             <GraduationCap className="size-3.5" />
             Coaches
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link href="/news">
+            <Newspaper className="size-3.5" />
+            News
           </Link>
         </DropdownMenuItem>
         <form action={signOutAction}>

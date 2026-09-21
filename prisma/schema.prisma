@@ -240,3 +240,16 @@ model ExpenseParticipant {
   @@unique([expenseId, playerId])
   @@index([playerId])
 }
+
+model NewsItem {
+  id          String   @id @default(cuid())
+  title       String
+  summary     String // short excerpt from the source API, not full article text
+  url         String   @unique // dedupe key across ingestion runs; also the "Read more" link
+  sourceName  String
+  imageUrl    String?
+  publishedAt DateTime
+  createdAt   DateTime @default(now())
+
+  @@index([publishedAt])
+}
