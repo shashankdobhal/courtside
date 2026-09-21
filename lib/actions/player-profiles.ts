@@ -97,13 +97,20 @@ export async function updatePlayerProfileDetails(profileId: string, input: EditP
 /**
  * Every profile that has opted into the coach directory, newest details
  * first isn't meaningful here (no timeline), so alphabetical by name —
- * public, same visibility model as /live and the leaderboard.
+ * public, same visibility model as /live and the leaderboard. Follower
+ * count is public too — it's just a number, not who's following.
  */
 export async function getCoachDirectory() {
-  return prisma.playerProfile.findMany({
+  const coaches = await prisma.playerProfile.findMany({
     where: { isCoach: true },
     orderBy: { name: "asc" },
+    include: { _count: { select: { coachFollowers: true } } },
   });
+
+  return coaches.map(({ _count, ...coach }) => ({
+    ...coach,
+    followerCount: _count.coachFollowers,
+  }));
 }
 
 /**
