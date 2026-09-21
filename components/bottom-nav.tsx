@@ -2,16 +2,16 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Radio, BarChart3, User, Plus } from "lucide-react";
+import { Home, Compass, BarChart3, User, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const items = [
   { href: "/", label: "Home", icon: Home },
-  { href: "/live", label: "Live", icon: Radio },
+  { href: "/leaderboard", label: "Stats", icon: BarChart3 },
 ] as const;
 
 const trailingItems = [
-  { href: "/leaderboard", label: "Stats", icon: BarChart3 },
+  { href: "/explore", label: "Explore", icon: Compass },
   { href: "/profile", label: "Profile", icon: User },
 ] as const;
 
