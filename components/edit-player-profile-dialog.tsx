@@ -22,6 +22,7 @@ import { Loader2 } from "lucide-react";
 
 export function EditPlayerProfileDialog({
   profileId,
+  name,
   bio,
   playingStyle,
   hometown,
@@ -35,6 +36,7 @@ export function EditPlayerProfileDialog({
   onOpenChange,
 }: {
   profileId: string;
+  name: string;
   bio: string | null;
   playingStyle: string | null;
   hometown: string | null;
@@ -61,6 +63,7 @@ export function EditPlayerProfileDialog({
   } = useForm<EditPlayerProfileInput>({
     resolver: zodResolver(editPlayerProfileSchema),
     defaultValues: {
+      name,
       bio: bio ?? "",
       playingStyle: playingStyle ?? "",
       hometown: hometown ?? "",
@@ -76,6 +79,7 @@ export function EditPlayerProfileDialog({
   useEffect(() => {
     if (open) {
       reset({
+        name,
         bio: bio ?? "",
         playingStyle: playingStyle ?? "",
         hometown: hometown ?? "",
@@ -91,6 +95,7 @@ export function EditPlayerProfileDialog({
     }
   }, [
     open,
+    name,
     bio,
     playingStyle,
     hometown,
@@ -133,12 +138,29 @@ export function EditPlayerProfileDialog({
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
+            <Label htmlFor="profile-name">Name</Label>
+            <Input
+              id="profile-name"
+              placeholder="Your display name"
+              className="h-11 text-base"
+              autoFocus
+              {...register("name")}
+            />
+            {errors.name ? (
+              <p className="text-sm text-destructive">{errors.name.message}</p>
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                Shown everywhere on CourtSide — fixtures, standings, invites.
+              </p>
+            )}
+          </div>
+
+          <div className="space-y-2">
             <Label htmlFor="profile-bio">Bio</Label>
             <Input
               id="profile-bio"
               placeholder="A short line about you"
               className="h-11 text-base"
-              autoFocus
               {...register("bio")}
             />
             {errors.bio && <p className="text-sm text-destructive">{errors.bio.message}</p>}

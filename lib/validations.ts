@@ -125,6 +125,7 @@ export const editPlayerSchema = z.object({
 export type EditPlayerInput = z.infer<typeof editPlayerSchema>;
 
 export const editPlayerProfileSchema = z.object({
+  name: playerNameSchema,
   bio: z.string().trim().max(280, "Bio must be 280 characters or fewer").optional().or(z.literal("")),
   playingStyle: z
     .string()

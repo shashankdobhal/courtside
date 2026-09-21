@@ -51,6 +51,7 @@ export default async function PlayerProfilePage({
           {isOwnProfile && (
             <ProfileEditor
               profileId={profile.id}
+              name={profile.name}
               bio={profile.bio}
               playingStyle={profile.playingStyle}
               hometown={profile.hometown}
