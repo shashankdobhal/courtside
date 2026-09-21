@@ -1,25 +1,78 @@
 import Link from "next/link";
 import { Radio } from "lucide-react";
+import { auth } from "@/auth";
 import { getLivestreamTournaments } from "@/lib/actions/tournaments";
+import { getPublicLivestreams } from "@/lib/actions/livestreams";
+import { isSuperAdminEmail } from "@/lib/admin";
 import { YoutubeEmbed } from "@/components/youtube-embed";
 import { EmptyState } from "@/components/empty-state";
+import { AddLivestreamButton } from "@/components/add-livestream-button";
+import { LivestreamAdminControls } from "@/components/livestream-admin-controls";
 import { gameFormatLabel } from "@/lib/tournament-display";
 import { formatDate } from "@/utils/format";
 import { TournamentStatus } from "@/types";
 
+interface LiveItem {
+  id: string;
+  title: string;
+  subtitle?: string;
+  youtubeUrl: string;
+  updatedAt: Date;
+  isLive: boolean;
+  href: string;
+  isStandaloneStream: boolean;
+}
+
 export default async function LivePage() {
-  const tournaments = await getLivestreamTournaments();
-  const live = tournaments.filter((t) => t.status === TournamentStatus.ACTIVE);
-  const past = tournaments.filter((t) => t.status !== TournamentStatus.ACTIVE);
+  const [tournaments, streams, session] = await Promise.all([
+    getLivestreamTournaments(),
+    getPublicLivestreams(),
+    auth(),
+  ]);
+  const isAdmin = isSuperAdminEmail(session?.user?.email);
+
+  const items: LiveItem[] = [
+    ...tournaments.map((t) => ({
+      id: t.id,
+      title: t.name,
+      subtitle: gameFormatLabel(t.format),
+      youtubeUrl: t.youtubeUrl,
+      updatedAt: t.updatedAt,
+      isLive: t.status === TournamentStatus.ACTIVE,
+      href: `/tournaments/${t.id}`,
+      isStandaloneStream: false,
+    })),
+    ...streams.map((s) => ({
+      id: s.id,
+      title: s.title,
+      youtubeUrl: s.youtubeUrl,
+      updatedAt: s.updatedAt,
+      isLive: s.isLive,
+      href: s.youtubeUrl,
+      isStandaloneStream: true,
+    })),
+  ];
+
+  const live = items
+    .filter((i) => i.isLive)
+    .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
+  const past = items
+    .filter((i) => !i.isLive)
+    .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
 
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-8 sm:py-12">
-      <h1 className="font-heading text-2xl font-bold tracking-tight">Live</h1>
-      <p className="mt-1 text-sm text-muted-foreground">
-        Watch CourtSide games streaming on YouTube.
-      </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="font-heading text-2xl font-bold tracking-tight">Live</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Watch CourtSide games streaming on YouTube.
+          </p>
+        </div>
+        {isAdmin && <AddLivestreamButton />}
+      </div>
 
-      {tournaments.length === 0 ? (
+      {items.length === 0 ? (
         <div className="mt-8">
           <EmptyState
             icon={Radio}
@@ -34,16 +87,26 @@ export default async function LivePage() {
               <h2 className="text-xs font-bold tracking-[0.08em] text-muted-foreground uppercase">
                 Live Now
               </h2>
-              {live.map((t) => (
-                <div key={t.id} className="space-y-2">
-                  <YoutubeEmbed url={t.youtubeUrl} title={t.name} />
+              {live.map((item) => (
+                <div key={item.id} className="space-y-2">
+                  <YoutubeEmbed url={item.youtubeUrl} title={item.title} />
                   <div className="flex items-center justify-between gap-2">
-                    <Link href={`/tournaments/${t.id}`} className="font-medium hover:underline">
-                      {t.name}
+                    <Link
+                      href={item.href}
+                      target={item.isStandaloneStream ? "_blank" : undefined}
+                      rel={item.isStandaloneStream ? "noopener noreferrer" : undefined}
+                      className="min-w-0 truncate font-medium hover:underline"
+                    >
+                      {item.title}
                     </Link>
-                    <span className="text-sm text-muted-foreground">
-                      {gameFormatLabel(t.format)}
-                    </span>
+                    <div className="flex shrink-0 items-center gap-2">
+                      {item.subtitle && (
+                        <span className="text-sm text-muted-foreground">{item.subtitle}</span>
+                      )}
+                      {isAdmin && item.isStandaloneStream && (
+                        <LivestreamAdminControls id={item.id} isLive />
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -56,20 +119,26 @@ export default async function LivePage() {
                 Past Streams
               </h2>
               <div className="divide-y rounded-2xl border bg-background">
-                {past.map((t) => (
-                  <Link
-                    key={t.id}
-                    href={`/tournaments/${t.id}`}
-                    className="flex items-center justify-between gap-3 p-4 transition-colors hover:bg-muted/40"
-                  >
-                    <div className="min-w-0">
-                      <p className="truncate font-medium">{t.name}</p>
+                {past.map((item) => (
+                  <div key={item.id} className="flex items-center gap-3 p-4">
+                    <Link
+                      href={item.href}
+                      target={item.isStandaloneStream ? "_blank" : undefined}
+                      rel={item.isStandaloneStream ? "noopener noreferrer" : undefined}
+                      className="min-w-0 flex-1 transition-colors hover:text-primary"
+                    >
+                      <p className="truncate font-medium">{item.title}</p>
                       <p className="mt-1 text-sm text-muted-foreground">
-                        {formatDate(t.updatedAt)} · {gameFormatLabel(t.format)}
+                        {formatDate(item.updatedAt)}
+                        {item.subtitle ? ` · ${item.subtitle}` : ""}
                       </p>
-                    </div>
-                    <span className="shrink-0 text-sm text-muted-foreground">Watch →</span>
-                  </Link>
+                    </Link>
+                    {isAdmin && item.isStandaloneStream ? (
+                      <LivestreamAdminControls id={item.id} isLive={false} />
+                    ) : (
+                      <span className="shrink-0 text-sm text-muted-foreground">Watch →</span>
+                    )}
+                  </div>
                 ))}
               </div>
             </section>

@@ -64,6 +64,7 @@ model User {
   email         String?   @unique
   emailVerified DateTime?
   image         String?
+  createdAt     DateTime  @default(now())
 
   accounts          Account[]
   sessions          Session[]
@@ -71,6 +72,23 @@ model User {
   ownedEvents       Event[]
   playerProfile     PlayerProfile?
   pushSubscriptions PushSubscription[]
+}
+
+/**
+ * A standalone stream not tied to any CourtSide tournament — e.g. coverage
+ * of an external event — added directly by the super admin and shown on
+ * /live alongside tournament streams. isLive is a manual toggle (no
+ * automatic detection of whether the YouTube broadcast is still live).
+ */
+model Livestream {
+  id         String   @id @default(cuid())
+  title      String
+  youtubeUrl String
+  isLive     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([isLive])
 }
 
 /**

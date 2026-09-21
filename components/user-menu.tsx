@@ -8,9 +8,17 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { signOutAction } from "@/lib/actions/auth";
-import { LogOut, User, GraduationCap, Newspaper } from "lucide-react";
+import { LogOut, User, GraduationCap, Newspaper, ShieldCheck } from "lucide-react";
 
-export function UserMenu({ name, image }: { name: string | null; image: string | null }) {
+export function UserMenu({
+  name,
+  image,
+  isAdmin = false,
+}: {
+  name: string | null;
+  image: string | null;
+  isAdmin?: boolean;
+}) {
   const initial = (name?.trim().charAt(0) || "?").toUpperCase();
 
   return (
@@ -51,6 +59,14 @@ export function UserMenu({ name, image }: { name: string | null; image: string |
             News
           </Link>
         </DropdownMenuItem>
+        {isAdmin && (
+          <DropdownMenuItem asChild>
+            <Link href="/admin">
+              <ShieldCheck className="size-3.5" />
+              Admin
+            </Link>
+          </DropdownMenuItem>
+        )}
         <form action={signOutAction}>
           <DropdownMenuItem asChild>
             <button type="submit" className="w-full">
