@@ -19,7 +19,6 @@ import { editTournamentSchema, MAX_PLAYERS, type EditTournamentInput } from "@/l
 import { updateTournament } from "@/lib/actions/tournaments";
 import { toIsoOrEmpty, toDatetimeLocalValue } from "@/utils/format";
 import { SkillLevelChecklist } from "@/components/skill-level-checklist";
-import { ModeInfoPopover } from "@/components/mode-info-popover";
 import type { SkillLevel } from "@/types";
 import { Loader2 } from "lucide-react";
 
@@ -139,10 +138,7 @@ export function EditTournamentDialog({
           </div>
 
           <div className="space-y-2">
-            <div className="flex items-center gap-1.5">
-              <Label>Level</Label>
-              <ModeInfoPopover />
-            </div>
+            <Label>Level</Label>
             <SkillLevelChecklist
               value={selectedSkillLevels}
               onChange={(next) => setValue("skillLevels", next, { shouldValidate: true })}
