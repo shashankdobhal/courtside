@@ -37,13 +37,17 @@ export default async function PlayersPage({
 
   const isOwner = !!session?.user?.id && tournament.ownerId === session.user.id;
 
-  let hasJoined = false;
+  const confirmedPlayers = tournament.players.filter((p) => !p.waitlisted);
+  const waitlistedPlayers = tournament.players.filter((p) => p.waitlisted);
+
+  let myPlayer: (typeof tournament.players)[number] | null = null;
   if (session?.user?.id && !isOwner) {
     const profile = await prisma.playerProfile.findUnique({
       where: { userId: session.user.id },
     });
-    hasJoined = !!profile && tournament.players.some((p) => p.profileId === profile.id);
+    myPlayer = (profile && tournament.players.find((p) => p.profileId === profile.id)) || null;
   }
+  const hasJoined = !!myPlayer;
 
   const isDoubles = tournament.format === TournamentFormat.DOUBLES;
   const isSession = tournament.type === TournamentType.SESSION;
@@ -65,15 +69,15 @@ export default async function PlayersPage({
   const nextStep = isSession ? (
     <ActivateSessionButton
       tournamentId={tournament.id}
-      canActivate={tournament.players.length >= minRoster}
+      canActivate={confirmedPlayers.length >= minRoster}
       minPlayers={minRoster}
       entityLabel={entityLabel}
     />
   ) : isKnockout ? (
-    tournament.players.length >= minRoster ? (
+    confirmedPlayers.length >= minRoster ? (
       <BracketBuilder
         tournamentId={tournament.id}
-        players={tournament.players}
+        players={confirmedPlayers}
         entityLabel={entityLabel}
       />
     ) : (
@@ -84,7 +88,7 @@ export default async function PlayersPage({
   ) : (
     <GenerateFixturesButton
       tournamentId={tournament.id}
-      canGenerate={tournament.players.length >= minRoster}
+      canGenerate={confirmedPlayers.length >= minRoster}
       minPlayers={minRoster}
       entityLabel={entityLabel}
     />
@@ -115,12 +119,25 @@ export default async function PlayersPage({
         <p className="text-sm text-muted-foreground">{subtitle}</p>
       </div>
 
-      {tournament.players.length > 0 && (
+      {confirmedPlayers.length > 0 && (
         <div className="mb-8 space-y-2">
           <h2 className="text-sm font-medium text-muted-foreground">
-            {isDoubles && !isSession ? "Teams" : "Players"} ({tournament.players.length})
+            {isDoubles && !isSession ? "Teams" : "Players"} ({confirmedPlayers.length}
+            {tournament.playerLimit ? `/${tournament.playerLimit}` : ""})
           </h2>
-          <PlayersList players={tournament.players} isOwner={false} />
+          <PlayersList players={confirmedPlayers} isOwner={false} />
+        </div>
+      )}
+
+      {waitlistedPlayers.length > 0 && (
+        <div className="mb-8 space-y-2">
+          <h2 className="text-sm font-medium text-muted-foreground">
+            Waiting list ({waitlistedPlayers.length})
+          </h2>
+          <p className="text-xs text-muted-foreground">
+            The roster is full. These {entityLabel}s will join if a spot opens up.
+          </p>
+          <PlayersList players={waitlistedPlayers} isOwner={isOwner} />
         </div>
       )}
 
@@ -148,9 +165,17 @@ export default async function PlayersPage({
       ) : individualRoster ? (
         session?.user ? (
           hasJoined ? (
-            <p className="text-center text-sm text-muted-foreground">
-              You&apos;re in! Waiting for the organizer to start the {isSession ? "session" : "tournament"}.
-            </p>
+            myPlayer?.waitlisted ? (
+              <p className="text-center text-sm text-muted-foreground">
+                You&apos;re on the waiting list — the roster is full. We&apos;ll let you know if a
+                spot opens up.
+              </p>
+            ) : (
+              <p className="text-center text-sm text-muted-foreground">
+                You&apos;re in! Waiting for the organizer to start the{" "}
+                {isSession ? "session" : "tournament"}.
+              </p>
+            )
           ) : (
             <JoinTournamentButton tournamentId={tournament.id} />
           )

@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { createTournamentSchema, type CreateTournamentInput } from "@/lib/validations";
+import { createTournamentSchema, MAX_PLAYERS, type CreateTournamentInput } from "@/lib/validations";
 import { createTournament } from "@/lib/actions/tournaments";
 import { toIsoOrEmpty } from "@/utils/format";
 import { TournamentType, TournamentFormat } from "@/types";
@@ -144,6 +144,7 @@ export function CreateTournamentForm({ eventId }: { eventId?: string }) {
       legs: 1,
       venue: "",
       scheduledAt: "",
+      playerLimit: undefined,
     },
   });
 
@@ -205,6 +206,28 @@ export function CreateTournamentForm({ eventId }: { eventId?: string }) {
             <p className="text-sm text-destructive">{errors.scheduledAt.message}</p>
           )}
         </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="playerLimit">Player limit (optional)</Label>
+        <Input
+          id="playerLimit"
+          type="number"
+          min={2}
+          max={MAX_PLAYERS}
+          placeholder="e.g. 6"
+          className="h-12 text-base"
+          {...register("playerLimit", {
+            setValueAs: (v) => (v === "" ? undefined : Number(v)),
+          })}
+        />
+        {errors.playerLimit ? (
+          <p className="text-sm text-destructive">{errors.playerLimit.message}</p>
+        ) : (
+          <p className="text-xs text-muted-foreground">
+            Once the roster is full, new joiners go on a waiting list instead.
+          </p>
+        )}
       </div>
 
       <div className="space-y-2">

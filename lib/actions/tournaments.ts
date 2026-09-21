@@ -54,6 +54,7 @@ export async function createTournament(input: {
   legs: number;
   venue?: string;
   scheduledAt?: string;
+  playerLimit?: number;
   eventId?: string;
 }) {
   const parsed = createTournamentSchema.parse(input);
@@ -72,6 +73,7 @@ export async function createTournament(input: {
     eventId: input.eventId,
     venue: parsed.venue?.trim() || null,
     scheduledAt: parsed.scheduledAt ? new Date(parsed.scheduledAt) : null,
+    playerLimit: parsed.playerLimit ?? null,
   };
 
   let tournament;
@@ -159,14 +161,18 @@ export async function addPlayers(
 
   const existing = await prisma.player.findMany({
     where: { tournamentId },
-    select: { name: true },
+    select: { name: true, waitlisted: true },
   });
   const parsed = newPlayersSchema(existing.map((p) => p.name)).parse(entries);
+
+  let confirmedCount = existing.filter((p) => !p.waitlisted).length;
 
   await prisma.$transaction(async (tx) => {
     for (const p of parsed) {
       const profileId = p.profileId ?? (await resolveOrCreatePlayerProfile(p.name, tx));
-      await tx.player.create({ data: { tournamentId, name: p.name, profileId } });
+      const waitlisted = tournament.playerLimit != null && confirmedCount >= tournament.playerLimit;
+      if (!waitlisted) confirmedCount++;
+      await tx.player.create({ data: { tournamentId, name: p.name, profileId, waitlisted } });
     }
   });
 
@@ -190,7 +196,7 @@ export async function generateFixturesAndActivate(tournamentId: string) {
     throw new Error("Fixtures have already been generated for this tournament");
   }
 
-  const players = await prisma.player.findMany({ where: { tournamentId } });
+  const players = await prisma.player.findMany({ where: { tournamentId, waitlisted: false } });
   const minPlayers =
     tournament.type === TournamentType.ROUND_ROBIN_KNOCKOUT
       ? MIN_PLAYERS_KNOCKOUT
@@ -236,7 +242,9 @@ export async function generateKnockoutBracket(tournamentId: string, slots: (stri
 
   const parsedSlots = knockoutBracketSlotsSchema.parse(slots);
 
-  const players = await prisma.player.findMany({ where: { tournamentId, withdrawn: false } });
+  const players = await prisma.player.findMany({
+    where: { tournamentId, withdrawn: false, waitlisted: false },
+  });
   if (players.length < MIN_PLAYERS_KNOCKOUT) {
     throw new Error(`At least ${MIN_PLAYERS_KNOCKOUT} players are required`);
   }
@@ -296,10 +304,11 @@ export async function generateKnockoutBracket(tournamentId: string, slots: (stri
 
 export async function updateTournament(
   tournamentId: string,
-  input: { name: string; venue?: string; scheduledAt?: string }
+  input: { name: string; venue?: string; scheduledAt?: string; playerLimit?: number }
 ) {
-  await requireTournamentOwner(tournamentId);
+  const { tournament: before } = await requireTournamentOwner(tournamentId);
   const parsed = editTournamentSchema.parse(input);
+  const newLimit = parsed.playerLimit ?? null;
 
   await prisma.tournament.update({
     where: { id: tournamentId },
@@ -307,11 +316,62 @@ export async function updateTournament(
       name: parsed.name,
       venue: parsed.venue?.trim() || null,
       scheduledAt: parsed.scheduledAt ? new Date(parsed.scheduledAt) : null,
+      playerLimit: newLimit,
     },
   });
 
+  // Raising (or removing) the cap opens up spots — pull the earliest
+  // waitlisted players in to fill them, oldest-joined first.
+  const limitRaised = before.playerLimit == null ? newLimit != null : newLimit == null || newLimit > before.playerLimit;
+  if (limitRaised) {
+    await promoteWaitlistedPlayersUpToLimit(tournamentId, newLimit);
+  }
+
   revalidatePath("/");
   revalidatePath(`/tournaments/${tournamentId}`);
+  revalidatePath(`/tournaments/${tournamentId}/players`);
+}
+
+/**
+ * Fills open spots (up to `limit`, or all of them if null) with the
+ * earliest-joined waitlisted players, and best-effort notifies each one.
+ * Shared by updateTournament (limit raised) — kept separate so it stays a
+ * single source of truth for "how many spots just opened up".
+ */
+async function promoteWaitlistedPlayersUpToLimit(tournamentId: string, limit: number | null) {
+  const players = await prisma.player.findMany({
+    where: { tournamentId },
+    include: { profile: { select: { userId: true } } },
+    orderBy: { createdAt: "asc" },
+  });
+  const confirmedCount = players.filter((p) => !p.waitlisted).length;
+  const openSpots = limit == null ? Infinity : Math.max(0, limit - confirmedCount);
+  if (openSpots <= 0) return;
+
+  const toPromote = players.filter((p) => p.waitlisted).slice(0, openSpots);
+  if (toPromote.length === 0) return;
+
+  const tournament = await prisma.tournament.findUnique({ where: { id: tournamentId } });
+
+  await prisma.player.updateMany({
+    where: { id: { in: toPromote.map((p) => p.id) } },
+    data: { waitlisted: false },
+  });
+
+  await Promise.all(
+    toPromote.map(async (p) => {
+      if (!p.profile?.userId || !tournament) return;
+      try {
+        await sendPushToUser(p.profile.userId, {
+          title: "You're off the waiting list!",
+          body: `A spot opened up in ${tournament.name}`,
+          url: `/tournaments/${tournamentId}/players`,
+        });
+      } catch (err) {
+        console.error("Failed to send waitlist-promotion notification", err);
+      }
+    })
+  );
 }
 
 export async function setTournamentYoutubeUrl(

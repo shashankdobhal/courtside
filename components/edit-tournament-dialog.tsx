@@ -15,7 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { editTournamentSchema, type EditTournamentInput } from "@/lib/validations";
+import { editTournamentSchema, MAX_PLAYERS, type EditTournamentInput } from "@/lib/validations";
 import { updateTournament } from "@/lib/actions/tournaments";
 import { toIsoOrEmpty, toDatetimeLocalValue } from "@/utils/format";
 import { Loader2 } from "lucide-react";
@@ -25,6 +25,7 @@ export function EditTournamentDialog({
   name,
   venue,
   scheduledAt,
+  playerLimit,
   open,
   onOpenChange,
 }: {
@@ -32,6 +33,7 @@ export function EditTournamentDialog({
   name: string;
   venue: string | null;
   scheduledAt: Date | null;
+  playerLimit: number | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
@@ -43,6 +45,7 @@ export function EditTournamentDialog({
     name,
     venue: venue ?? "",
     scheduledAt: toDatetimeLocalValue(scheduledAt),
+    playerLimit: playerLimit ?? undefined,
   };
 
   const {
@@ -61,7 +64,7 @@ export function EditTournamentDialog({
       setServerError(null);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, name, venue, scheduledAt, reset]);
+  }, [open, name, venue, scheduledAt, playerLimit, reset]);
 
   const onSubmit = (data: EditTournamentInput) => {
     setServerError(null);
@@ -122,6 +125,28 @@ export function EditTournamentDialog({
             />
             {errors.scheduledAt && (
               <p className="text-sm text-destructive">{errors.scheduledAt.message}</p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="tournament-player-limit">Player limit</Label>
+            <Input
+              id="tournament-player-limit"
+              type="number"
+              min={2}
+              max={MAX_PLAYERS}
+              placeholder="e.g. 6"
+              className="h-11 text-base"
+              {...register("playerLimit", {
+                setValueAs: (v) => (v === "" ? undefined : Number(v)),
+              })}
+            />
+            {errors.playerLimit ? (
+              <p className="text-sm text-destructive">{errors.playerLimit.message}</p>
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                Raising this promotes the earliest waitlisted players automatically.
+              </p>
             )}
           </div>
 

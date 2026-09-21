@@ -30,6 +30,7 @@ export function TournamentPageActions({
   name,
   venue,
   scheduledAt,
+  playerLimit,
   canRegenerate,
   youtubeUrl,
   youtubeUrlPublic,
@@ -38,6 +39,7 @@ export function TournamentPageActions({
   name: string;
   venue: string | null;
   scheduledAt: Date | null;
+  playerLimit: number | null;
   canRegenerate: boolean;
   youtubeUrl: string | null;
   youtubeUrlPublic: boolean;
@@ -99,6 +101,7 @@ export function TournamentPageActions({
         name={name}
         venue={venue}
         scheduledAt={scheduledAt}
+        playerLimit={playerLimit}
         open={editOpen}
         onOpenChange={setEditOpen}
       />
