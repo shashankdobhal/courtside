@@ -10,6 +10,7 @@ import { EventGroup } from "@/components/event-group";
 import { RecentResultsList, type RecentResult } from "@/components/recent-results-list";
 import { PersonalStatsTile } from "@/components/personal-stats-tile";
 import { GamificationPanel } from "@/components/gamification-panel";
+import { GamificationInfoDialog } from "@/components/gamification-info-dialog";
 import { GameHistoryList } from "@/components/game-history-list";
 import { EmptyState } from "@/components/empty-state";
 import { Greeting } from "@/components/greeting";
@@ -177,9 +178,12 @@ export default async function HomePage() {
         </div>
 
         <div className="space-y-3">
-          <h2 className="text-xs font-bold tracking-[0.08em] text-muted-foreground uppercase">
-            Your Progress
-          </h2>
+          <div className="flex items-center gap-1.5">
+            <h2 className="text-xs font-bold tracking-[0.08em] text-muted-foreground uppercase">
+              Your Progress
+            </h2>
+            <GamificationInfoDialog />
+          </div>
           <GamificationPanel stats={gamificationStats} />
         </div>
 
