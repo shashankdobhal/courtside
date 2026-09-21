@@ -18,7 +18,12 @@ import { generateRoundRobinFixtures } from "@/lib/algorithms/fixtures";
 import { bracketSizeFor, knockoutRoundsFor, pairBracketSlots } from "@/lib/algorithms/bracket";
 import { resolveOrCreatePlayerProfile } from "@/lib/actions/player-profiles";
 import { usesIndividualRoster } from "@/lib/tournament-mode";
-import { requireSignedIn, requireTournamentOwner, requireEventOwner } from "@/lib/auth-helpers";
+import {
+  requireSignedIn,
+  requireTournamentOwner,
+  requireEventOwner,
+  requireSuperAdmin,
+} from "@/lib/auth-helpers";
 import { generateJoinCode } from "@/lib/join-code";
 import { extractYoutubeVideoId } from "@/lib/youtube";
 import { sendPushToUser, getUserIdsForPlayerIds } from "@/lib/push";
@@ -426,6 +431,18 @@ export async function deleteTournament(tournamentId: string) {
   await requireTournamentOwner(tournamentId);
   await prisma.tournament.delete({ where: { id: tournamentId } });
   revalidatePath("/");
+}
+
+/**
+ * Lets the super admin delete any tournament regardless of ownership —
+ * moderation power, separate from deleteTournament's owner-only check
+ * above. Only reachable from the admin page's tournament list.
+ */
+export async function adminDeleteTournament(tournamentId: string) {
+  await requireSuperAdmin();
+  await prisma.tournament.delete({ where: { id: tournamentId } });
+  revalidatePath("/");
+  revalidatePath("/admin");
 }
 
 /**
