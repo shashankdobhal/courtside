@@ -235,10 +235,7 @@ export function CreateTournamentForm({ eventId }: { eventId?: string }) {
       </div>
 
       <div className="space-y-2">
-        <div className="flex items-center gap-1.5">
-          <Label>Level (optional)</Label>
-          <ModeInfoPopover />
-        </div>
+        <Label>Level (optional)</Label>
         <SkillLevelChecklist
           value={selectedSkillLevels}
           onChange={(next) => setValue("skillLevels", next, { shouldValidate: true })}
@@ -247,7 +244,10 @@ export function CreateTournamentForm({ eventId }: { eventId?: string }) {
       </div>
 
       <div className="space-y-2">
-        <Label>Format</Label>
+        <div className="flex items-center gap-1.5">
+          <Label>Format</Label>
+          <ModeInfoPopover />
+        </div>
         <div className="grid gap-2 sm:grid-cols-2">
           {formatOptions.map((option) => (
             <OptionRow
