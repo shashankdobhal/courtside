@@ -5,17 +5,51 @@ import { isSuperAdminEmail } from "@/lib/admin";
 import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { formatDate } from "@/utils/format";
+import { AdminDeleteTournamentButton } from "@/components/admin-delete-tournament-button";
+import { LazyList } from "@/components/lazy-list";
+import { formatDate, tournamentStatusLabel } from "@/utils/format";
+import { TournamentStatus } from "@/types";
 import { ShieldCheck, Radio } from "lucide-react";
+
+const statusVariant: Record<string, "secondary" | "default" | "outline"> = {
+  [TournamentStatus.PENDING]: "outline",
+  [TournamentStatus.ACTIVE]: "default",
+  [TournamentStatus.COMPLETED]: "secondary",
+  [TournamentStatus.CANCELLED]: "outline",
+};
 
 export default async function AdminPage() {
   const session = await auth();
   if (!isSuperAdminEmail(session?.user?.email)) redirect("/");
 
-  const users = await prisma.user.findMany({
-    orderBy: { createdAt: "desc" },
-    include: { playerProfile: { select: { isCoach: true } } },
-  });
+  const [users, tournaments] = await Promise.all([
+    prisma.user.findMany({
+      orderBy: { createdAt: "desc" },
+      include: { playerProfile: { select: { isCoach: true } } },
+    }),
+    prisma.tournament.findMany({
+      orderBy: { createdAt: "desc" },
+      include: { owner: { select: { name: true, email: true } }, _count: { select: { players: true } } },
+    }),
+  ]);
+
+  const tournamentNodes = tournaments.map((t) => (
+    <Card key={t.id} className="flex-row items-center justify-between gap-3 p-4">
+      <div className="min-w-0 flex-1">
+        <div className="flex flex-wrap items-center gap-2">
+          <p className="truncate font-medium">{t.name}</p>
+          <Badge variant={statusVariant[t.status] ?? "outline"}>
+            {tournamentStatusLabel[t.status as TournamentStatus] ?? t.status}
+          </Badge>
+        </div>
+        <p className="truncate text-sm text-muted-foreground">
+          {t.owner?.name ?? t.owner?.email ?? "Unclaimed"} · {t._count.players} players ·{" "}
+          {formatDate(t.createdAt)}
+        </p>
+      </div>
+      <AdminDeleteTournamentButton tournamentId={t.id} name={t.name} />
+    </Card>
+  ));
 
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-8 sm:py-12">
@@ -34,6 +68,11 @@ export default async function AdminPage() {
           .
         </span>
       </Card>
+
+      <h2 className="mb-3 text-lg font-semibold tracking-tight">
+        All tournaments ({tournaments.length})
+      </h2>
+      <LazyList items={tournamentNodes} pageSize={8} className="mb-8 space-y-2" />
 
       <h2 className="mb-3 text-lg font-semibold tracking-tight">All users ({users.length})</h2>
       <div className="divide-y rounded-2xl border bg-background">
