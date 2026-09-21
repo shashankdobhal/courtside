@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { formatDistanceToNow } from "date-fns";
 import { getPlayerProfileStats } from "@/lib/actions/player-profiles";
+import { getCoachInbox } from "@/lib/actions/coaches";
 import { PlayerAvatar } from "@/components/player-avatar";
 import { EmptyState } from "@/components/empty-state";
 import { ProfileEditor } from "@/components/profile-editor";
@@ -33,6 +35,7 @@ export default async function PlayerProfilePage({
   const winPct = stats.played > 0 ? Math.round((stats.won / stats.played) * 100) : 0;
   const isOwnProfile = !!session?.user?.id && profile.userId === session.user.id;
   const bioLine = [profile.playingStyle, profile.hometown, profile.company].filter(Boolean).join(" · ");
+  const inbox = isOwnProfile && profile.isCoach ? await getCoachInbox(profile.id) : null;
 
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-8 sm:py-12">
@@ -85,11 +88,65 @@ export default async function PlayerProfilePage({
                 {profile.coachAvailability}
               </p>
             )}
+            {isOwnProfile && (
+              <p>
+                <Link
+                  href={`/coaches/${profile.id}`}
+                  className="text-primary underline underline-offset-2"
+                >
+                  View your public coach profile
+                </Link>
+              </p>
+            )}
           </div>
         )}
       </div>
 
       {profile.bio && <p className="mb-6 text-sm text-foreground">{profile.bio}</p>}
+
+      {inbox && (
+        <div className="mb-8 space-y-6">
+          <div>
+            <h2 className="mb-3 text-lg font-semibold tracking-tight">Coaching requests</h2>
+            {inbox.requests.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                No coaching requests yet. They show up here — and as a push notification — as
+                soon as someone reaches out.
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {inbox.requests.map((r) => (
+                  <Card key={r.id} className="flex-row items-center justify-between gap-3 p-4">
+                    <div className="min-w-0">
+                      <p className="truncate font-medium">{r.requesterName}</p>
+                      <a
+                        href={`tel:${r.requesterPhone}`}
+                        className="text-sm text-primary underline underline-offset-2"
+                      >
+                        {r.requesterPhone}
+                      </a>
+                    </div>
+                    <span className="shrink-0 text-xs text-muted-foreground">
+                      {formatDistanceToNow(r.createdAt, { addSuffix: true })}
+                    </span>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {inbox.followers.length > 0 && (
+            <div>
+              <h2 className="mb-2 text-lg font-semibold tracking-tight">
+                Followers ({inbox.followers.length})
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                {inbox.followers.map((f) => f.followerProfile.name).join(", ")}
+              </p>
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="mb-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
         <StatTile label="Played" value={stats.played} />
