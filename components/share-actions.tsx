@@ -3,25 +3,54 @@
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Share2, Link2, Printer } from "lucide-react";
+import { formatInviteDate, formatInviteTime } from "@/utils/format";
 
-export function ShareActions({ title, joinCode }: { title: string; joinCode?: string }) {
+export function ShareActions({
+  title,
+  joinCode,
+  venue,
+  scheduledAt,
+}: {
+  title: string;
+  joinCode?: string;
+  venue?: string | null;
+  scheduledAt?: Date | null;
+}) {
+  /**
+   * The templated invite text only makes sense when there's a joinCode —
+   * that's what distinguishes an invite-to-join share (this dialog, before
+   * the game starts) from a results recap share (/tournaments/[id]/share,
+   * after it's over), which keeps the plain title+url behavior.
+   */
+  const buildMessage = (url: string) => {
+    if (!joinCode) return url;
+
+    const lines = [`You are invited for a game/tournament :`];
+    if (scheduledAt) lines.push(`Date : ${formatInviteDate(scheduledAt)}`);
+    if (venue) lines.push(`Venue : ${venue}`);
+    if (scheduledAt) lines.push(`Time : ${formatInviteTime(scheduledAt)}`);
+    lines.push("", `Use below link to join the game : ${url}`);
+    return lines.join("\n");
+  };
+
   const handleShare = async () => {
     const url = window.location.href;
+    const text = buildMessage(url);
     if (navigator.share) {
       try {
-        await navigator.share({ title, url });
+        await navigator.share(joinCode ? { title, text } : { title, url });
       } catch {
         // user cancelled — no-op
       }
       return;
     }
-    await navigator.clipboard.writeText(url);
-    toast.success("Link copied to clipboard");
+    await navigator.clipboard.writeText(text);
+    toast.success(joinCode ? "Invite copied to clipboard" : "Link copied to clipboard");
   };
 
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(window.location.href);
-    toast.success("Link copied to clipboard");
+    await navigator.clipboard.writeText(buildMessage(window.location.href));
+    toast.success(joinCode ? "Invite copied to clipboard" : "Link copied to clipboard");
   };
 
   const handleCopyCode = async () => {

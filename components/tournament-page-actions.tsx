@@ -28,12 +28,16 @@ import { MoreVertical, Pencil, RefreshCw, Loader2, Radio } from "lucide-react";
 export function TournamentPageActions({
   tournamentId,
   name,
+  venue,
+  scheduledAt,
   canRegenerate,
   youtubeUrl,
   youtubeUrlPublic,
 }: {
   tournamentId: string;
   name: string;
+  venue: string | null;
+  scheduledAt: Date | null;
   canRegenerate: boolean;
   youtubeUrl: string | null;
   youtubeUrlPublic: boolean;
@@ -75,7 +79,7 @@ export function TournamentPageActions({
         <DropdownMenuContent align="end">
           <DropdownMenuItem onClick={() => setEditOpen(true)}>
             <Pencil className="size-3.5" />
-            Rename
+            Edit
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => setYoutubeOpen(true)}>
             <Radio className="size-3.5" />
@@ -93,6 +97,8 @@ export function TournamentPageActions({
       <EditTournamentDialog
         tournamentId={tournamentId}
         name={name}
+        venue={venue}
+        scheduledAt={scheduledAt}
         open={editOpen}
         onOpenChange={setEditOpen}
       />

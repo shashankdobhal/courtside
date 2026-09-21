@@ -2,6 +2,27 @@ import { z } from "zod";
 import { TournamentType, TournamentFormat } from "@/types";
 import { extractYoutubeVideoId } from "@/lib/youtube";
 
+export const venueSchema = z
+  .string()
+  .trim()
+  .max(120, "Must be 120 characters or fewer")
+  .optional()
+  .or(z.literal(""));
+
+/**
+ * Always a string at this boundary — a datetime-local input's raw value on
+ * the way in, or that same value already converted to an absolute ISO
+ * instant (see toIsoOrEmpty in utils/format.ts) by the time it reaches the
+ * server action. Both shapes parse fine with Date.parse, so one schema
+ * covers the field on both sides of that conversion.
+ */
+export const scheduledAtSchema = z
+  .string()
+  .trim()
+  .optional()
+  .or(z.literal(""))
+  .refine((v) => !v || !isNaN(Date.parse(v)), { message: "Enter a valid date and time" });
+
 export const createTournamentSchema = z.object({
   name: z.string().trim().min(1, "Tournament name is required").max(80),
   format: z.enum([TournamentFormat.SINGLES, TournamentFormat.DOUBLES]),
@@ -13,6 +34,8 @@ export const createTournamentSchema = z.object({
     TournamentType.SESSION,
   ]),
   legs: z.number().int().min(1).max(3),
+  venue: venueSchema,
+  scheduledAt: scheduledAtSchema,
 });
 export type CreateTournamentInput = z.infer<typeof createTournamentSchema>;
 
@@ -101,6 +124,8 @@ export const aliasSchema = z
 
 export const editTournamentSchema = z.object({
   name: z.string().trim().min(1, "Tournament name is required").max(80),
+  venue: venueSchema,
+  scheduledAt: scheduledAtSchema,
 });
 export type EditTournamentInput = z.infer<typeof editTournamentSchema>;
 

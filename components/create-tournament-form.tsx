@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { createTournamentSchema, type CreateTournamentInput } from "@/lib/validations";
 import { createTournament } from "@/lib/actions/tournaments";
+import { toIsoOrEmpty } from "@/utils/format";
 import { TournamentType, TournamentFormat } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -141,6 +142,8 @@ export function CreateTournamentForm({ eventId }: { eventId?: string }) {
       format: TournamentFormat.SINGLES,
       type: TournamentType.ROUND_ROBIN,
       legs: 1,
+      venue: "",
+      scheduledAt: "",
     },
   });
 
@@ -152,7 +155,11 @@ export function CreateTournamentForm({ eventId }: { eventId?: string }) {
     setServerError(null);
     startTransition(async () => {
       try {
-        await createTournament({ ...data, eventId });
+        await createTournament({
+          ...data,
+          scheduledAt: toIsoOrEmpty(data.scheduledAt ?? ""),
+          eventId,
+        });
       } catch (err) {
         if (err instanceof Error && err.message === "NEXT_REDIRECT") throw err;
         setServerError("Something went wrong. Please try again.");
@@ -173,6 +180,31 @@ export function CreateTournamentForm({ eventId }: { eventId?: string }) {
           {...register("name")}
         />
         {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="space-y-2">
+          <Label htmlFor="venue">Venue (optional)</Label>
+          <Input
+            id="venue"
+            placeholder="e.g. Sportyzo Academy"
+            className="h-12 text-base"
+            {...register("venue")}
+          />
+          {errors.venue && <p className="text-sm text-destructive">{errors.venue.message}</p>}
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="scheduledAt">Date &amp; time (optional)</Label>
+          <Input
+            id="scheduledAt"
+            type="datetime-local"
+            className="h-12 text-base"
+            {...register("scheduledAt")}
+          />
+          {errors.scheduledAt && (
+            <p className="text-sm text-destructive">{errors.scheduledAt.message}</p>
+          )}
+        </div>
       </div>
 
       <div className="space-y-2">
