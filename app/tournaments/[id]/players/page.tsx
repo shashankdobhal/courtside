@@ -129,7 +129,12 @@ export default async function PlayersPage({
           {individualRoster ? (
             <>
               {/* No join code for fixed-team doubles below: there's no self-join flow for pre-formed teams. */}
-              <ShareActions title={tournament.name} joinCode={tournament.joinCode} />
+              <ShareActions
+                title={tournament.name}
+                joinCode={tournament.joinCode}
+                venue={tournament.venue}
+                scheduledAt={tournament.scheduledAt}
+              />
               <PlayerEntryForm tournamentId={tournament.id} />
             </>
           ) : (

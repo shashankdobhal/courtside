@@ -17,22 +17,33 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { editTournamentSchema, type EditTournamentInput } from "@/lib/validations";
 import { updateTournament } from "@/lib/actions/tournaments";
+import { toIsoOrEmpty, toDatetimeLocalValue } from "@/utils/format";
 import { Loader2 } from "lucide-react";
 
 export function EditTournamentDialog({
   tournamentId,
   name,
+  venue,
+  scheduledAt,
   open,
   onOpenChange,
 }: {
   tournamentId: string;
   name: string;
+  venue: string | null;
+  scheduledAt: Date | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [serverError, setServerError] = useState<string | null>(null);
+
+  const defaultValues = {
+    name,
+    venue: venue ?? "",
+    scheduledAt: toDatetimeLocalValue(scheduledAt),
+  };
 
   const {
     register,
@@ -41,21 +52,25 @@ export function EditTournamentDialog({
     formState: { errors },
   } = useForm<EditTournamentInput>({
     resolver: zodResolver(editTournamentSchema),
-    defaultValues: { name },
+    defaultValues,
   });
 
   useEffect(() => {
     if (open) {
-      reset({ name });
+      reset(defaultValues);
       setServerError(null);
     }
-  }, [open, name, reset]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, name, venue, scheduledAt, reset]);
 
   const onSubmit = (data: EditTournamentInput) => {
     setServerError(null);
     startTransition(async () => {
       try {
-        await updateTournament(tournamentId, data);
+        await updateTournament(tournamentId, {
+          ...data,
+          scheduledAt: toIsoOrEmpty(data.scheduledAt ?? ""),
+        });
         toast.success("Tournament updated");
         onOpenChange(false);
         router.refresh();
@@ -77,13 +92,37 @@ export function EditTournamentDialog({
     >
       <DialogContent className="sm:max-w-sm">
         <DialogHeader>
-          <DialogTitle>Rename Tournament</DialogTitle>
+          <DialogTitle>Edit Tournament</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="tournament-name">Name</Label>
             <Input id="tournament-name" className="h-11 text-base" autoFocus {...register("name")} />
             {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="tournament-venue">Venue</Label>
+            <Input
+              id="tournament-venue"
+              placeholder="e.g. Sportyzo Academy"
+              className="h-11 text-base"
+              {...register("venue")}
+            />
+            {errors.venue && <p className="text-sm text-destructive">{errors.venue.message}</p>}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="tournament-scheduled-at">Date &amp; time</Label>
+            <Input
+              id="tournament-scheduled-at"
+              type="datetime-local"
+              className="h-11 text-base"
+              {...register("scheduledAt")}
+            />
+            {errors.scheduledAt && (
+              <p className="text-sm text-destructive">{errors.scheduledAt.message}</p>
+            )}
           </div>
 
           {serverError && <p className="text-sm text-destructive">{serverError}</p>}

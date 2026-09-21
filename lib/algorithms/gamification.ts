@@ -98,7 +98,9 @@ export const KARMA_BREAKDOWN = {
 /**
  * Named tiers karma climbs through, giving every point total somewhere to
  * go next — hunter-rank styled (E through S), each with its own escalating
- * accent color for a bit of "power level" flavor as you climb.
+ * accent color for a bit of "power level" flavor as you climb. Each span
+ * roughly doubles the last (40, 80, 160, 320, 600): the first level-up is
+ * a couple of matches away, but reaching S-Rank is a real, ambitious grind.
  */
 export const KARMA_LEVELS = [
   {
@@ -110,31 +112,31 @@ export const KARMA_LEVELS = [
   {
     name: "D-Rank Hunter",
     letter: "D",
-    minKarma: 50,
+    minKarma: 40,
     badgeClass: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
   },
   {
     name: "C-Rank Hunter",
     letter: "C",
-    minKarma: 150,
+    minKarma: 120,
     badgeClass: "bg-sky-500/10 text-sky-600 dark:text-sky-400",
   },
   {
     name: "B-Rank Hunter",
     letter: "B",
-    minKarma: 300,
+    minKarma: 280,
     badgeClass: "bg-violet-500/10 text-violet-600 dark:text-violet-400",
   },
   {
     name: "A-Rank Hunter",
     letter: "A",
-    minKarma: 500,
+    minKarma: 600,
     badgeClass: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
   },
   {
     name: "S-Rank Hunter",
     letter: "S",
-    minKarma: 800,
+    minKarma: 1200,
     badgeClass: "bg-rose-500/10 text-rose-600 dark:text-rose-400",
   },
 ] as const;

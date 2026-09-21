@@ -52,6 +52,8 @@ export async function createTournament(input: {
   format: string;
   type: string;
   legs: number;
+  venue?: string;
+  scheduledAt?: string;
   eventId?: string;
 }) {
   const parsed = createTournamentSchema.parse(input);
@@ -68,6 +70,8 @@ export async function createTournament(input: {
     status: TournamentStatus.PENDING,
     ownerId,
     eventId: input.eventId,
+    venue: parsed.venue?.trim() || null,
+    scheduledAt: parsed.scheduledAt ? new Date(parsed.scheduledAt) : null,
   };
 
   let tournament;
@@ -290,13 +294,20 @@ export async function generateKnockoutBracket(tournamentId: string, slots: (stri
   redirect(`/tournaments/${tournamentId}`);
 }
 
-export async function updateTournament(tournamentId: string, input: { name: string }) {
+export async function updateTournament(
+  tournamentId: string,
+  input: { name: string; venue?: string; scheduledAt?: string }
+) {
   await requireTournamentOwner(tournamentId);
   const parsed = editTournamentSchema.parse(input);
 
   await prisma.tournament.update({
     where: { id: tournamentId },
-    data: { name: parsed.name },
+    data: {
+      name: parsed.name,
+      venue: parsed.venue?.trim() || null,
+      scheduledAt: parsed.scheduledAt ? new Date(parsed.scheduledAt) : null,
+    },
   });
 
   revalidatePath("/");

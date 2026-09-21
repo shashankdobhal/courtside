@@ -178,6 +178,8 @@ export default async function TournamentPage({
               <TournamentPageActions
                 tournamentId={tournament.id}
                 name={tournament.name}
+                venue={tournament.venue}
+                scheduledAt={tournament.scheduledAt}
                 canRegenerate={canRegenerate}
                 youtubeUrl={tournament.youtubeUrl}
                 youtubeUrlPublic={tournament.youtubeUrlPublic}

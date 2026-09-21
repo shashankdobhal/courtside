@@ -79,16 +79,16 @@ describe("calculateKarmaLevel", () => {
       level: "E-Rank Hunter",
       levelIndex: 0,
       nextLevel: "D-Rank Hunter",
-      karmaToNextLevel: 50,
+      karmaToNextLevel: 40,
       progressToNextLevel: 0,
     });
   });
 
   it("reports partial progress toward the next level", () => {
-    const result = calculateKarmaLevel(25);
+    const result = calculateKarmaLevel(20);
     expect(result.level).toBe("E-Rank Hunter");
     expect(result.nextLevel).toBe("D-Rank Hunter");
-    expect(result.karmaToNextLevel).toBe(25);
+    expect(result.karmaToNextLevel).toBe(20);
     expect(result.progressToNextLevel).toBeCloseTo(0.5);
   });
 
