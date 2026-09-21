@@ -32,7 +32,7 @@ export async function regenerateFixtures(tournamentId: string) {
     throw new Error("Fixtures can no longer be regenerated once the knockout stage has started");
   }
 
-  const activePlayers = tournament.players.filter((p) => !p.withdrawn);
+  const activePlayers = tournament.players.filter((p) => !p.withdrawn && !p.waitlisted);
   const completedPairings: [string, string | null][] = tournament.matches
     .filter((m) => m.status === MatchStatus.COMPLETED)
     .map((m) => [m.player1Id, m.player2Id]);

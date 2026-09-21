@@ -14,8 +14,8 @@ export function JoinTournamentButton({ tournamentId }: { tournamentId: string })
   const handleJoin = () => {
     startTransition(async () => {
       try {
-        await joinTournament(tournamentId);
-        toast.success("You're in!");
+        const { waitlisted } = await joinTournament(tournamentId);
+        toast.success(waitlisted ? "You're on the waiting list" : "You're in!");
         router.refresh();
       } catch (err) {
         const message =

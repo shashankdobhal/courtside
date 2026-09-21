@@ -2,12 +2,17 @@ import { z } from "zod";
 import { TournamentType, TournamentFormat } from "@/types";
 import { extractYoutubeVideoId } from "@/lib/youtube";
 
+export const MAX_PLAYERS = 32;
+
 export const venueSchema = z
   .string()
   .trim()
   .max(120, "Must be 120 characters or fewer")
   .optional()
   .or(z.literal(""));
+
+/** Optional cap on confirmed roster size — overflow joins land on the waiting list. */
+export const playerLimitSchema = z.number().int().min(2).max(MAX_PLAYERS).optional();
 
 /**
  * Always a string at this boundary — a datetime-local input's raw value on
@@ -36,6 +41,7 @@ export const createTournamentSchema = z.object({
   legs: z.number().int().min(1).max(3),
   venue: venueSchema,
   scheduledAt: scheduledAtSchema,
+  playerLimit: playerLimitSchema,
 });
 export type CreateTournamentInput = z.infer<typeof createTournamentSchema>;
 
@@ -48,7 +54,6 @@ export const playerNameSchema = z.string().trim().min(1, "Name is required").max
 
 export const MIN_PLAYERS_ROUND_ROBIN = 2;
 export const MIN_PLAYERS_KNOCKOUT = 4;
-export const MAX_PLAYERS = 32;
 // Minimum roster size to activate a casual session — enough people for one
 // match: two individuals for singles, four (two per side) for doubles.
 export const MIN_SESSION_PLAYERS_SINGLES = 2;
@@ -126,6 +131,7 @@ export const editTournamentSchema = z.object({
   name: z.string().trim().min(1, "Tournament name is required").max(80),
   venue: venueSchema,
   scheduledAt: scheduledAtSchema,
+  playerLimit: playerLimitSchema,
 });
 export type EditTournamentInput = z.infer<typeof editTournamentSchema>;
 

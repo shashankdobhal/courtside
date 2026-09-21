@@ -13,21 +13,22 @@ datasource db {
 }
 
 model Tournament {
-  id               String   @id @default(cuid())
+  id               String    @id @default(cuid())
   name             String
   type             String // TournamentType: ROUND_ROBIN | ROUND_ROBIN_KNOCKOUT | KNOCKOUT | SESSION -- SESSION is doubles-only (ad-hoc, no generated fixtures); singles is always one of the other three
-  format           String   @default("SINGLES") // TournamentFormat: SINGLES | DOUBLES
-  status           String   @default("PENDING") // TournamentStatus: PENDING | ACTIVE | COMPLETED
-  legs             Int      @default(1) // how many times each pair plays in the league stage (1-3)
-  joinCode         String   @unique // short human-friendly code for self-join, alternative to sharing the full link
+  format           String    @default("SINGLES") // TournamentFormat: SINGLES | DOUBLES
+  status           String    @default("PENDING") // TournamentStatus: PENDING | ACTIVE | COMPLETED
+  legs             Int       @default(1) // how many times each pair plays in the league stage (1-3)
+  joinCode         String    @unique // short human-friendly code for self-join, alternative to sharing the full link
   venue            String? // e.g. "Sportyzo Academy" — shown on the invite share message alongside scheduledAt
   scheduledAt      DateTime? // when the game/tournament is happening — shown on the invite share message
+  playerLimit      Int? // optional cap on confirmed roster size — self-joins/adds beyond it land on the waiting list (see Player.waitlisted)
   youtubeUrl       String? // organizer-pasted YouTube video/live link, always shown as an embed on this tournament's own page
-  youtubeUrlPublic Boolean  @default(false) // opt-in: also list this stream on the public /live hub for signed-out/discovery visitors
+  youtubeUrlPublic Boolean   @default(false) // opt-in: also list this stream on the public /live hub for signed-out/discovery visitors
   ownerId          String? // null for tournaments created before accounts existed, until claimed
   eventId          String? // links this category into a multi-category Event (e.g. Men's Singles under a corporate sports day); null for a standalone tournament
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
   owner    User?     @relation(fields: [ownerId], references: [id], onDelete: SetNull)
   event    Event?    @relation(fields: [eventId], references: [id], onDelete: Cascade)
@@ -218,13 +219,15 @@ model CoachingRequest {
 }
 
 model Player {
-  id               String  @id @default(cuid())
+  id               String   @id @default(cuid())
   tournamentId     String
   name             String
   alias            String? // optional fun nickname shown in place of the real name
   profileId        String? // links to a reusable cross-tournament identity; null for legacy rows until backfilled
   partnerProfileId String? // doubles only: this Player row is a two-person team; profileId + partnerProfileId are its two members
-  withdrawn        Boolean @default(false)
+  withdrawn        Boolean  @default(false)
+  waitlisted       Boolean  @default(false) // past the tournament's playerLimit at join time — shown separately, excluded from fixture generation
+  createdAt        DateTime @default(now()) // join order — decides who's promoted first when a waitlist spot opens up
 
   tournament     Tournament     @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
   profile        PlayerProfile? @relation(fields: [profileId], references: [id], onDelete: SetNull)

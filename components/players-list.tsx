@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { PlayerAvatar } from "@/components/player-avatar";
 import { EditPlayerDialog } from "@/components/edit-player-dialog";
 import { PlayerActionsMenu } from "@/components/player-actions-menu";
+import { PromoteFromWaitlistButton } from "@/components/promote-from-waitlist-button";
 import { displayName } from "@/utils/format";
 import { cn } from "@/lib/utils";
 
@@ -16,6 +17,7 @@ export interface PlayersListPlayer {
   alias: string | null;
   profileId: string | null;
   withdrawn: boolean;
+  waitlisted: boolean;
   profile?: { company: string | null } | null;
   partnerProfile?: { company: string | null } | null;
 }
@@ -66,6 +68,11 @@ export function PlayersList({
                     Withdrawn
                   </Badge>
                 )}
+                {player.waitlisted && !player.withdrawn && (
+                  <Badge variant="secondary" className="shrink-0">
+                    Waitlisted
+                  </Badge>
+                )}
               </div>
               {player.alias && (
                 <p className="truncate text-xs text-muted-foreground">{player.name}</p>
@@ -75,7 +82,10 @@ export function PlayersList({
               )}
             </div>
           </div>
-          {isOwner && !player.withdrawn && (
+          {isOwner && !player.withdrawn && player.waitlisted && (
+            <PromoteFromWaitlistButton playerId={player.id} playerName={player.name} />
+          )}
+          {isOwner && !player.withdrawn && !player.waitlisted && (
             <PlayerActionsMenu
               playerId={player.id}
               playerName={player.name}
