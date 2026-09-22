@@ -64,6 +64,12 @@ export const createEventSchema = z.object({
 });
 export type CreateEventInput = z.infer<typeof createEventSchema>;
 
+export const createCommunitySchema = z.object({
+  name: z.string().trim().min(1, "Community name is required").max(80),
+  description: z.string().trim().max(280).optional().or(z.literal("")),
+});
+export type CreateCommunityInput = z.infer<typeof createCommunitySchema>;
+
 export const playerNameSchema = z.string().trim().min(1, "Name is required").max(40);
 
 export const MIN_PLAYERS_ROUND_ROBIN = 2;

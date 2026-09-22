@@ -60,6 +60,28 @@ export async function requireEventOwner(eventId: string) {
   return { session, event };
 }
 
+/**
+ * Throws unless the signed-in user is an approved admin of the given
+ * community. Mirrors requireTournamentOwner/requireEventOwner — the single
+ * source of truth for "who can approve requests or nominate admins here."
+ */
+export async function requireCommunityAdmin(communityId: string) {
+  const session = await requireSignedIn();
+
+  const profile = await prisma.playerProfile.findUnique({ where: { userId: session.user.id } });
+  const membership = profile
+    ? await prisma.communityMembership.findUnique({
+        where: { communityId_profileId: { communityId, profileId: profile.id } },
+      })
+    : null;
+
+  if (!membership || membership.role !== "ADMIN" || membership.status !== "APPROVED") {
+    throw new Error("You don't have admin access to this community");
+  }
+
+  return { session, membership };
+}
+
 export async function requireSignedIn() {
   const session = await auth();
   if (!session?.user?.id) throw new Error("You need to sign in first");
