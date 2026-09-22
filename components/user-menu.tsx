@@ -8,7 +8,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { signOutAction } from "@/lib/actions/auth";
-import { LogOut, User, GraduationCap, Newspaper, BookOpen, ShieldCheck } from "lucide-react";
+import { LogOut, User, Users, GraduationCap, Newspaper, BookOpen, ShieldCheck } from "lucide-react";
 
 export function UserMenu({
   name,
@@ -45,6 +45,12 @@ export function UserMenu({
           <Link href="/profile">
             <User className="size-3.5" />
             My Profile
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link href="/communities">
+            <Users className="size-3.5" />
+            Communities
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>

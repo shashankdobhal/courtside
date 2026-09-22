@@ -7,7 +7,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { GraduationCap, Newspaper, BookOpen, Menu } from "lucide-react";
+import { Users, GraduationCap, Newspaper, BookOpen, Menu } from "lucide-react";
 
 /**
  * Signed-out mobile visitors have no account avatar to carry the dropdown
@@ -28,6 +28,12 @@ export function MobileMenu() {
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
+        <DropdownMenuItem asChild>
+          <Link href="/communities">
+            <Users className="size-3.5" />
+            Communities
+          </Link>
+        </DropdownMenuItem>
         <DropdownMenuItem asChild>
           <Link href="/coaches">
             <GraduationCap className="size-3.5" />

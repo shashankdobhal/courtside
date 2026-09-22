@@ -22,7 +22,7 @@ model Tournament {
   joinCode         String    @unique // short human-friendly code for self-join, alternative to sharing the full link
   venue            String? // e.g. "Sportyzo Academy" — shown on the invite share message alongside scheduledAt
   scheduledAt      DateTime? // when the game/tournament is happening — shown on the invite share message
-  skillLevels      String[] @default([]) // SkillLevel[]: which of BEGINNER/INTERMEDIATE/ADVANCED/PROFESSIONAL this game suits — shown on the invite share message as "Level"
+  skillLevels      String[]  @default([]) // SkillLevel[]: which of BEGINNER/INTERMEDIATE/ADVANCED/PROFESSIONAL this game suits — shown on the invite share message as "Level"
   playerLimit      Int? // optional cap on confirmed roster size — self-joins/adds beyond it land on the waiting list (see Player.waitlisted)
   youtubeUrl       String? // organizer-pasted YouTube video/live link, always shown as an embed on this tournament's own page
   youtubeUrlPublic Boolean   @default(false) // opt-in: also list this stream on the public /live hub for signed-out/discovery visitors
@@ -171,11 +171,12 @@ model PlayerProfile {
   players          Player[]
   partneredPlayers Player[] @relation("PlayerPartnerProfile")
 
-  followers                Follow[]          @relation("ProfileFollowers")
-  following                Follow[]          @relation("ProfileFollowing")
-  coachingRequestsReceived CoachingRequest[] @relation("CoachingRequestsReceived")
-  coachingRequestsSent     CoachingRequest[] @relation("CoachingRequestsSent")
+  followers                Follow[]              @relation("ProfileFollowers")
+  following                Follow[]              @relation("ProfileFollowing")
+  coachingRequestsReceived CoachingRequest[]     @relation("CoachingRequestsReceived")
+  coachingRequestsSent     CoachingRequest[]     @relation("CoachingRequestsSent")
   learnPosts               LearnPost[]
+  communityMemberships     CommunityMembership[]
 
   @@index([name])
 }
@@ -328,6 +329,45 @@ model ExpenseParticipant {
 
   @@unique([expenseId, playerId])
   @@index([playerId])
+}
+
+/**
+ * A group of players sharing one community leaderboard — e.g. a club or a
+ * regular Sunday-morning group. Public and browsable; anyone signed in can
+ * request to join, and an admin approves. A player can belong to (and admin)
+ * more than one community.
+ */
+model Community {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+
+  memberships CommunityMembership[]
+
+  @@index([name])
+}
+
+/**
+ * One player's membership in one community — the join row that carries both
+ * the request/approval lifecycle (status) and the admin/member distinction
+ * (role). A brand-new community's creator gets an ADMIN + APPROVED row here
+ * immediately, so there's always at least one admin who can approve others.
+ */
+model CommunityMembership {
+  id          String   @id @default(cuid())
+  communityId String
+  profileId   String
+  role        String   @default("MEMBER") // CommunityRole: ADMIN | MEMBER
+  status      String   @default("PENDING") // CommunityMembershipStatus: PENDING | APPROVED
+  createdAt   DateTime @default(now())
+
+  community Community     @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  profile   PlayerProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@unique([communityId, profileId])
+  @@index([communityId])
+  @@index([profileId])
 }
 
 model NewsItem {

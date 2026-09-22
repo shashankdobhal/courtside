@@ -39,6 +39,19 @@ export const MatchStatus = {
 } as const;
 export type MatchStatus = (typeof MatchStatus)[keyof typeof MatchStatus];
 
+export const CommunityRole = {
+  ADMIN: "ADMIN",
+  MEMBER: "MEMBER",
+} as const;
+export type CommunityRole = (typeof CommunityRole)[keyof typeof CommunityRole];
+
+export const CommunityMembershipStatus = {
+  PENDING: "PENDING",
+  APPROVED: "APPROVED",
+} as const;
+export type CommunityMembershipStatus =
+  (typeof CommunityMembershipStatus)[keyof typeof CommunityMembershipStatus];
+
 export const Round = {
   LEAGUE: "LEAGUE",
   SEMI_FINAL_1: "SEMI_FINAL_1",
