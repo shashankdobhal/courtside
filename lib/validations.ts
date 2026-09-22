@@ -207,6 +207,12 @@ export const editPlayerProfileSchema = z.object({
     .regex(/^[\w.+-]{2,}@[a-zA-Z]{2,}$/, "Enter a valid UPI ID, like name@bank")
     .optional()
     .or(z.literal("")),
+  playingLevel: z.enum([
+    SkillLevel.BEGINNER,
+    SkillLevel.INTERMEDIATE,
+    SkillLevel.ADVANCED,
+    SkillLevel.PROFESSIONAL,
+  ]),
   isCoach: z.boolean(),
   coachYearsExperience: z.number().int().min(0).max(60).optional(),
   coachSkills: z

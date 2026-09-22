@@ -67,8 +67,9 @@ export async function requireOwnProfile(profileId: string) {
 }
 
 /**
- * Descriptive-only fields a player sets on their own profile. Purely
- * cosmetic — never factored into computed stats or leaderboard ranking.
+ * Fields a player sets on their own profile. Mostly descriptive/cosmetic —
+ * never factored into computed stats — except playingLevel, which is
+ * self-reported and will drive tier ranking within a community.
  */
 export async function updatePlayerProfileDetails(profileId: string, input: EditPlayerProfileInput) {
   await requireOwnProfile(profileId);
@@ -83,6 +84,7 @@ export async function updatePlayerProfileDetails(profileId: string, input: EditP
       hometown: parsed.hometown?.trim() || null,
       company: parsed.company?.trim() || null,
       upiId: parsed.upiId?.trim() || null,
+      playingLevel: parsed.playingLevel,
       isCoach: parsed.isCoach,
       coachYearsExperience: parsed.isCoach ? (parsed.coachYearsExperience ?? null) : null,
       coachSkills: parsed.isCoach ? parsed.coachSkills?.trim() || null : null,
@@ -216,6 +218,7 @@ export async function getPlayerProfileStats(profileId: string) {
       hometown: profile.hometown,
       company: profile.company,
       upiId: profile.upiId,
+      playingLevel: profile.playingLevel,
       isCoach: profile.isCoach,
       coachYearsExperience: profile.coachYearsExperience,
       coachSkills: profile.coachSkills,

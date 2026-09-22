@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { EditPlayerProfileDialog } from "@/components/edit-player-profile-dialog";
 import { SeasonOptInToggle } from "@/components/season-opt-in-toggle";
 import { Pencil, GraduationCap, ArrowRight } from "lucide-react";
+import type { SkillLevel } from "@/types";
 
 export function ProfileEditor({
   profileId,
@@ -14,6 +15,7 @@ export function ProfileEditor({
   hometown,
   company,
   upiId,
+  playingLevel,
   isCoach,
   coachYearsExperience,
   coachSkills,
@@ -27,6 +29,7 @@ export function ProfileEditor({
   hometown: string | null;
   company: string | null;
   upiId: string | null;
+  playingLevel: SkillLevel;
   isCoach: boolean;
   coachYearsExperience: number | null;
   coachSkills: string | null;
@@ -72,6 +75,7 @@ export function ProfileEditor({
         hometown={hometown}
         company={company}
         upiId={upiId}
+        playingLevel={playingLevel}
         isCoach={isCoach}
         coachYearsExperience={coachYearsExperience}
         coachSkills={coachSkills}
