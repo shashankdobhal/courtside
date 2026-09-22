@@ -161,6 +161,7 @@ model PlayerProfile {
   hometown     String?
   company      String? // e.g. employer/team name, shown on the roster for corporate tournaments
   upiId        String? // UPI VPA (e.g. name@bank), used to build "Pay" links on the expense settle-up list
+  playingLevel String   @default("BEGINNER") // SkillLevel: BEGINNER | INTERMEDIATE | ADVANCED | PROFESSIONAL — self-reported, shown on the profile and used to rank this player within a community's tier
 
   isCoach              Boolean @default(false) // opts this profile into the /coaches directory
   coachYearsExperience Int?

@@ -19,7 +19,8 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { tournamentStatusLabel } from "@/utils/format";
-import { TournamentStatus } from "@/types";
+import { skillLevelLabel } from "@/lib/tournament-display";
+import { TournamentStatus, type SkillLevel } from "@/types";
 import { Trophy, Flame } from "lucide-react";
 import { auth } from "@/auth";
 
@@ -66,6 +67,9 @@ export default async function PlayerProfilePage({
             <div>
               <div className="flex flex-wrap items-center gap-2">
                 <h1 className="font-heading text-2xl font-bold tracking-tight">{profile.name}</h1>
+                <Badge variant="outline">
+                  {skillLevelLabel[profile.playingLevel as SkillLevel] ?? profile.playingLevel}
+                </Badge>
                 {profile.isCoach && <Badge variant="secondary">Coach</Badge>}
               </div>
               {bioLine && <p className="text-sm text-muted-foreground">{bioLine}</p>}
@@ -80,6 +84,7 @@ export default async function PlayerProfilePage({
               hometown={profile.hometown}
               company={profile.company}
               upiId={profile.upiId}
+              playingLevel={profile.playingLevel as SkillLevel}
               isCoach={profile.isCoach}
               coachYearsExperience={profile.coachYearsExperience}
               coachSkills={profile.coachSkills}

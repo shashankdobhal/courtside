@@ -16,8 +16,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { editPlayerProfileSchema, type EditPlayerProfileInput } from "@/lib/validations";
 import { updatePlayerProfileDetails } from "@/lib/actions/player-profiles";
+import { skillLevelLabel, skillLevelOptions } from "@/lib/tournament-display";
+import { SkillLevel } from "@/types";
 import { Loader2 } from "lucide-react";
 
 export function EditPlayerProfileDialog({
@@ -28,6 +37,7 @@ export function EditPlayerProfileDialog({
   hometown,
   company,
   upiId,
+  playingLevel,
   isCoach,
   coachYearsExperience,
   coachSkills,
@@ -42,6 +52,7 @@ export function EditPlayerProfileDialog({
   hometown: string | null;
   company: string | null;
   upiId: string | null;
+  playingLevel: SkillLevel;
   isCoach: boolean;
   coachYearsExperience: number | null;
   coachSkills: string | null;
@@ -69,6 +80,7 @@ export function EditPlayerProfileDialog({
       hometown: hometown ?? "",
       company: company ?? "",
       upiId: upiId ?? "",
+      playingLevel,
       isCoach,
       coachYearsExperience: coachYearsExperience ?? undefined,
       coachSkills: coachSkills ?? "",
@@ -85,6 +97,7 @@ export function EditPlayerProfileDialog({
         hometown: hometown ?? "",
         company: company ?? "",
         upiId: upiId ?? "",
+        playingLevel,
         isCoach,
         coachYearsExperience: coachYearsExperience ?? undefined,
         coachSkills: coachSkills ?? "",
@@ -101,6 +114,7 @@ export function EditPlayerProfileDialog({
     hometown,
     company,
     upiId,
+    playingLevel,
     isCoach,
     coachYearsExperience,
     coachSkills,
@@ -220,6 +234,31 @@ export function EditPlayerProfileDialog({
                 Lets others pay you straight from the expense settle-up list.
               </p>
             )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="profile-playing-level">Playing level</Label>
+            <Controller
+              name="playingLevel"
+              control={control}
+              render={({ field }) => (
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <SelectTrigger id="profile-playing-level" className="h-11 w-full text-base">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {skillLevelOptions.map((level) => (
+                      <SelectItem key={level} value={level}>
+                        {skillLevelLabel[level]}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+            <p className="text-xs text-muted-foreground">
+              Which tier you play in — used to rank you within a community.
+            </p>
           </div>
 
           <div className="flex items-center justify-between gap-3 rounded-lg border p-3">
