@@ -58,15 +58,15 @@ export function MatchCard({
         style={{ animationDelay: `${Math.min(index, 12) * 40}ms` }}
       >
         <div className="flex min-w-0 flex-1 flex-col gap-1">
-          <div className="flex min-w-0 items-center justify-between gap-3">
+          <div className="flex min-w-0 items-start justify-between gap-3">
             <PlayerLabel
               name={match.player1Name}
               score={match.score1}
               isWinner={isCompleted && match.winnerId === match.player1Id}
             />
-            <span className="shrink-0 text-xs font-medium text-muted-foreground">vs</span>
+            <span className="mt-0.5 shrink-0 text-xs font-medium text-muted-foreground">vs</span>
             {isBye ? (
-              <span className="shrink-0 text-sm text-muted-foreground italic">Bye</span>
+              <span className="mt-0.5 shrink-0 text-sm text-muted-foreground italic">Bye</span>
             ) : (
               <PlayerLabel
                 name={match.player2Name}
@@ -161,17 +161,32 @@ function PlayerLabel({
   return (
     <div
       className={cn(
-        "flex min-w-0 flex-1 items-center gap-2",
+        "flex min-w-0 flex-1 items-start gap-2",
         align === "right" && "flex-row-reverse text-right"
       )}
     >
-      <PlayerAvatar name={name} className={cn(isWinner && "ring-2 ring-amber-400 ring-offset-1")} />
-      {isWinner && <Trophy className="size-3.5 shrink-0 text-amber-500" />}
-      <span className={cn("truncate text-sm", isWinner ? "font-semibold" : "text-foreground")}>
+      <PlayerAvatar
+        name={name}
+        className={cn("mt-0.5", isWinner && "ring-2 ring-amber-400 ring-offset-1")}
+      />
+      {/* No truncate: short names stay on one line, long ones wrap to a
+          second instead of losing characters to an ellipsis. */}
+      <span
+        className={cn(
+          "min-w-0 flex-1 text-sm break-words",
+          isWinner ? "font-semibold" : "text-foreground"
+        )}
+      >
         {name}
       </span>
+      {isWinner && <Trophy className="mt-0.5 size-3.5 shrink-0 text-amber-500" />}
       {score !== null && (
-        <span className={cn("shrink-0 text-sm tabular-nums", isWinner ? "font-semibold" : "text-muted-foreground")}>
+        <span
+          className={cn(
+            "mt-0.5 shrink-0 text-sm tabular-nums",
+            isWinner ? "font-semibold" : "text-muted-foreground"
+          )}
+        >
           {score}
         </span>
       )}
