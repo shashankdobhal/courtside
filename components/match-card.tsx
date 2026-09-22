@@ -58,7 +58,7 @@ export function MatchCard({
         style={{ animationDelay: `${Math.min(index, 12) * 40}ms` }}
       >
         <div className="flex min-w-0 flex-1 flex-col gap-1">
-          <div className="flex min-w-0 items-start justify-between gap-3">
+          <div className="flex flex-wrap items-start gap-x-3 gap-y-1.5">
             <PlayerLabel
               name={match.player1Name}
               score={match.score1}
@@ -66,7 +66,7 @@ export function MatchCard({
             />
             <span className="mt-0.5 shrink-0 text-xs font-medium text-muted-foreground">vs</span>
             {isBye ? (
-              <span className="mt-0.5 shrink-0 text-sm text-muted-foreground italic">Bye</span>
+              <span className="mt-0.5 ml-auto shrink-0 text-sm text-muted-foreground italic">Bye</span>
             ) : (
               <PlayerLabel
                 name={match.player2Name}
@@ -161,16 +161,19 @@ function PlayerLabel({
   return (
     <div
       className={cn(
-        "flex min-w-0 flex-1 items-start gap-2",
-        align === "right" && "flex-row-reverse text-right"
+        // A width floor so the whole label wraps to its own line as a unit
+        // when the row is tight, instead of shrinking so far the name
+        // starts breaking mid-word.
+        "flex min-w-32 flex-1 items-start gap-2",
+        align === "right" && "ml-auto justify-end text-right"
       )}
     >
       <PlayerAvatar
         name={name}
         className={cn("mt-0.5", isWinner && "ring-2 ring-amber-400 ring-offset-1")}
       />
-      {/* No truncate: short names stay on one line, long ones wrap to a
-          second instead of losing characters to an ellipsis. */}
+      {/* No truncate: short names stay on one line, long ones wrap at a
+          word boundary instead of losing characters to an ellipsis. */}
       <span
         className={cn(
           "min-w-0 flex-1 text-sm break-words",
