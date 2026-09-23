@@ -178,6 +178,8 @@ model PlayerProfile {
   coachingRequestsSent     CoachingRequest[]     @relation("CoachingRequestsSent")
   learnPosts               LearnPost[]
   communityMemberships     CommunityMembership[]
+  questDayCompletions      QuestDayCompletion[]
+  questTaskCompletions     QuestTaskCompletion[]
 
   @@index([name])
 }
@@ -382,4 +384,88 @@ model NewsItem {
   createdAt   DateTime @default(now())
 
   @@index([publishedAt])
+}
+
+/**
+ * One day of the Duolingo-style "200 Day Quest" badminton curriculum —
+ * static content, seeded once from the curriculum spreadsheet, never
+ * edited through the app. id is the curriculum's own day_id (e.g.
+ * "DAY-001") rather than a generated cuid, since it's stable reference
+ * data rather than a user-created row.
+ */
+model QuestDay {
+  id                String   @id
+  dayNumber         Int      @unique
+  phaseNumber       Int
+  phaseName         String
+  questTitle        String
+  activityMode      String // learn | practice | review | assessment | challenge
+  dailyOutcome      String
+  primarySkill      String
+  skillDescription  String?
+  reviewOfDayNumber Int? // set on review/assessment days: which earlier day this reinforces
+  estimatedMinutes  Int?
+  videoUrl          String?
+  videoTitle        String?
+  videoCreator      String?
+  videoWatchNote    String? // curated guidance on which part of the video to watch
+  createdAt         DateTime @default(now())
+
+  tasks       QuestTask[]
+  completions QuestDayCompletion[]
+
+  @@index([phaseNumber])
+}
+
+/**
+ * One checklist item within a QuestDay (watch video, shadow-practice,
+ * drill, ...). Same seeded-once, never-edited nature as QuestDay; id is
+ * the curriculum's own task_id (e.g. "TASK-001-01").
+ */
+model QuestTask {
+  id          String @id
+  dayId       String
+  taskOrder   Int
+  taskType    String // video | shadow | drill | repeat | warmup | challenge | assessment | reflection
+  instruction String
+  repetitions Int?
+  sets        Int?
+
+  day         QuestDay              @relation(fields: [dayId], references: [id], onDelete: Cascade)
+  completions QuestTaskCompletion[]
+
+  @@index([dayId])
+}
+
+/**
+ * A player has finished every required task in a QuestDay. Created once
+ * all of that day's QuestTaskCompletion rows exist — this is what
+ * actually unlocks the next day (the highest completed dayNumber + 1).
+ */
+model QuestDayCompletion {
+  id          String   @id @default(cuid())
+  profileId   String
+  dayId       String
+  completedAt DateTime @default(now())
+
+  profile PlayerProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  day     QuestDay      @relation(fields: [dayId], references: [id], onDelete: Cascade)
+
+  @@unique([profileId, dayId])
+  @@index([profileId])
+  @@index([dayId])
+}
+
+model QuestTaskCompletion {
+  id          String   @id @default(cuid())
+  profileId   String
+  taskId      String
+  completedAt DateTime @default(now())
+
+  profile PlayerProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  task    QuestTask     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@unique([profileId, taskId])
+  @@index([profileId])
+  @@index([taskId])
 }
