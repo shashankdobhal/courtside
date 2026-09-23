@@ -5,6 +5,12 @@ import { prisma } from "@/lib/prisma";
 import { requireSignedIn } from "@/lib/auth-helpers";
 import { resolveOrCreateUserPlayerProfile } from "@/lib/actions/player-profiles";
 import { calculatePlayStreak } from "@/lib/algorithms/gamification";
+import { QUEST_TOTAL_DAYS } from "@/lib/quest-display";
+
+// TEMP: every day unlocked for everyone while the curriculum is under
+// review. Flip back to false to restore the real sequential unlock below —
+// that logic is untouched and still correct on its own.
+const QUESTS_UNLOCKED_FOR_REVIEW = true;
 
 /**
  * The next day a profile is allowed into — one past the highest QuestDay
@@ -13,6 +19,7 @@ import { calculatePlayStreak } from "@/lib/algorithms/gamification";
  * is no separate "current day" field to keep in sync with completions.
  */
 async function unlockedThroughDayNumber(profileId: string | null): Promise<number> {
+  if (QUESTS_UNLOCKED_FOR_REVIEW) return QUEST_TOTAL_DAYS + 1;
   if (!profileId) return 1;
 
   const completions = await prisma.questDayCompletion.findMany({
@@ -29,7 +36,7 @@ async function unlockedThroughDayNumber(profileId: string | null): Promise<numbe
  * QuestDayCompletion timestamps (see calculatePlayStreak).
  */
 export async function getQuestOverview(profileId: string | null, timeZone: string) {
-  const [days, completions] = await Promise.all([
+  const [days, completions, unlockedThrough] = await Promise.all([
     prisma.questDay.findMany({ orderBy: { dayNumber: "asc" } }),
     profileId
       ? prisma.questDayCompletion.findMany({
@@ -37,14 +44,10 @@ export async function getQuestOverview(profileId: string | null, timeZone: strin
           select: { dayId: true, completedAt: true },
         })
       : Promise.resolve([]),
+    unlockedThroughDayNumber(profileId),
   ]);
 
   const completedDayIds = new Set(completions.map((c) => c.dayId));
-  const unlockedThrough = completions.length
-    ? days
-        .filter((d) => completedDayIds.has(d.id))
-        .reduce((max, d) => Math.max(max, d.dayNumber), 0) + 1
-    : 1;
 
   const streak = calculatePlayStreak(
     completions.map((c) => c.completedAt),
