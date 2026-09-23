@@ -3,10 +3,14 @@ import { Flame } from "lucide-react";
 import { getMyTournaments } from "@/lib/actions/tournaments";
 import { getPlayerGamificationStats } from "@/lib/actions/gamification";
 import { getMyProfileStats } from "@/lib/actions/player-profiles";
+import { getQuestOverview } from "@/lib/actions/quests";
+import { listCommunitiesForViewer } from "@/lib/actions/communities";
 import { LandingPage } from "@/components/landing-page";
 import { PrimaryGameActions } from "@/components/primary-game-actions";
 import { ActiveGameCard } from "@/components/active-game-card";
 import { EventGroup } from "@/components/event-group";
+import { QuestContinueCard } from "@/components/quest-continue-card";
+import { CommunitiesStrip } from "@/components/communities-strip";
 import { RecentResultsList, type RecentResult } from "@/components/recent-results-list";
 import { PersonalStatsTile } from "@/components/personal-stats-tile";
 import { GamificationPanel } from "@/components/gamification-panel";
@@ -15,7 +19,7 @@ import { GameHistoryList } from "@/components/game-history-list";
 import { EmptyState } from "@/components/empty-state";
 import { Greeting } from "@/components/greeting";
 import { RankBadge } from "@/components/rank-badge";
-import { TournamentStatus } from "@/types";
+import { TournamentStatus, CommunityMembershipStatus } from "@/types";
 import { auth } from "@/auth";
 import { getViewerTimeZone } from "@/lib/timezone";
 
@@ -60,11 +64,19 @@ export default async function HomePage() {
   }
 
   const timeZone = await getViewerTimeZone();
-  const [tournaments, gamificationStats, profileStats] = await Promise.all([
+  const [tournaments, gamificationStats, profileStats, communities] = await Promise.all([
     getMyTournaments(userId!),
     getPlayerGamificationStats(userId!, timeZone),
     getMyProfileStats(userId!),
+    listCommunitiesForViewer(userId),
   ]);
+  const questOverview = profileStats
+    ? await getQuestOverview(profileStats.profile.id, timeZone)
+    : null;
+
+  const myCommunities = communities
+    .filter((c) => c.viewerMembership?.status === CommunityMembershipStatus.APPROVED)
+    .map((c) => ({ id: c.id, name: c.name, role: c.viewerMembership!.role }));
 
   const hasAnyGames = tournaments.length > 0;
   const activeGames = tournaments.filter(
@@ -127,6 +139,14 @@ export default async function HomePage() {
 
         <PrimaryGameActions joinFirst={!hasAnyGames} />
 
+        {questOverview && questOverview.completedCount > 0 && (
+          <QuestContinueCard
+            completedCount={questOverview.completedCount}
+            unlockedThrough={questOverview.unlockedThrough}
+            streakCurrent={questOverview.streak.current}
+          />
+        )}
+
         {hasAnyGames && (
           <div className="space-y-3">
             <h2 className="text-xs font-bold tracking-[0.08em] text-muted-foreground uppercase">
@@ -154,6 +174,15 @@ export default async function HomePage() {
                 })}
               </div>
             )}
+          </div>
+        )}
+
+        {myCommunities.length > 0 && (
+          <div className="space-y-3">
+            <h2 className="text-xs font-bold tracking-[0.08em] text-muted-foreground uppercase">
+              Your Communities
+            </h2>
+            <CommunitiesStrip communities={myCommunities} />
           </div>
         )}
 
